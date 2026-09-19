@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,10 +24,21 @@ const coord = (p: LatLng) => ({ latitude: p.lat, longitude: p.lng });
 
 // The routes drawn on the top third of the screen, with the header controls floating over them.
 // No live location dot and no search: the map is here to show where the routes differ.
-export function MapArea({ commute, routes, onRefresh, onDemo, demoOn }: Props) {
+export function MapArea({ commute, routes, onSelectRoute, onRefresh, onDemo, demoOn }: Props) {
   const insets = useSafeAreaInsets();
   const map = useRef<MapView>(null);
+  const [ready, setReady] = useState(false);
   const paths = usePaths(routes);
+
+  // The whole commute is on screen without anyone panning or zooming, and it re-fits whenever the routes change.
+  useEffect(() => {
+    const points = [...paths.values()].flat();
+    if (!ready || points.length === 0) return;
+    map.current?.fitToCoordinates(points, {
+      edgePadding: { top: insets.top + 64, right: 44, bottom: 52, left: 44 },
+      animated: true,
+    });
+  }, [ready, paths, insets.top]);
 
   return (
     <View style={styles.map}>
@@ -35,6 +46,7 @@ export function MapArea({ commute, routes, onRefresh, onDemo, demoOn }: Props) {
         ref={map}
         style={StyleSheet.absoluteFill}
         provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
+        onMapReady={() => setReady(true)}
         initialRegion={regionAround([commute.origin.location, commute.destination.location])}
         customMapStyle={darkMapStyle}
         userInterfaceStyle="dark"
@@ -49,6 +61,21 @@ export function MapArea({ commute, routes, onRefresh, onDemo, demoOn }: Props) {
         rotateEnabled={false}
         pitchEnabled={false}
       >
+        {/* A wide invisible line under each route: a 4 pt line is too thin to hit with a thumb. */}
+        {routes.map((r) => {
+          const path = paths.get(r.id);
+          return path ? (
+            <Polyline
+              key={`hit-${r.id}`}
+              coordinates={path}
+              strokeColor="rgba(0,0,0,0.01)"
+              strokeWidth={22}
+              zIndex={0}
+              tappable
+              onPress={() => onSelectRoute(r.id)}
+            />
+          ) : null;
+        })}
         {/* The selected route is drawn last so it sits over the others. */}
         {[...routes].sort((a, b) => Number(a.selected) - Number(b.selected)).map((r) => {
           const path = paths.get(r.id);
@@ -61,6 +88,8 @@ export function MapArea({ commute, routes, onRefresh, onDemo, demoOn }: Props) {
               zIndex={r.selected ? 2 : 1}
               lineCap="round"
               lineJoin="round"
+              tappable
+              onPress={() => onSelectRoute(r.id)}
             />
           ) : null;
         })}
