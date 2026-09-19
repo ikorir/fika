@@ -110,7 +110,7 @@ Inputs: the commute settings, a set of route samples, the current time, and an o
 ### Backend contract
 - **Routes endpoint** — input: origin, destination, deadline, usual departure time. It queries Google Routes (`DRIVE`, `TRAFFIC_AWARE_OPTIMAL`, alternatives on) for about 6 departure times in parallel, stepping back from the deadline in 10–15 minute increments and including "now" and the usual departure time. Driving has no arrive-by in the Routes API, hence the search. Output: a list of samples, each with its departure time and up to 3 routes (label from the route's main road, duration, static duration, distance, encoded polyline). No decision logic. Responses cached per commute for a few minutes.
 - **Draft endpoint** — input: facts already computed by the engine (state, deadline, leave-by, ETA as display strings, rounded lateness, per-route traffic delays, recipient name and relationship, tone, language, optional rain flag). One Claude call (Haiku 4.5) returning JSON with `decision_line`, `conditions_note`, `notice`. Claude is told never to compute or alter numbers.
-- **Draft guard** — the response is schema-validated, and the notice must contain the exact ETA string that was passed in. On any failure (timeout, invalid JSON, missing ETA) the endpoint returns a deterministic template in the requested language. The app has the same English template for offline use. This is what makes story 41 and 42 true.
+- **Draft guard** — the response is schema-validated, and the notice must contain the exact ETA string that was passed in. On any failure (timeout, invalid JSON, missing ETA) the endpoint returns a deterministic template in the requested language and tone. The app has the same six notices for offline use. This is what makes story 41 and 42 true.
 - **Places proxy** — autocomplete and place details, passthrough, restricted to Kenya.
 
 ### App
@@ -199,7 +199,7 @@ type DraftRequest = {
 type DraftResponse = { decision_line: string; conditions_note: string; notice: string; source: "claude" | "template" };
 ```
 
-Errors are `{ error: string }` with a 4xx or 5xx status. The draft endpoint never errors for a Claude failure; it answers with `source: "template"`. Model: `claude-haiku-4-5-20251001`, short timeout (about 6 seconds).
+Errors are `{ error: string }` with a 4xx or 5xx status. The draft endpoint never errors for a Claude failure; it answers with `source: "template"`. Model by language: English `claude-haiku-4-5-20251001`, about 6 seconds; Swahili and Sheng `claude-sonnet-5` with thinking off, about 10 seconds — Haiku invents Swahili words and reverses who is waiting for whom in Sheng, and Swahili and Sheng are only ever asked for the notice, which the commuter reads in Fika's own words while it is written.
 
 ### Stored commute (AsyncStorage, one key)
 

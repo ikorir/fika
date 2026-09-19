@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { theme } from '@/theme';
 import { LANGUAGES, TONES, type Language, type Tone } from '@/notice/voice';
+import { theme } from '@/theme';
 
 const { color, type } = theme;
 
