@@ -100,6 +100,7 @@ export default function TodayScreen() {
         )}
       </ScrollView>
       <ActionArea
+        commute={commute}
         updatedAt={data?.fetchedAt}
         evaluation={evaluation}
         onSelectRoute={setSelectedId}
