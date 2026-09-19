@@ -1,15 +1,13 @@
 // Temporary: stands in for the commute engine's route list until ticket #4 builds evaluate().
 // Delete this file once the screen renders an Evaluation.
 import type { Commute, RouteView, Sample } from '@/contract';
-import { nairobiTimeOnDay } from '@/time';
+import { commuteDeadline } from '@/time';
 
 const MIN = 60_000;
 
 export function skeletonRouteViews(sample: Sample, commute: Commute, selectedRouteId?: string): RouteView[] {
   const departMs = Date.parse(sample.departAt);
-  // Measured against the next deadline, so an evening check reads against tomorrow morning.
-  let deadlineMs = Date.parse(nairobiTimeOnDay(commute.arriveBy, new Date(sample.departAt)));
-  if (deadlineMs < departMs) deadlineMs += 24 * 60 * MIN;
+  const deadlineMs = Date.parse(commuteDeadline(commute.arriveBy, new Date(sample.departAt)));
   const views = sample.routes.map((r) => {
     const arriveMs = departMs + r.durationSec * 1000 + commute.extraMin * MIN;
     return {

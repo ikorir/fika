@@ -122,6 +122,6 @@ const styles = StyleSheet.create({
   },
   meta: { ...type.meta, color: color.textMuted },
   end: { alignItems: 'flex-end', gap: 2 },
-  arrive: { fontFamily: theme.font.bold, fontSize: 16, color: color.text },
-  delta: { fontFamily: theme.font.semibold, fontSize: 13 },
+  arrive: { ...type.rowTime, color: color.text },
+  delta: type.metaStrong,
 });

@@ -15,3 +15,18 @@ export function nairobiTimeOnDay(hhmm: string, now: Date): string {
   const day = `${local.getUTCFullYear()}-${pad(local.getUTCMonth() + 1)}-${pad(local.getUTCDate())}`;
   return `${day}T${hhmm}:00+03:00`;
 }
+
+/** "09:00" → "9:00": a stored commute time, formatted like formatTime. */
+export function formatClock(hhmm: string): string {
+  return hhmm.replace(/^0(\d)/, '$1');
+}
+
+// Until this long after the deadline the screen is still about today's commute (so lateness shows).
+const STILL_TODAY_MS = 2 * 60 * 60 * 1000;
+
+/** The deadline the screen is about: today's, until two hours after it, then tomorrow's. ISO with +03:00. */
+export function commuteDeadline(arriveBy: string, now: Date): string {
+  const today = nairobiTimeOnDay(arriveBy, now);
+  if (now.getTime() <= Date.parse(today) + STILL_TODAY_MS) return today;
+  return nairobiTimeOnDay(arriveBy, new Date(now.getTime() + 24 * 60 * 60 * 1000));
+}

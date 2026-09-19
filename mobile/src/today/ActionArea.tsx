@@ -3,13 +3,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { theme } from '@/theme';
 import { formatTime } from '@/time';
+import { PrimaryAction } from '@/today/PrimaryAction';
 
-// The state's one primary action, then "Updated h:mm" and "Open in Google Maps".
-// Only the freshness line for now; the actions arrive with #4, #6, #9 and #11.
+// The primary action, then "Updated h:mm" and "Open in Google Maps" (#9).
 export function ActionArea({ updatedAt }: { updatedAt?: string }) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.area, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+      <PrimaryAction />
       <View style={styles.footer}>
         {updatedAt && <Text style={styles.updated}>Updated {formatTime(updatedAt)}</Text>}
       </View>

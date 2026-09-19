@@ -45,9 +45,11 @@ const type = {
   decision: { fontFamily: font.medium, fontSize: 16, lineHeight: 22 },
   body: { fontFamily: font.regular, fontSize: 16 },
   rowTitle: { fontFamily: font.semibold, fontSize: 16 },
+  rowTime: { fontFamily: font.bold, fontSize: 16 }, // arrival time at a row's end
   cardTitle: { fontFamily: font.bold, fontSize: 15 },
   note: { fontFamily: font.regular, fontSize: 14, lineHeight: 20 },
   meta: { fontFamily: font.regular, fontSize: 13 },
+  metaStrong: { fontFamily: font.semibold, fontSize: 13 }, // route delta
   tag: { fontFamily: font.bold, fontSize: 12 },
   button: { fontFamily: font.bold, fontSize: 17 },
 } as const satisfies Record<string, TextStyle>;

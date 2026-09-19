@@ -1,56 +1,28 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { fetchRoutes } from '@/api';
-import type { RoutesResponse } from '@/contract';
-import { seedCommute } from '@/seed';
 import { theme } from '@/theme';
-import { nairobiTimeOnDay } from '@/time';
 import { ActionArea } from '@/today/ActionArea';
 import { Hero } from '@/today/Hero';
 import { MapArea } from '@/today/MapArea';
 import { RouteList } from '@/today/RouteList';
 import { skeletonRouteViews } from '@/today/skeleton-routes';
+import { useRoutes } from '@/today/useRoutes';
+import { useCommute } from '@/useCommute';
 
 const { color, type } = theme;
-const commute = seedCommute;
 
 export default function TodayScreen() {
-  const [data, setData] = useState<RoutesResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const commute = useCommute();
+  const { data, error, loading, refresh } = useRoutes(commute);
   const [selectedId, setSelectedId] = useState<string>();
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const now = new Date();
-      setData(
-        await fetchRoutes({
-          origin: commute.origin.location,
-          destination: commute.destination.location,
-          arriveBy: nairobiTimeOnDay(commute.arriveBy, now),
-          usualDeparture: nairobiTimeOnDay(commute.usualDeparture, now),
-        }),
-      );
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   const sample = data?.samples.find((s) => s.kind === 'now') ?? data?.samples[0];
   const routes = sample ? skeletonRouteViews(sample, commute, selectedId) : [];
 
   return (
     <View style={styles.screen}>
-      <MapArea />
+      <MapArea routes={routes} onSelectRoute={setSelectedId} onRefresh={refresh} />
       <ScrollView contentContainerStyle={styles.content}>
         <Hero commute={commute} />
 
@@ -64,7 +36,7 @@ export default function TodayScreen() {
         {error && (
           <View style={styles.errorBox}>
             <Text style={styles.message}>Couldn’t get routes. {error}</Text>
-            <Pressable accessibilityRole="button" onPress={load} disabled={loading} style={styles.retry}>
+            <Pressable accessibilityRole="button" onPress={refresh} disabled={loading} style={styles.retry}>
               <Text style={styles.retryLabel}>{loading ? 'Trying…' : 'Try again'}</Text>
             </Pressable>
           </View>
