@@ -42,7 +42,8 @@ const color = {
   onSimBanner: '#000000',
   mapBg: '#0C0E11',
   mapRoad: '#1A1E25',
-  routeIdle: '#55555C',
+  routeIdle: '#55555C', // an unselected route line
+  routeDim: '#3A3A40', // and dimmer still in the late state, where only the route being driven matters
 } as const;
 
 // Ready-to-spread text styles.

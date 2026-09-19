@@ -66,6 +66,8 @@ export default function TodayScreen() {
       <MapArea
         commute={commute}
         routes={routes}
+        state={evaluation?.state}
+        incidentRouteId={demo.simulation?.delay?.routeId}
         onSelectRoute={setSelectedId}
         onRefresh={refresh}
         onDemo={() => setDemoOpen(true)}

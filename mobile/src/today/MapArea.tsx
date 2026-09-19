@@ -1,20 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 
-import type { Commute, LatLng, RouteView } from '@/contract';
+import type { Commute, Evaluation, LatLng, RouteView } from '@/contract';
 import { theme } from '@/theme';
 import { HeaderControls } from '@/today/HeaderControls';
 import { darkMapStyle } from '@/today/map-style';
-import { decodePath } from '@/today/path';
+import { decodePath, pointAlong } from '@/today/path';
 
 const { color } = theme;
 
 type Props = {
   commute: Commute;
   routes: RouteView[]; // `selected` marks the highlighted line
-  onSelectRoute: (routeId: string) => void; // tapping a route line
+  state?: Evaluation['state'];
+  incidentRouteId?: string; // the route a simulated accident is on, if any
+  onSelectRoute: (routeId: string) => void; // tapping a route line or its ETA bubble
   onRefresh: () => void;
   onDemo: () => void;
   demoOn: boolean;
@@ -24,21 +27,27 @@ const coord = (p: LatLng) => ({ latitude: p.lat, longitude: p.lng });
 
 // The routes drawn on the top third of the screen, with the header controls floating over them.
 // No live location dot and no search: the map is here to show where the routes differ.
-export function MapArea({ commute, routes, onSelectRoute, onRefresh, onDemo, demoOn }: Props) {
+export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute, onRefresh, onDemo, demoOn }: Props) {
   const insets = useSafeAreaInsets();
   const map = useRef<MapView>(null);
   const [ready, setReady] = useState(false);
-  const paths = usePaths(routes);
+  const lines = useLines(routes);
+  // Unselected routes fade back once the commute is late: only the one being driven still matters.
+  const idle = state === 'late' ? color.routeDim : color.routeIdle;
+  const incident = lines.get(incidentRouteId ?? '');
+  const redrawing = useRedrawing(
+    `${state}|${routes.map((r) => `${r.id}:${r.durationMin}:${r.selected}`).join(',')}|${incidentRouteId ?? ''}`,
+  );
 
   // The whole commute is on screen without anyone panning or zooming, and it re-fits whenever the routes change.
   useEffect(() => {
-    const points = [...paths.values()].flat();
+    const points = [...lines.values()].flatMap((l) => l.coords);
     if (!ready || points.length === 0) return;
     map.current?.fitToCoordinates(points, {
       edgePadding: { top: insets.top + 64, right: 44, bottom: 52, left: 44 },
       animated: true,
     });
-  }, [ready, paths, insets.top]);
+  }, [ready, lines, insets.top]);
 
   return (
     <View style={styles.map}>
@@ -63,11 +72,11 @@ export function MapArea({ commute, routes, onSelectRoute, onRefresh, onDemo, dem
       >
         {/* A wide invisible line under each route: a 4 pt line is too thin to hit with a thumb. */}
         {routes.map((r) => {
-          const path = paths.get(r.id);
-          return path ? (
+          const line = lines.get(r.id);
+          return line ? (
             <Polyline
               key={`hit-${r.id}`}
-              coordinates={path}
+              coordinates={line.coords}
               strokeColor="rgba(0,0,0,0.01)"
               strokeWidth={22}
               zIndex={0}
@@ -77,22 +86,24 @@ export function MapArea({ commute, routes, onSelectRoute, onRefresh, onDemo, dem
           ) : null;
         })}
         {/* The selected route is drawn last so it sits over the others. */}
-        {[...routes].sort((a, b) => Number(a.selected) - Number(b.selected)).map((r) => {
-          const path = paths.get(r.id);
-          return path ? (
-            <Polyline
-              key={r.id}
-              coordinates={path}
-              strokeColor={r.selected ? color.accent : color.routeIdle}
-              strokeWidth={r.selected ? 5 : 4}
-              zIndex={r.selected ? 2 : 1}
-              lineCap="round"
-              lineJoin="round"
-              tappable
-              onPress={() => onSelectRoute(r.id)}
-            />
-          ) : null;
-        })}
+        {[...routes]
+          .sort((a, b) => Number(a.selected) - Number(b.selected))
+          .map((r) => {
+            const line = lines.get(r.id);
+            return line ? (
+              <Polyline
+                key={r.id}
+                coordinates={line.coords}
+                strokeColor={r.selected ? color.accent : idle}
+                strokeWidth={r.selected ? 5 : 4}
+                zIndex={r.selected ? 2 : 1}
+                lineCap="round"
+                lineJoin="round"
+                tappable
+                onPress={() => onSelectRoute(r.id)}
+              />
+            ) : null;
+          })}
         <Marker coordinate={coord(commute.origin.location)} anchor={ANCHOR} title={commute.origin.label}>
           <View style={styles.origin} />
         </Marker>
@@ -101,6 +112,43 @@ export function MapArea({ commute, routes, onSelectRoute, onRefresh, onDemo, dem
             <View style={styles.destinationCore} />
           </View>
         </Marker>
+        {/* How long each way takes, sitting on its own line. */}
+        {routes.map((r) => {
+          const line = lines.get(r.id);
+          return line ? (
+            <Marker
+              key={`eta-${r.id}`}
+              coordinate={line.mid}
+              anchor={ANCHOR}
+              zIndex={r.selected ? 4 : 3}
+              tracksViewChanges={redrawing}
+              onPress={() => onSelectRoute(r.id)}
+            >
+              <View style={r.selected ? styles.bubbleOn : styles.bubble}>
+                <Text style={r.selected ? styles.bubbleOnText : styles.bubbleText}>{r.durationMin} min</Text>
+              </View>
+            </Marker>
+          ) : null;
+        })}
+        {/* What the simulated accident is doing to the route it is on. */}
+        {incident && (
+          <Marker coordinate={incident.incident} anchor={ANCHOR} zIndex={5} tracksViewChanges={redrawing}>
+            <View style={[styles.incident, { backgroundColor: state === 'late' ? color.late : color.atRisk }]}>
+              <Svg
+                width={18}
+                height={18}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={state === 'late' ? color.lateTint : color.atRiskTint}
+                strokeWidth={2.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <Path d="M12 4 2.5 20h19zM12 10v5M12 17.5v.5" />
+              </Svg>
+            </View>
+          </Marker>
+        )}
       </MapView>
       <MapFade />
       <View style={[styles.controls, { top: insets.top + 6 }]}>
@@ -112,15 +160,42 @@ export function MapArea({ commute, routes, onSelectRoute, onRefresh, onDemo, dem
 
 const ANCHOR = { x: 0.5, y: 0.5 };
 
-// Decoding is the expensive part, and the Today screen re-renders on every tick, so it is keyed on the encoded
-// lines themselves: selecting a route re-styles the polylines without decoding them again.
-function usePaths(routes: RouteView[]) {
+// Decoding is the expensive part, and the Today screen re-renders on every tick, so the lines are keyed on the
+// encoded shapes themselves: selecting a route re-styles them without decoding anything again.
+function useLines(routes: RouteView[]) {
   const key = routes.map((r) => r.polyline).join('|');
   return useMemo(
-    () => new Map(routes.map((r) => [r.id, decodePath(r.polyline).map(coord)])),
+    () =>
+      new Map(
+        routes.map((r) => {
+          const path = decodePath(r.polyline);
+          return [
+            r.id,
+            {
+              coords: path.map(coord),
+              mid: coord(pointAlong(path, 0.5)), // the ETA bubble sits on the line, clear of the other routes' bubbles
+              incident: coord(pointAlong(path, 0.6)),
+            },
+          ];
+        }),
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [key],
   );
+}
+
+/**
+ * A marker drawn from React views only appears once the map has copied it into an image, and keeping that on
+ * redraws every marker on every frame. So it is on for a moment after anything a marker shows changes.
+ */
+function useRedrawing(key: string) {
+  const [redrawing, setRedrawing] = useState(true);
+  useEffect(() => {
+    setRedrawing(true);
+    const done = setTimeout(() => setRedrawing(false), 1000);
+    return () => clearTimeout(done);
+  }, [key]);
+  return redrawing;
 }
 
 /** A region holding the given points, until the routes arrive and the map fits itself to them. */
@@ -161,4 +236,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   destinationCore: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: color.onAccent },
+  bubble: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 11, backgroundColor: color.control },
+  bubbleText: { ...theme.type.segment, fontSize: 12, color: color.textChip },
+  bubbleOn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: color.accent },
+  bubbleOnText: { ...theme.type.metaStrong, fontFamily: theme.font.bold, color: color.onAccent },
+  incident: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
 });
