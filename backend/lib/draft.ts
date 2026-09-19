@@ -4,10 +4,15 @@
 import { type DraftRequest, type DraftResponse, DraftWords } from "@/lib/contract";
 import { templateWords } from "@/lib/draft-template";
 
-/** About six seconds: long enough for Haiku, short enough that the screen never waits on it. */
-export const DRAFT_TIMEOUT_MS = 6_000;
+/**
+ * How long Claude has. About six seconds for English: long enough for Haiku, short enough that the screen never
+ * waits on it. Swahili and Sheng go to a slower model (see lib/claude.ts) and are only ever asked for the notice,
+ * which the commuter is reading in Fika's own words while they wait, so they get longer.
+ */
+export const DRAFT_TIMEOUT_MS: Record<DraftRequest["language"], number> = { en: 6_000, sw: 10_000, sheng: 10_000 };
 
-export type DraftPrompt = { system: string; user: string };
+/** What Claude is asked, and the language it is asked to write in: the writer picks a model that writes it well. */
+export type DraftPrompt = { system: string; user: string; language: DraftRequest["language"] };
 
 /** What the endpoint needs from Claude: the words, as the raw JSON text of its answer. */
 export type DraftWriter = (prompt: DraftPrompt, signal: AbortSignal) => Promise<string>;
@@ -114,8 +119,10 @@ export function draftPrompt(req: DraftRequest): DraftPrompt {
   const to = name ? `${name}, their ${relationship || "contact"}` : `their ${relationship || "contact"}`;
   return {
     system: SYSTEM,
+    language: req.language,
     user: [
-      `Write today's words in ${LANGUAGE[req.language]}.`,
+      // All three, not just the notice: a formal tone otherwise pulls the answer back into English.
+      `Write today's words in ${LANGUAGE[req.language]}. All three fields are in that language, whatever the tone.`,
       `The notice is to ${to}. Its tone is ${TONE[req.tone]}.`,
       "",
       "Facts:",
@@ -191,7 +198,7 @@ function statesOnlyKnownNumbers(words: DraftWords, req: DraftRequest): boolean {
 export async function draft(
   req: DraftRequest,
   writer: DraftWriter,
-  timeoutMs: number = DRAFT_TIMEOUT_MS,
+  timeoutMs: number = DRAFT_TIMEOUT_MS[req.language],
 ): Promise<DraftResponse> {
   const controller = new AbortController();
   try {
