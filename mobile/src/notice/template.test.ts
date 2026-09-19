@@ -2,6 +2,7 @@ import type { Commute, Route, Sample } from '@/contract';
 import { accident, midTrip } from '@/demo/presets';
 import { evaluate } from '@/engine';
 import { lateNotice, noticeText, updateNumbers } from '@/notice/template';
+import type { Voice } from '@/notice/voice';
 import { heroText } from '@/today/words';
 
 // Deadline 9:00, buffer 10, extra 5.
@@ -116,5 +117,59 @@ describe('the notice offered to the commuter', () => {
   it("is Fika's own when Claude has not written one", () => {
     const e = leavingAt830(waiyaki(40));
     expect(noticeText(e, commute.contact)).toBe(lateNotice(e, commute.contact));
+  });
+});
+
+describe('the late notice in each language and tone', () => {
+  const voices: Voice[] = [
+    { tone: 'manager', language: 'en' },
+    { tone: 'friend', language: 'en' },
+    { tone: 'manager', language: 'sw' },
+    { tone: 'friend', language: 'sw' },
+    { tone: 'manager', language: 'sheng' },
+    { tone: 'friend', language: 'sheng' },
+  ];
+  const written = (voice: Voice) => lateNotice(leavingAt830(waiyaki(40)), commute.contact, voice);
+
+  it.each(voices)('states the exact ETA and the rounded lateness in $language, $tone', (voice) => {
+    const notice = written(voice);
+    expect(notice).toContain('9:15');
+    expect(notice).toMatch(/\b15\b/);
+    expect(notice).toContain('Mary');
+  });
+
+  it('gives every language and tone its own words, so a switch always shows', () => {
+    expect(new Set(voices.map(written)).size).toBe(voices.length);
+  });
+
+  it('says the same words as the backend template, in the language asked for', () => {
+    expect(written({ tone: 'manager', language: 'sw' })).toBe(
+      'Habari Mary, nitachelewa kwa takriban dakika 15. Nitafika 9:15. Samahani kwa usumbufu.',
+    );
+  });
+
+  it('greets without a name when the contact has none', () => {
+    const notice = lateNotice(leavingAt830(waiyaki(40)), { ...commute.contact, name: ' ' }, voices[5]);
+    expect(notice.startsWith('Niaje, ')).toBe(true);
+  });
+
+  it('defaults to English in the tone the saved contact suggests', () => {
+    const e = leavingAt830(waiyaki(40));
+    expect(lateNotice(e, commute.contact)).toBe(lateNotice(e, commute.contact, { tone: 'manager', language: 'en' }));
+    const friend = { ...commute.contact, relationship: 'friend' };
+    expect(lateNotice(e, friend)).toBe(lateNotice(e, friend, { tone: 'friend', language: 'en' }));
+  });
+
+  it("moves the numbers in a Swahili edit, and keeps the commuter's words", () => {
+    const edit = 'Habari Mary, nitachelewa kwa takriban dakika 10. Nitafika 9:08. Anza bila mimi.';
+    expect(updateNumbers(edit, { eta: '9:08', lateMin: 10 }, { eta: '9:13', lateMin: 15 })).toBe(
+      'Habari Mary, nitachelewa kwa takriban dakika 15. Nitafika 9:13. Anza bila mimi.',
+    );
+  });
+
+  it("is Fika's own words in the chosen language when Claude has not written any", () => {
+    const e = leavingAt830(waiyaki(40));
+    const voice: Voice = { tone: 'friend', language: 'sheng' };
+    expect(noticeText(e, commute.contact, undefined, voice)).toBe(lateNotice(e, commute.contact, voice));
   });
 });

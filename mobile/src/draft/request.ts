@@ -3,15 +3,20 @@
 // locked chips format it, so what Claude writes can only ever say what the commuter is already looking at.
 import type { Commute, DraftRequest, Evaluation, Simulation } from '@/contract';
 import { noticeFacts } from '@/notice/template';
+import { defaultVoice, type Voice } from '@/notice/voice';
 import { formatClock, formatTime } from '@/time';
 import { routeName } from '@/today/words';
 
-/** The tone a saved contact suggests. The commuter can change it in the notice sheet (#8). */
-export function defaultTone(relationship: string): DraftRequest['tone'] {
-  return /\b(friend|rafiki|partner|spouse|wife|husband|brother|sister)\b/i.test(relationship) ? 'friend' : 'manager';
-}
-
-export function draftRequest(commute: Commute, e: Evaluation, simulation?: Simulation): DraftRequest {
+/**
+ * The facts for one screen, to be written in one voice. The voice is the commuter's choice in the notice sheet;
+ * without one, the saved contact's relationship picks the tone and the language is English.
+ */
+export function draftRequest(
+  commute: Commute,
+  e: Evaluation,
+  simulation?: Simulation,
+  voice: Voice = defaultVoice(commute.contact),
+): DraftRequest {
   const selected = e.routes.find((r) => r.selected);
   const recommended = e.routes.find((r) => r.recommended);
   const better = e.routes.find((r) => r.id === e.betterRouteId);
@@ -47,7 +52,7 @@ export function draftRequest(commute: Commute, e: Evaluation, simulation?: Simul
       ...(simulation?.delay?.cause ? { cause: simulation.delay.cause } : {}),
     },
     recipient: { name: commute.contact.name, relationship: commute.contact.relationship },
-    tone: defaultTone(commute.contact.relationship),
-    language: 'en',
+    tone: voice.tone,
+    language: voice.language,
   };
 }

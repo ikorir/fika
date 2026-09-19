@@ -116,6 +116,12 @@ describe('the facts sent to the draft endpoint', () => {
     expect(draftRequest(commute, e).facts.betterRoute).toEqual({ label: 'Ngong Road', arriveAt: '8:47' });
   });
 
+  it('carry the tone and language the commuter picked in the notice sheet', () => {
+    const e = evaluate({ commute, samples: [sample('8:30', [waiyaki(40)], 'now')], now: at('8:30') });
+    const req = draftRequest(commute, e, undefined, { tone: 'friend', language: 'sheng' });
+    expect([req.tone, req.language]).toEqual(['friend', 'sheng']);
+  });
+
   it('carry the saved contact, and a tone that fits them', () => {
     const req = request('7:30', [waiyaki(40)]);
     expect([req.recipient, req.tone, req.language]).toEqual([{ name: 'Mary', relationship: 'manager' }, 'manager', 'en']);
