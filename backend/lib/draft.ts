@@ -143,9 +143,11 @@ async function inTime(answer: Promise<string>, signal: AbortController, timeoutM
   }
 }
 
-// A clock time ("9:15", "08:05") and a count of minutes ("18 min", "about 10 minutes") as they appear in writing.
+// A clock time ("9:15", "08:05") and a count of minutes as it appears in writing: after the number in English
+// ("18 min", "about 10 minutes"), before it in Swahili and Sheng ("dakika 18", "dakika 10 hivi").
 const TIME = /\d{1,2}:\d{2}/g;
-const MINUTES = /(\d+)\s*(?:min\b|minutes?\b|dakika)/g;
+const MINUTES = /(\d+)\s*(?:min\b|minutes?\b)/g;
+const DAKIKA = /\bdakika\s*(\d+)/g;
 
 /** Every time and minute count the engine computed, as strings, in the forms Claude was given them. */
 function knownNumbers({ facts }: DraftRequest) {
@@ -175,7 +177,9 @@ function statesOnlyKnownNumbers(words: DraftWords, req: DraftRequest): boolean {
   const text = `${words.decision_line} ${words.conditions_note} ${words.notice}`;
   // Times first, so the minutes of "9:15" are never read as a count of minutes.
   for (const [time] of text.matchAll(TIME)) if (!known.times.has(time)) return false;
-  for (const [, count] of text.replace(TIME, " ").matchAll(MINUTES)) if (!known.minutes.has(count)) return false;
+  const withoutTimes = text.replace(TIME, " ");
+  for (const pattern of [MINUTES, DAKIKA])
+    for (const [, count] of withoutTimes.matchAll(pattern)) if (!known.minutes.has(count)) return false;
   return true;
 }
 

@@ -169,3 +169,80 @@ describe("the template", () => {
     expect((await wordsFor(request)).notice).toContain("about 10 minutes late");
   });
 });
+
+describe("the template in Swahili and Sheng", () => {
+  const languages = ["en", "sw", "sheng"] as const;
+  /** The words for a late request in one language and tone, with Claude failing so the template answers. */
+  const fallback = async (language: DraftRequest["language"], tone: DraftRequest["tone"] = "manager") =>
+    draft({ ...lateRequest({ lateMin: 8, lateMinRounded: 10, eta: "9:08" }), language, tone }, answering("not json"));
+
+  it.each(languages)("states the exact ETA in %s", async (language) => {
+    const { notice, source } = await fallback(language);
+    expect([source, notice.includes("9:08")]).toEqual(["template", true]);
+  });
+
+  it.each(languages)("promises the rounded lateness in %s, not the exact figure", async (language) => {
+    const { notice } = await fallback(language);
+    expect(notice).toMatch(/\b10\b/);
+    expect(notice).not.toMatch(/\b8\b/);
+  });
+
+  it.each(languages)("writes the decision line and conditions note in %s too", async (language) => {
+    const { decision_line, conditions_note } = await fallback(language);
+    expect(decision_line).toContain("9:08");
+    expect(conditions_note).toMatch(/18/);
+  });
+
+  it("writes each language differently, so a switch is visible with no backend answer", async () => {
+    const [en, sw, sheng] = await Promise.all(languages.map((l) => fallback(l)));
+    expect(new Set([en.notice, sw.notice, sheng.notice]).size).toBe(3);
+  });
+
+  it.each(languages)("changes the words with the tone in %s", async (language) => {
+    const [manager, friend] = await Promise.all([fallback(language, "manager"), fallback(language, "friend")]);
+    expect(manager.notice).not.toBe(friend.notice);
+    expect(friend.notice).toContain("9:08");
+  });
+});
+
+describe("the language and tone asked for", () => {
+  const recording = () => {
+    const prompts: string[] = [];
+    const writer: DraftWriter = async (prompt) => {
+      prompts.push(prompt.user);
+      return "not json";
+    };
+    return { prompts, writer };
+  };
+
+  it.each([
+    ["en", "manager", /English/, /manager/],
+    ["sw", "friend", /Swahili/, /friend/],
+    ["sheng", "friend", /Sheng/, /friend/],
+  ] as const)("reach Claude for %s and %s", async (language, tone, inLanguage, inTone) => {
+    const { prompts, writer } = recording();
+    await draft({ ...lateRequest(), language, tone }, writer);
+    expect(prompts[0]).toMatch(inLanguage);
+    expect(prompts[0]).toMatch(inTone);
+  });
+
+  it("catches a number the engine never computed when Claude writes it in Swahili", async () => {
+    const worked = {
+      decision_line: "Utafika karibu 9:15.",
+      conditions_note: "Waiyaki Way ina dakika 18 zaidi ya kawaida.",
+      notice: "Habari Mary, nitachelewa kwa dakika 37. Nitafika 9:15.",
+    };
+    const response = await draft({ ...lateRequest(), language: "sw" }, answering(JSON.stringify(worked)));
+    expect(response.source).toBe("template");
+  });
+
+  it("but lets a Swahili count the engine did compute through", async () => {
+    const good = {
+      decision_line: "Utafika karibu 9:15, dakika 15 baada ya muda wako.",
+      conditions_note: "Waiyaki Way ina dakika 18 zaidi ya kawaida.",
+      notice: "Habari Mary, nitachelewa kwa dakika 15. Nitafika 9:15.",
+    };
+    const response = await draft({ ...lateRequest(), language: "sw" }, answering(JSON.stringify(good)));
+    expect(response.source).toBe("claude");
+  });
+});
