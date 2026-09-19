@@ -49,38 +49,53 @@ const isRouteNumber = (name: string) => /^[A-Z]\d+$/.test(name);
 function roadNames(road: string): string[] {
   const names = road
     .split("/")
-    .map((n) => n.trim().replace(/[A-Za-z]+$/, (w) => ABBREVIATIONS[w] ?? w))
+    .map((n) =>
+      n
+        .trim()
+        .replace(/\s*-\s*/g, "-")
+        .replace(/[A-Za-z]+$/, (w) => ABBREVIATIONS[w] ?? w),
+    )
     .filter((n) => /^[A-Z0-9]/.test(n));
   const proper = names.filter((n) => !isRouteNumber(n));
   return proper.length ? proper : names;
 }
 
-/** Road names on this route, most distance first, then the names in its description. */
-function candidateNames(g: GoogleRoute): string[] {
+/**
+ * Road names on this route, most distance first, then the names in its description.
+ * A step can give one stretch several names ("Kisumu-Nairobi Rd/Waiyaki Wy"); `aliases` maps each name to those.
+ */
+function roadsOf(g: GoogleRoute): { names: string[]; aliases: Map<string, Set<string>> } {
   const distance = new Map<string, number>();
+  const aliases = new Map<string, Set<string>>();
+  const addAliases = (names: string[]) => {
+    for (const name of names) aliases.set(name, new Set([...(aliases.get(name) ?? []), ...names]));
+  };
   for (const step of g.legs?.flatMap((l) => l.steps ?? []) ?? []) {
     const firstLine = step.navigationInstruction?.instructions?.split("\n")[0] ?? "";
     const road = firstLine.match(/\b(?:onto|on) (.+)$/)?.[1];
-    for (const name of road ? roadNames(road) : []) {
-      distance.set(name, (distance.get(name) ?? 0) + (step.distanceMeters ?? 0));
-    }
+    const names = road ? roadNames(road) : [];
+    addAliases(names);
+    for (const name of names) distance.set(name, (distance.get(name) ?? 0) + (step.distanceMeters ?? 0));
   }
+  const described = roadNames(g.description ?? "");
+  addAliases(described);
   const byDistance = [...distance].sort((a, b) => b[1] - a[1]).map(([name]) => name);
-  return [...byDistance, ...roadNames(g.description ?? "")];
+  return { names: [...byDistance, ...described], aliases };
 }
 
 /**
  * Google's routes as contract Routes, each named by its main road: the road it spends the most distance on,
- * or the next one when an earlier route already has that name. The id is a slug of the name, so the app can
- * match a route across samples.
+ * or its next-longest other road when an earlier route already has that name. The id is a slug of the name,
+ * so the app can match a route across samples.
  */
 export function toRoutes(google: GoogleRoute[]): Route[] {
   const taken = new Set<string>();
   const ids = new Map<string, number>();
   return google.slice(0, 3).map((g, i) => {
-    const candidates = candidateNames(g);
-    const name = candidates.find((n) => !taken.has(n)) ?? candidates[0];
-    if (name) taken.add(name);
+    const { names, aliases } = roadsOf(g);
+    const sameRoad = (name: string) => aliases.get(name) ?? new Set([name]);
+    const name = names.find((n) => ![...sameRoad(n)].some((a) => taken.has(a))) ?? names[0];
+    if (name) sameRoad(name).forEach((a) => taken.add(a));
     const base = (name && slug(name)) || `route-${i + 1}`;
     const n = (ids.get(base) ?? 0) + 1;
     ids.set(base, n);

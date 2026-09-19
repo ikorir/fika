@@ -38,11 +38,12 @@ describe("toRoutes", () => {
     });
   });
 
-  it("gives routes that share a main road different names, using each one's next-longest road", () => {
-    const shared = step(8000, "Continue onto Waiyaki Wy/A104");
+  it("gives routes that share a main road different names, using each one's next-longest other road", () => {
+    // A step can list several names for the same stretch; those are one road, not a next-longest one.
+    const shared = [step(6000, "Merge onto Kisumu- Nairobi Rd/Waiyaki Wy/A104"), step(2000, "Continue onto Waiyaki Wy")];
     const routes = toRoutes([
-      { legs: [{ steps: [shared, step(2000, "Turn right onto James Gichuru Rd")] }] },
-      { legs: [{ steps: [shared, step(3000, "Turn left onto Ngong Rd")] }] },
+      { legs: [{ steps: [...shared, step(1000, "Turn right onto James Gichuru Rd")] }] },
+      { legs: [{ steps: [...shared, step(3000, "Turn left onto Ngong Rd")] }] },
     ]);
     expect(routes.map((r) => [r.id, r.label])).toEqual([
       ["waiyaki-way", "via Waiyaki Way"],
