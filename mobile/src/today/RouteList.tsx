@@ -20,15 +20,19 @@ function deltaText(deltaMin: number): string {
 type Props = {
   routes: RouteView[];
   departAt: string; // ISO; the departure the list is computed for
+  leavingNow: boolean;
   onSelect?: (routeId: string) => void;
 };
 
-export function RouteList({ routes, departAt, onSelect }: Props) {
+export function RouteList({ routes, departAt, leavingNow, onSelect }: Props) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.title}>Routes</Text>
-        <Text style={styles.leaving}>leaving {formatTime(departAt)}</Text>
+        <Text style={styles.leaving}>
+          leaving {leavingNow ? 'now, ' : ''}
+          {formatTime(departAt)}
+        </Text>
       </View>
       {routes.map((r, i) => (
         <View key={r.id}>

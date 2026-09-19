@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { evaluate } from '@/engine';
 import { theme } from '@/theme';
 import { ActionArea } from '@/today/ActionArea';
 import { Hero } from '@/today/Hero';
 import { MapArea } from '@/today/MapArea';
 import { RouteList } from '@/today/RouteList';
-import { skeletonRouteViews } from '@/today/skeleton-routes';
+import { useNow } from '@/today/useNow';
 import { useRoutes } from '@/today/useRoutes';
+import { leavingNow } from '@/today/words';
 import { useCommute } from '@/useCommute';
 
 const { color, type } = theme;
@@ -16,20 +18,29 @@ export default function TodayScreen() {
   const commute = useCommute();
   const { data, error, loading, refresh } = useRoutes(commute);
   const [selectedId, setSelectedId] = useState<string>();
+  const now = useNow(data);
 
-  const sample = data?.samples.find((s) => s.kind === 'now') ?? data?.samples[0];
-  const routes = sample ? skeletonRouteViews(sample, commute, selectedId) : [];
+  // The screen renders the engine's Evaluation and makes no commute decisions of its own.
+  const hasRoute = data?.samples.some((s) => s.routes.length > 0) ?? false;
+  const evaluation =
+    data && hasRoute ? evaluate({ commute, samples: data.samples, now, selectedRouteId: selectedId }) : undefined;
+  const routes = evaluation?.routes ?? [];
 
   return (
     <View style={styles.screen}>
       <MapArea routes={routes} onSelectRoute={setSelectedId} onRefresh={refresh} />
       <ScrollView contentContainerStyle={styles.content}>
-        <Hero commute={commute} />
+        <Hero commute={commute} evaluation={evaluation} />
 
-        {sample && routes.length > 0 && (
-          <RouteList routes={routes} departAt={sample.departAt} onSelect={setSelectedId} />
+        {evaluation && (
+          <RouteList
+            routes={routes}
+            departAt={evaluation.departAt}
+            leavingNow={leavingNow(evaluation)}
+            onSelect={setSelectedId}
+          />
         )}
-        {sample && routes.length === 0 && <Text style={styles.message}>No driving route found for this commute.</Text>}
+        {data && !hasRoute && <Text style={styles.message}>No driving route found for this commute.</Text>}
 
         {loading && !data && <ActivityIndicator color={color.accent} style={styles.spinner} />}
 
@@ -42,7 +53,7 @@ export default function TodayScreen() {
           </View>
         )}
       </ScrollView>
-      <ActionArea updatedAt={data?.fetchedAt} />
+      <ActionArea updatedAt={data?.fetchedAt} evaluation={evaluation} onSelectRoute={setSelectedId} />
     </View>
   );
 }
