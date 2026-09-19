@@ -14,6 +14,7 @@ export function defaultTone(relationship: string): DraftRequest['tone'] {
 export function draftRequest(commute: Commute, e: Evaluation, simulation?: Simulation): DraftRequest {
   const selected = e.routes.find((r) => r.selected);
   const recommended = e.routes.find((r) => r.recommended);
+  const better = e.routes.find((r) => r.id === e.betterRouteId);
   // Null once the departure the screen is about has arrived: Claude is then writing about leaving now, or about a
   // trip already under way, not about a time still ahead.
   const leaveBy = Date.parse(e.departAt) > Date.parse(e.now) ? formatTime(e.departAt) : null;
@@ -23,13 +24,18 @@ export function draftRequest(commute: Commute, e: Evaluation, simulation?: Simul
     facts: {
       deadline: formatClock(commute.arriveBy),
       leaveBy,
+      // Demo mode's mid-trip: the departure is behind the clock, so there is nothing left to tell them to do.
+      onTheRoad: Date.parse(e.departAt) < Date.parse(e.now),
       eta: noticeFacts(e).eta,
+      lateMin: e.lateMin,
       lateMinRounded: e.lateMinRounded,
       // Empty once the usual departure has gone by: there is no projection left to talk about.
       usualDeparture: e.usual ? formatTime(e.usual.departAt) : '',
       usualArrival: e.usual ? formatTime(e.usual.arriveAt) : '',
       selectedRoute: selected ? routeName(selected) : '',
       recommendedRoute: recommended ? routeName(recommended) : '',
+      // Only the engine decides that switching restores on time, so only it can be said.
+      betterRoute: better ? routeName(better) : null,
       routes: e.routes.map((r) => ({
         label: routeName(r),
         durationMin: r.durationMin,

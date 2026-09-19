@@ -43,13 +43,16 @@ export const DraftRequest = z.object({
   state: z.enum(["on_time", "at_risk", "late"]),
   facts: z.object({
     deadline: z.string(), // display strings, e.g. "9:00"
-    leaveBy: z.string().nullable(),
+    leaveBy: z.string().nullable(), // null once the departure the screen is about has arrived
+    onTheRoad: z.boolean(), // the trip is already under way, so there is no leaving left to do
     eta: z.string().min(1), // must appear verbatim in the notice
-    lateMinRounded: z.number().int().nonnegative(), // 0 unless late
+    lateMin: z.number().int().nonnegative(), // exact, as the screen shows it beside the ETA
+    lateMinRounded: z.number().int().nonnegative(), // rounded up for the message; 0 unless late
     usualDeparture: z.string(), // "" when the usual departure has gone by
     usualArrival: z.string(),
     selectedRoute: z.string(),
     recommendedRoute: z.string(),
+    betterRoute: z.string().nullable(), // the route that would restore on time, when there is one
     routes: z.array(
       z.object({
         label: z.string(),

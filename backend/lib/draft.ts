@@ -47,24 +47,37 @@ on time" or "you are at risk": say what to do about it.
 
 THE THREE FIELDS
 
-"decision_line" — what to do now. One or two sentences, under 30 words.
-- If leave_by is a time, tell them to leave by that time. Say "leave now" only when leave_by says it has gone by.
-- state "on_time": leave by leave_by on selected_route and arrive at eta. If usual_departure is given, add what
+"decision_line" — what to do now. One to three sentences, under 35 words. It always states eta.
+- eta is when they arrive on selected_route, and on no other road. Never attach it, or any other time, to a road it
+  does not belong to.
+- leave_by is the time to leave by. leave_now instead means that time has gone by, so tell them to leave now — they
+  are still standing there, not driving. already_driving, and only that, means they are on the road: then do not
+  tell them to leave at all, tell them where they stand.
+- state "on_time": leave by leave_by via selected_route and arrive at eta. If usual_departure is given, add what
   leaving at their usual time would get them instead.
-- state "at_risk": they arrive at eta, inside their buffer. If recommended_route is a different road, say switching
-  to it puts them back on time — but never say by how much.
-- state "late": they will arrive at eta, how late that is if minutes_late is given, and to let the person named
-  below know now, before they are late.
+- state "at_risk": they arrive at eta, inside their buffer.
+- state "late": say all three of these, in this order — they will arrive at eta; that is minutes_late past their
+  deadline; they should let the person named below know now, before they are late. Do not open with "you are late":
+  the screen says that, and it is the arrival that is late, not them yet.
+- Never suggest changing route unless route_that_gets_them_there_on_time is in the facts, and then name only that
+  road, and say only that it gets them there on time — you have no arrival time for it. Whether another road still
+  helps is the engine's call, not yours, and it has already made it: no such fact means no switch is worth
+  offering, whatever the other roads' numbers look like. Never say a road is faster by some amount. When
+  already_driving is there, no switch is possible at all.
+- Use minutes_late here, not minutes_late_for_the_message: the screen shows the exact figure beside the ETA.
 - Name a road as "via Waiyaki Way" when the sentence allows it, the way a driver would say it.
+- Leave how today's traffic compares to normal to conditions_note, which sits right underneath: the two lines are
+  read together and must not say the same thing twice.
 
 "conditions_note" — one sentence, under 20 words, on how today differs from normal. Name each slower road and its
 delay in the form "Waiyaki Way is 18 min slower than normal", and say which roads are unaffected. Use "min", not
 "minutes". If no road is slower than normal, say traffic is normal.
 
 "notice" — the message the commuter sends to the person waiting for them, in the tone and language asked for.
-Two or three short sentences addressed to them by name. It must contain eta exactly as written. If minutes_late is
-given, say they will be about that many minutes late; if it is not, they are not late yet, so say only when they now
-expect to arrive. Promise nothing the facts do not state.`;
+Two or three short sentences addressed to them by name. It must contain eta exactly as written. If
+minutes_late_for_the_message is given, say they will be about that many minutes late — that is the figure to promise
+someone, rounded up so it can be kept. If it is not given, they are not late yet, so say only when they now expect to
+arrive. Promise nothing the facts do not state.`;
 
 /** The facts to give Claude, with anything absent left out rather than sent as a blank. */
 function promptFacts(req: DraftRequest) {
@@ -72,14 +85,17 @@ function promptFacts(req: DraftRequest) {
   return {
     state: req.state,
     deadline: facts.deadline,
-    leave_by: facts.leaveBy ?? "already past; they are leaving now",
+    ...(facts.onTheRoad ? { already_driving: true } : facts.leaveBy ? { leave_by: facts.leaveBy } : { leave_now: true }),
     eta: facts.eta,
-    ...(facts.lateMinRounded > 0 ? { minutes_late: facts.lateMinRounded } : {}),
+    ...(facts.lateMin > 0 ? { minutes_late: facts.lateMin } : {}),
+    ...(facts.lateMinRounded > 0 ? { minutes_late_for_the_message: facts.lateMinRounded } : {}),
     ...(facts.usualDeparture && facts.usualArrival
       ? { usual_departure: facts.usualDeparture, usual_arrival: facts.usualArrival }
       : {}),
+    // The route the screen is showing, and the one — if any — the engine says would restore on time. Which other
+    // road is "best" is deliberately not here: given it, Claude offers a switch the engine has already ruled out.
     selected_route: facts.selectedRoute,
-    recommended_route: facts.recommendedRoute,
+    ...(facts.betterRoute ? { route_that_gets_them_there_on_time: facts.betterRoute } : {}),
     routes: facts.routes.map((r) => ({
       road: r.label,
       minutes: r.durationMin,

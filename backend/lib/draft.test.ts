@@ -8,12 +8,15 @@ const lateRequest = (over: Partial<DraftRequest["facts"]> = {}): DraftRequest =>
   facts: {
     deadline: "9:00",
     leaveBy: null,
+    onTheRoad: false,
     eta: "9:15",
+    lateMin: 15,
     lateMinRounded: 15,
     usualDeparture: "8:20",
     usualArrival: "9:15",
     selectedRoute: "Waiyaki Way",
     recommendedRoute: "Waiyaki Way",
+    betterRoute: null,
     routes: [
       { label: "Waiyaki Way", durationMin: 70, trafficDelayMin: 18 },
       { label: "Ngong Road", durationMin: 51, trafficDelayMin: 0 },
@@ -44,7 +47,7 @@ describe("draft", () => {
 describe("draft falls back to Fika's own words", () => {
   const template = {
     decision_line:
-      "You will arrive around 9:15, about 15 minutes past your 9:00 deadline. Let Mary know now, before you are late.",
+      "You will arrive around 9:15, 15 min past your 9:00 deadline. Let Mary know now, before you are late.",
     conditions_note: "Waiyaki Way is 18 min slower than normal; Ngong Road is unaffected.",
     notice: "Hi Mary, I will be about 15 minutes late. My ETA is 9:15. Apologies for the delay.",
     source: "template",
@@ -127,12 +130,30 @@ describe("the template", () => {
     expect(decision_line).toBe("Leave by 8:05 via Waiyaki Way to arrive at 8:50. Your usual 8:20 gets you there at 9:15.");
   });
 
-  it("offers the better route when the commuter is at risk", async () => {
+  it("offers the route the engine says restores on time, and only that one", async () => {
     const request = { ...lateRequest(), state: "at_risk" as const };
-    request.facts = { ...request.facts, leaveBy: null, eta: "8:55", recommendedRoute: "Ngong Road" };
-    const { decision_line } = await wordsFor(request);
-    expect(decision_line).toBe(
-      "Leave now via Waiyaki Way to arrive at 8:55, inside your buffer. Or switch to Ngong Road and get back on time.",
+    request.facts = { ...request.facts, eta: "8:55", recommendedRoute: "Ngong Road" };
+    expect((await wordsFor(request)).decision_line).toBe(
+      "Leave now via Waiyaki Way to arrive at 8:55, inside your buffer.",
     );
+
+    request.facts = { ...request.facts, betterRoute: "Ngong Road" };
+    expect((await wordsFor(request)).decision_line).toBe("Leave now, or switch to Ngong Road and get back on time.");
+  });
+
+  it("tells a commuter already driving where they stand, not to leave", async () => {
+    const request = { ...lateRequest(), state: "at_risk" as const };
+    request.facts = { ...request.facts, onTheRoad: true, eta: "8:55" };
+    expect((await wordsFor(request)).decision_line).toBe(
+      "You will arrive at 8:55 via Waiyaki Way, inside your buffer.",
+    );
+  });
+
+  it("states the exact lateness the screen shows, not the figure rounded up for the message", async () => {
+    const request = lateRequest({ lateMin: 8, lateMinRounded: 10, eta: "9:08" });
+    expect((await wordsFor(request)).decision_line).toBe(
+      "You will arrive around 9:08, 8 min past your 9:00 deadline. Let Mary know now, before you are late.",
+    );
+    expect((await wordsFor(request)).notice).toContain("about 10 minutes late");
   });
 });

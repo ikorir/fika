@@ -31,13 +31,16 @@ export type DraftRequest = {
   state: 'on_time' | 'at_risk' | 'late';
   facts: {
     deadline: string; // display strings, e.g. "9:00"
-    leaveBy: string | null;
+    leaveBy: string | null; // null once the departure the screen is about has arrived
+    onTheRoad: boolean; // the trip is already under way, so there is no leaving left to do
     eta: string; // must appear verbatim in the notice
-    lateMinRounded: number; // 0 unless late
-    usualDeparture: string;
+    lateMin: number; // exact, as the screen shows it beside the ETA
+    lateMinRounded: number; // rounded up for the message; 0 unless late
+    usualDeparture: string; // "" once the usual departure has gone by
     usualArrival: string;
     selectedRoute: string;
     recommendedRoute: string;
+    betterRoute: string | null; // the route that would restore on time, when there is one
     routes: { label: string; durationMin: number; trafficDelayMin: number }[];
     cause?: string; // only for a simulated accident
     rain?: { at: string };

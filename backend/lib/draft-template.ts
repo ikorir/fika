@@ -17,26 +17,34 @@ function list(items: string[]): string {
 function decisionLine(req: DraftRequest): string {
   const { facts, recipient } = req;
   const selected = roadName(facts.selectedRoute);
-  const recommended = roadName(facts.recommendedRoute);
   const usual =
     facts.usualDeparture && facts.usualArrival
       ? ` Your usual ${facts.usualDeparture} gets you there at ${facts.usualArrival}.`
       : "";
 
+  const better = facts.betterRoute ? roadName(facts.betterRoute) : null;
+  const switchBack = better ? `switch to ${better} and get back on time` : null;
+
   if (req.state === "late") {
-    const late = facts.lateMinRounded
-      ? `about ${facts.lateMinRounded} minutes past your ${facts.deadline} deadline`
+    const late = facts.lateMin
+      ? `${facts.lateMin} min past your ${facts.deadline} deadline`
       : `past your ${facts.deadline} deadline`;
-    const tell = recipient.name ? ` Let ${recipient.name} know now, before you are late.` : "";
-    return `You will arrive around ${facts.eta}, ${late}.${tell}`;
+    const next = switchBack
+      ? ` Or ${switchBack}.`
+      : recipient.name
+        ? ` Let ${recipient.name} know now, before you are late.`
+        : "";
+    return `You will arrive around ${facts.eta}, ${late}.${next}`;
   }
 
-  const lead = facts.leaveBy ? `Leave by ${facts.leaveBy}` : "Leave now";
+  // On the road there is no leaving left to do, so the line is about where they stand.
+  const lead = facts.onTheRoad ? null : facts.leaveBy ? `Leave by ${facts.leaveBy}` : "Leave now";
   if (req.state === "at_risk") {
-    const other =
-      recommended && recommended !== selected ? ` Or switch to ${recommended} and get back on time.` : "";
-    return `${lead} via ${selected} to arrive at ${facts.eta}, inside your buffer.${other}`;
+    if (lead && switchBack) return `${lead}, or ${switchBack}.`;
+    if (lead) return `${lead} via ${selected} to arrive at ${facts.eta}, inside your buffer.`;
+    return `You will arrive at ${facts.eta} via ${selected}, inside your buffer.`;
   }
+  if (!lead) return `You will arrive at ${facts.eta} via ${selected}, on time.`;
   return `${lead} via ${selected} to arrive at ${facts.eta}.${usual}`;
 }
 

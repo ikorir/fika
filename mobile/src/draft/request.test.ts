@@ -1,5 +1,5 @@
 import type { Commute, Route, Sample, Simulation } from '@/contract';
-import { accident } from '@/demo/presets';
+import { accident, midTrip } from '@/demo/presets';
 import { draftRequest } from '@/draft/request';
 import { evaluate } from '@/engine';
 import { heroText } from '@/today/words';
@@ -88,6 +88,27 @@ describe('the facts sent to the draft endpoint', () => {
     const live = evaluate({ commute, samples: [sample('7:30', routes, 'now'), ...morning(routes)], now: at('7:30') });
     const simulation = { delay: accident(live.routes.find((r) => r.id === 'waiyaki-way')!) };
     expect(request('7:30', routes, simulation).facts.cause).toBe('Accident on Waiyaki Way');
+  });
+
+  it('say when the trip is already under way, so Claude does not tell a driver to leave', () => {
+    const routes = [waiyaki(45), ngong(51)];
+    const samples = [sample('7:30', routes, 'now'), ...morning(routes)];
+    const shown = evaluate({ commute, samples, now: at('7:30') });
+    const simulation = { ...midTrip(commute, samples, 'waiyaki-way'), delay: accident(shown.routes[0]) };
+    const req = draftRequest(commute, evaluate({ commute, samples, now: at('7:30'), simulation }), simulation);
+    expect(req.facts.onTheRoad).toBe(true);
+    expect(req.facts.leaveBy).toBeNull();
+  });
+
+  it('state the exact lateness beside the rounded figure the message promises', () => {
+    const e = evaluate({ commute, samples: [sample('8:30', [waiyaki(38)], 'now')], now: at('8:30') });
+    const req = draftRequest(commute, e);
+    expect([req.facts.lateMin, req.facts.lateMinRounded]).toEqual([13, 15]);
+  });
+
+  it('name a better route only when the engine found one', () => {
+    const onTime = request('7:30', [waiyaki(40), ngong(51)]);
+    expect(onTime.facts.betterRoute).toBeNull();
   });
 
   it('carry the saved contact, and a tone that fits them', () => {
