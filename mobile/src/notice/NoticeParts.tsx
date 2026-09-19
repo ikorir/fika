@@ -11,12 +11,15 @@ const { color, type } = theme;
 export const recipient = (contact: Commute['contact']) =>
   [contact.name.trim(), contact.relationship.trim()].filter(Boolean).join(' · ');
 
-/** The ETA and lateness in the notice, locked: they come from the route and aren't the AI's to change. */
+/**
+ * The ETA and lateness in the notice, locked: they come from the route and aren't the AI's to change. Lateness is
+ * rounded up to 5 minutes, as the message says it, so it reads "about".
+ */
 export function LockedChips({ notice, caption = false }: { notice: Notice; caption?: boolean }) {
   return (
     <View style={styles.row}>
       <Chip label={`ETA ${notice.eta}`} />
-      <Chip label={`${notice.lateMin} min late`} />
+      <Chip label={`about ${notice.lateMin} min late`} />
       {caption && <Text style={styles.caption}>from your route, not AI</Text>}
     </View>
   );

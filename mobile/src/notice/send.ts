@@ -5,12 +5,16 @@ import { noticeLinks } from '@/notice/links';
 
 const links = (phone: string, text: string) => noticeLinks(phone, text, Platform.OS === 'ios' ? 'ios' : 'android');
 
-/** The system share sheet, for a group chat or anywhere else. */
+/** The system share sheet, for a group chat or anywhere else. The last resort, so a failure has nowhere to go. */
 export async function shareNotice(text: string) {
-  await Share.share({ message: text });
+  try {
+    await Share.share({ message: text });
+  } catch (e) {
+    console.warn('Could not open the share sheet', e);
+  }
 }
 
-/** The SMS composer; the share sheet where there is none (an iPad, a simulator). */
+/** The SMS composer; the share sheet where there is none, such as a Wi-Fi-only iPad. */
 export async function smsNotice(phone: string, text: string) {
   try {
     await Linking.openURL(links(phone, text).sms);

@@ -1,7 +1,7 @@
 import type { Commute, Route, Sample } from '@/contract';
 import { accident, midTrip } from '@/demo/presets';
 import { evaluate } from '@/engine';
-import { lateNotice } from '@/notice/template';
+import { lateNotice, updateNumbers } from '@/notice/template';
 import { heroText } from '@/today/words';
 
 // Deadline 9:00, buffer 10, extra 5.
@@ -46,7 +46,7 @@ describe('the late notice', () => {
     expect(notice).toContain(late);
   });
 
-  it('greets the contact and names no cause when traffic is normal', () => {
+  it('greets the contact by name', () => {
     expect(lateNotice(leavingAt830(waiyaki(40)), commute.contact)).toBe(
       'Hi Mary, I will be about 15 minutes late. My ETA is 9:15. Apologies for the delay.',
     );
@@ -57,14 +57,9 @@ describe('the late notice', () => {
     expect(notice.startsWith('Hi, I will be about 15 minutes late.')).toBe(true);
   });
 
-  it.each([
-    { case: 'covers the lateness', delayMin: 15, traffic: true },
-    { case: 'is half the lateness', delayMin: 8, traffic: true },
-    { case: 'is under half the lateness, so leaving late is the main reason', delayMin: 7, traffic: false },
-  ])('mentions the traffic on the route when its delay $case', ({ delayMin, traffic }) => {
-    const notice = lateNotice(leavingAt830(waiyaki(40, delayMin)), commute.contact);
-    expect(notice.startsWith('Hi Mary, traffic is heavy on Waiyaki Way and I will be about 15 minutes late.')).toBe(
-      traffic,
+  it('names no cause, even when the route is slower than normal', () => {
+    expect(lateNotice(leavingAt830(waiyaki(40, 25)), commute.contact)).toBe(
+      'Hi Mary, I will be about 15 minutes late. My ETA is 9:15. Apologies for the delay.',
     );
   });
 
@@ -79,7 +74,28 @@ describe('the late notice', () => {
     const e = evaluate({ commute, samples, now: at('7:40'), simulation });
     expect([e.state, heroText(e, commute).value]).toEqual(['late', '9:44']);
     expect(lateNotice(e, commute.contact)).toBe(
-      'Hi Mary, traffic is heavy on Waiyaki Way and I will be about 45 minutes late. My ETA is 9:44. Apologies for the delay.',
+      'Hi Mary, I will be about 45 minutes late. My ETA is 9:44. Apologies for the delay.',
     );
+  });
+});
+
+describe("the commuter's edit when the numbers move", () => {
+  const was = { eta: '9:08', lateMin: 10 };
+  const now = { eta: '9:13', lateMin: 15 };
+
+  it('keeps their words and takes the new ETA and lateness', () => {
+    const edit = 'Hi Mary, I will be about 10 minutes late. My ETA is 9:08. Start the meeting without me.';
+    expect(updateNumbers(edit, was, now)).toBe(
+      'Hi Mary, I will be about 15 minutes late. My ETA is 9:13. Start the meeting without me.',
+    );
+  });
+
+  it('leaves other times alone', () => {
+    const edit = 'My ETA is 9:08. Start the 19:08 call and the 9:00 meeting without me.';
+    expect(updateNumbers(edit, was, now)).toBe('My ETA is 9:13. Start the 19:08 call and the 9:00 meeting without me.');
+  });
+
+  it('puts back no number they took out', () => {
+    expect(updateNumbers('Running late, sorry!', was, now)).toBe('Running late, sorry!');
   });
 });

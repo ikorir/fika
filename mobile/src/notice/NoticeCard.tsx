@@ -11,6 +11,7 @@ type Props = { notice: Notice; contact: Commute['contact']; onPress: () => void 
 
 // The late state's preview of the notice. Tapping it opens the editor, as "Review and send notice" does.
 export function NoticeCard({ notice, contact, onPress }: Props) {
+  const to = recipient(contact);
   return (
     <Pressable
       accessibilityRole="button"
@@ -20,9 +21,11 @@ export function NoticeCard({ notice, contact, onPress }: Props) {
     >
       <View style={styles.header}>
         <Text style={styles.title}>Late notice</Text>
-        <Text style={styles.to} numberOfLines={1}>
-          to {recipient(contact)}
-        </Text>
+        {to !== '' && (
+          <Text style={styles.to} numberOfLines={1}>
+            to {to}
+          </Text>
+        )}
       </View>
       <Text style={styles.text}>{notice.text}</Text>
       <LockedChips notice={notice} />
@@ -43,5 +46,5 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
   title: { ...type.cardTitle, color: color.text },
   to: { ...type.meta, color: color.textMuted, flexShrink: 1 },
-  text: { ...type.notice, color: color.textBody },
+  text: { ...type.noticePreview, color: color.textBody },
 });

@@ -60,8 +60,9 @@ const type = {
   rowTime: { fontFamily: font.bold, fontSize: 16 }, // arrival time at a row's end
   cardTitle: { fontFamily: font.bold, fontSize: 15 },
   note: { fontFamily: font.regular, fontSize: 14, lineHeight: 20 },
-  notice: { fontFamily: font.regular, fontSize: 15, lineHeight: 22 }, // the notice preview on Today
-  message: { fontFamily: font.regular, fontSize: 16, lineHeight: 23 }, // the notice being edited
+  noticePreview: { fontFamily: font.regular, fontSize: 15, lineHeight: 22 }, // the late notice on Today
+  noticeEditor: { fontFamily: font.regular, fontSize: 16, lineHeight: 23 }, // the late notice in its sheet
+  recipient: { fontFamily: font.semibold, fontSize: 15 }, // "Mary · manager" in the notice sheet's To row
   meta: { fontFamily: font.regular, fontSize: 13 },
   metaStrong: { fontFamily: font.semibold, fontSize: 13 }, // route delta
   tag: { fontFamily: font.bold, fontSize: 12 },

@@ -22,7 +22,7 @@ const { color, type } = theme;
 
 type Props = {
   visible: boolean;
-  notice: Notice | null; // the copy being edited
+  notice: Notice | null;
   contact: Commute['contact'];
   onEdit: (text: string) => void;
   onClose: () => void;
@@ -152,8 +152,8 @@ const styles = StyleSheet.create({
     borderBottomColor: color.hairline,
   },
   toLabel: { ...type.note, color: color.textMuted },
-  to: { ...type.cardTitle, fontFamily: theme.font.semibold, color: color.text, flexShrink: 1 },
-  input: { ...type.message, color: color.text, minHeight: 138, paddingTop: 14, paddingBottom: 14, paddingHorizontal: 16 },
+  to: { ...type.recipient, color: color.text, flexShrink: 1 },
+  input: { ...type.noticeEditor, color: color.text, minHeight: 138, paddingTop: 14, paddingBottom: 14, paddingHorizontal: 16 },
   primary: {
     flexDirection: 'row',
     alignItems: 'center',

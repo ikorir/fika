@@ -44,8 +44,8 @@ export default function TodayScreen() {
     if (selectedId === undefined && shownId) setSelectedId(shownId);
   }, [selectedId, shownId]);
 
-  const noticeCard = notice.current && (
-    <NoticeCard notice={notice.current} contact={commute.contact} onPress={notice.show} />
+  const noticeCard = notice.notice && (
+    <NoticeCard notice={notice.notice} contact={commute.contact} onPress={notice.show} />
   );
 
   return (
@@ -61,16 +61,15 @@ export default function TodayScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <Hero commute={commute} evaluation={evaluation} />
 
-        {/* Late: the notice leads when no route gets back on time; after the routes when switching still would. */}
-        {!evaluation?.betterRouteId && noticeCard}
-        {evaluation && (
+        {/* Late, the notice takes the routes' place. The routes stay above it only while switching gets back on time. */}
+        {evaluation && (!noticeCard || evaluation.betterRouteId) && (
           <RouteList
             routes={routes}
             caption={departureCaption(evaluation)}
             onSelect={setSelectedId}
           />
         )}
-        {evaluation?.betterRouteId && noticeCard}
+        {noticeCard}
         {data && !hasRoute && <Text style={styles.message}>No driving route found for this commute.</Text>}
 
         {loading && !data && <ActivityIndicator color={color.accent} style={styles.spinner} />}
@@ -92,7 +91,7 @@ export default function TodayScreen() {
       />
       <NoticeSheet
         visible={notice.open}
-        notice={notice.draft}
+        notice={notice.notice}
         contact={commute.contact}
         onEdit={notice.edit}
         onClose={notice.hide}

@@ -1,46 +1,40 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { Commute, Evaluation } from '@/contract';
-import { lateNotice } from '@/notice/template';
-import { formatTime } from '@/time';
+import { lateNotice, noticeFacts, updateNumbers, type NoticeFacts } from '@/notice/template';
 
-/** A notice and the numbers in it, for the locked chips. `template` is what Fika drafted; `text` is what gets sent. */
-export type Notice = { eta: string; lateMin: number; template: string; text: string };
+/** The notice to send and the numbers it states, for the locked chips. */
+export type Notice = NoticeFacts & { text: string };
 
 /**
- * The late notice while the screen is late. The editor works on a copy taken when it opens, so the minute ticking
- * over can't rewrite the message under the commuter's thumbs. Their edit is kept for as long as Fika's draft is
- * unchanged; once the ETA moves, the next draft starts from the new numbers.
+ * The late notice while the screen is late: Fika's template until the commuter edits it, then their words. An edit is
+ * kept with the numbers it was written against, so when the ETA moves its numbers move with it and the message still
+ * matches the screen. Once the screen is no longer late, the next late notice starts from the template again.
  */
 export function useNotice(evaluation: Evaluation | undefined, contact: Commute['contact']) {
-  const [draft, setDraft] = useState<Notice | null>(null);
+  const [edit, setEdit] = useState<Notice | null>(null);
   const [open, setOpen] = useState(false);
+  const late = evaluation?.state === 'late';
 
-  const template = evaluation?.state === 'late' ? lateNotice(evaluation, contact) : null;
-  const current: Notice | null =
-    evaluation && template
-      ? {
-          eta: formatTime(evaluation.eta),
-          lateMin: evaluation.lateMinRounded,
-          template,
-          text: draft?.template === template ? draft.text : template,
-        }
+  useEffect(() => {
+    if (late) return;
+    setEdit(null);
+    setOpen(false);
+  }, [late]);
+
+  const facts = evaluation && late ? noticeFacts(evaluation) : null;
+  const notice: Notice | null =
+    evaluation && facts
+      ? { ...facts, text: edit ? updateNumbers(edit.text, edit, facts) : lateNotice(evaluation, contact) }
       : null;
 
   return {
-    /** What the preview card shows: null unless late. */
-    current,
-    /** What the editor shows: the copy taken when it opened. */
-    draft,
+    /** Null unless late. */
+    notice,
+    /** Whether the editor sheet is showing. */
     open,
-    show() {
-      if (!current) return;
-      setDraft(current);
-      setOpen(true);
-    },
+    show: () => setOpen(notice !== null),
     hide: () => setOpen(false),
-    edit: (text: string) => setDraft((d) => d && { ...d, text }),
+    edit: (text: string) => facts && setEdit({ ...facts, text }),
   };
 }
-
-export type NoticeState = ReturnType<typeof useNotice>;
