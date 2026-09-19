@@ -1,0 +1,173 @@
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Path } from 'react-native-svg';
+
+import type { Commute } from '@/contract';
+import { Icon, LockedChips, recipient, sendPath } from '@/notice/NoticeParts';
+import type { Notice } from '@/notice/useNotice';
+import { theme } from '@/theme';
+
+const { color, type } = theme;
+
+type Props = {
+  visible: boolean;
+  notice: Notice | null; // the copy being edited
+  contact: Commute['contact'];
+  onEdit: (text: string) => void;
+  onClose: () => void;
+};
+
+// Bottom sheet over the late screen: who it goes to, the editable message, its locked numbers, and the ways to send.
+// The tone and language controls go in the header (#8).
+export function NoticeSheet({ visible, notice, contact, onEdit, onClose }: Props) {
+  const insets = useSafeAreaInsets();
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={[styles.backdrop, { paddingTop: insets.top + 8 }]}
+      >
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close the notice" />
+        {notice && (
+          <View style={styles.sheet}>
+            <ScrollView
+              bounces={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
+              contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, 34) }]}
+            >
+              <View style={styles.header}>
+                <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} style={styles.close}>
+                  <Icon size={20} stroke={color.text} width={2}>
+                    <Path d="M6 6l12 12M18 6 6 18" />
+                  </Icon>
+                </Pressable>
+                <Text style={styles.title} accessibilityRole="header">
+                  Late notice
+                </Text>
+                <View style={styles.spacer} />
+              </View>
+
+              <View style={styles.message}>
+                <View style={styles.toRow}>
+                  <Text style={styles.toLabel}>To</Text>
+                  <Text style={styles.to} numberOfLines={1}>
+                    {recipient(contact)}
+                  </Text>
+                </View>
+                <TextInput
+                  accessibilityLabel="Message"
+                  value={notice.text}
+                  onChangeText={onEdit}
+                  multiline
+                  textAlignVertical="top"
+                  selectionColor={color.accent}
+                  style={styles.input}
+                />
+              </View>
+
+              <LockedChips notice={notice} caption />
+
+              <Pressable accessibilityRole="button" style={styles.primary}>
+                <Icon size={22} stroke={color.onAccent} width={2}>
+                  <Path d={sendPath} />
+                </Icon>
+                <Text style={styles.primaryLabel}>Send on WhatsApp</Text>
+              </Pressable>
+              <View style={styles.secondaryRow}>
+                <Pressable accessibilityRole="button" style={styles.secondary}>
+                  <Icon size={20} stroke={color.text} width={1.8}>
+                    <Path d="M4 5h16v11H9l-5 4z" />
+                  </Icon>
+                  <Text style={styles.secondaryLabel}>SMS</Text>
+                </Pressable>
+                <Pressable accessibilityRole="button" style={styles.secondary}>
+                  <Icon size={20} stroke={color.text} width={1.8}>
+                    <Path d="M12 15V4M8 8l4-4 4 4M5 12v7h14v-7" />
+                  </Icon>
+                  <Text style={styles.secondaryLabel}>Share</Text>
+                </Pressable>
+              </View>
+
+              <Text style={styles.footnote}>Fika opens a prefilled message. Nothing goes out until you press send.</Text>
+            </ScrollView>
+          </View>
+        )}
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: color.scrim },
+  sheet: {
+    flexShrink: 1,
+    backgroundColor: color.surface,
+    borderTopLeftRadius: theme.radius.sheet,
+    borderTopRightRadius: theme.radius.sheet,
+    overflow: 'hidden',
+  },
+  content: { paddingTop: 16, paddingHorizontal: 16, gap: 14 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  close: {
+    width: theme.size.roundButton,
+    height: theme.size.roundButton,
+    borderRadius: theme.size.roundButton / 2,
+    borderWidth: 1,
+    borderColor: color.border,
+    backgroundColor: color.control,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  spacer: { width: theme.size.roundButton },
+  title: { ...type.sheetTitle, color: color.text },
+  message: { borderRadius: theme.radius.field, backgroundColor: color.surfaceRaised },
+  toRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: color.hairline,
+  },
+  toLabel: { ...type.note, color: color.textMuted },
+  to: { ...type.cardTitle, fontFamily: theme.font.semibold, color: color.text, flexShrink: 1 },
+  input: { ...type.message, color: color.text, minHeight: 138, paddingTop: 14, paddingBottom: 14, paddingHorizontal: 16 },
+  primary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    height: theme.size.button,
+    borderRadius: theme.radius.pill,
+    backgroundColor: color.accent,
+  },
+  primaryLabel: { ...type.button, color: color.onAccent },
+  secondaryRow: { flexDirection: 'row', gap: 10 },
+  secondary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: theme.size.buttonSecondary,
+    borderRadius: theme.radius.pill,
+    borderWidth: 1,
+    borderColor: color.border,
+    backgroundColor: color.surfaceRaised,
+  },
+  secondaryLabel: { ...type.buttonSecondary, color: color.text },
+  footnote: { ...type.meta, lineHeight: 18, color: color.textMuted, textAlign: 'center' },
+});

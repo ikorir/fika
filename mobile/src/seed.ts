@@ -10,5 +10,5 @@ export const seedCommute: Commute = {
   bufferMin: 10,
   extraMin: 5,
   mode: 'drive',
-  contact: { name: 'Manager', phone: '254700000000', relationship: 'manager' },
+  contact: { name: 'Mary', phone: '254700000000', relationship: 'manager' },
 };

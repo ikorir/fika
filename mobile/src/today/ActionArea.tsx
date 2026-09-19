@@ -7,13 +7,18 @@ import { formatTime } from '@/time';
 import { PrimaryAction } from '@/today/PrimaryAction';
 
 // The primary action, then "Updated h:mm" and "Open in Google Maps" (#9).
-type Props = { updatedAt?: string; evaluation?: Evaluation; onSelectRoute: (routeId: string) => void };
+type Props = {
+  updatedAt?: string;
+  evaluation?: Evaluation;
+  onSelectRoute: (routeId: string) => void;
+  onReviewNotice: () => void;
+};
 
-export function ActionArea({ updatedAt, evaluation, onSelectRoute }: Props) {
+export function ActionArea({ updatedAt, evaluation, onSelectRoute, onReviewNotice }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.area, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-      <PrimaryAction evaluation={evaluation} onSelectRoute={onSelectRoute} />
+      <PrimaryAction evaluation={evaluation} onSelectRoute={onSelectRoute} onReviewNotice={onReviewNotice} />
       <View style={styles.footer}>
         {updatedAt && <Text style={styles.updated}>Updated {formatTime(updatedAt)}</Text>}
       </View>

@@ -24,6 +24,7 @@ const color = {
   text: '#FFFFFF',
   textBody: '#E4E4E8', // body text on cards
   textMuted: '#A1A1A6',
+  textChip: '#D6D6DB', // locked ETA and lateness chips
   radioIdle: '#6A6A70',
   accent: '#F28C38',
   onAccent: '#1A0F04', // dark text on orange; white fails contrast
@@ -59,10 +60,13 @@ const type = {
   rowTime: { fontFamily: font.bold, fontSize: 16 }, // arrival time at a row's end
   cardTitle: { fontFamily: font.bold, fontSize: 15 },
   note: { fontFamily: font.regular, fontSize: 14, lineHeight: 20 },
+  notice: { fontFamily: font.regular, fontSize: 15, lineHeight: 22 }, // the notice preview on Today
+  message: { fontFamily: font.regular, fontSize: 16, lineHeight: 23 }, // the notice being edited
   meta: { fontFamily: font.regular, fontSize: 13 },
   metaStrong: { fontFamily: font.semibold, fontSize: 13 }, // route delta
   tag: { fontFamily: font.bold, fontSize: 12 },
   button: { fontFamily: font.bold, fontSize: 17 },
+  buttonSecondary: { fontFamily: font.semibold, fontSize: 16 },
 } as const satisfies Record<string, TextStyle>;
 
 export const theme = {
