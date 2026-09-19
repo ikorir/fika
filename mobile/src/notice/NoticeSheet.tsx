@@ -14,6 +14,7 @@ import { Path } from 'react-native-svg';
 
 import type { Commute } from '@/contract';
 import { Icon, LockedChips, recipient, sendPath } from '@/notice/NoticeParts';
+import { shareNotice, smsNotice, whatsAppNotice } from '@/notice/send';
 import type { Notice } from '@/notice/useNotice';
 import { theme } from '@/theme';
 
@@ -78,20 +79,28 @@ export function NoticeSheet({ visible, notice, contact, onEdit, onClose }: Props
 
               <LockedChips notice={notice} caption />
 
-              <Pressable accessibilityRole="button" style={styles.primary}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => whatsAppNotice(contact.phone, notice.text)}
+                style={styles.primary}
+              >
                 <Icon size={22} stroke={color.onAccent} width={2}>
                   <Path d={sendPath} />
                 </Icon>
                 <Text style={styles.primaryLabel}>Send on WhatsApp</Text>
               </Pressable>
               <View style={styles.secondaryRow}>
-                <Pressable accessibilityRole="button" style={styles.secondary}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => smsNotice(contact.phone, notice.text)}
+                  style={styles.secondary}
+                >
                   <Icon size={20} stroke={color.text} width={1.8}>
                     <Path d="M4 5h16v11H9l-5 4z" />
                   </Icon>
                   <Text style={styles.secondaryLabel}>SMS</Text>
                 </Pressable>
-                <Pressable accessibilityRole="button" style={styles.secondary}>
+                <Pressable accessibilityRole="button" onPress={() => shareNotice(notice.text)} style={styles.secondary}>
                   <Icon size={20} stroke={color.text} width={1.8}>
                     <Path d="M12 15V4M8 8l4-4 4 4M5 12v7h14v-7" />
                   </Icon>
