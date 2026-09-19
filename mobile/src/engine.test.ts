@@ -1,5 +1,5 @@
 import type { Commute, Route, Sample } from '@/contract';
-import { accident, midTrip, start } from '@/demo/presets';
+import { accident, midTrip, startingPoint } from '@/demo/presets';
 import { evaluate } from '@/engine';
 import { formatTime } from '@/time';
 
@@ -324,7 +324,7 @@ describe('Demo mode', () => {
 
   it('turns it late with the mid-trip preset: 20 min after leaving at the usual 8:20, into the accident', () => {
     const route = selected(evaluate({ commute, samples: morning, now: at('7:40') }));
-    const simulation = { delay: accident(route), ...midTrip(commute, morning, route.id) };
+    const simulation = { delay: accident(route), ...midTrip(commute, morning, route.id, accident(route)) };
     const result = evaluate({ commute, samples: morning, now: at('7:40'), selectedRouteId: route.id, simulation });
     // 20 of the 75 min gone; the other 55/75 in the 8:30 traffic (80 min) take 59 min, + 5 extra.
     expect([time(result.now), result.state, time(result.eta), result.lateMinRounded, selected(result).id]).toEqual([
@@ -366,14 +366,22 @@ describe('Demo mode', () => {
     const live = evaluate({ commute, samples, now: sundayNight });
     const route = selected(live);
     const arc = [
-      start(live),
-      { ...start(live), delay: accident(route) },
-      { ...start(live), delay: accident(route), ...midTrip(commute, samples, route.id) },
+      startingPoint(live),
+      { ...startingPoint(live), delay: accident(route) },
+      { ...startingPoint(live), delay: accident(route), ...midTrip(commute, samples, route.id, accident(route)) },
     ].map((simulation) => evaluate({ commute, samples, now: sundayNight, selectedRouteId: route.id, simulation }));
     expect(arc.map((e) => [time(e.now), e.state, time(e.eta), e.simulationLabel])).toEqual([
       ['7:40', 'on_time', '8:49', 'Clock set to 7:40'],
       ['7:40', 'at_risk', '8:54', 'Waiyaki Way +25 min · Clock set to 7:40'],
       ['8:40', 'late', '9:44', 'Waiyaki Way +25 min · Clock set to 8:40'],
     ]);
+  });
+
+  it('keeps mid-trip on the accident after the presenter switches routes, as the script does', () => {
+    const route = selected(evaluate({ commute, samples: morning, now: at('7:40') }));
+    const delay = accident(route);
+    const simulation = { delay, ...midTrip(commute, morning, 'james-gichuru-road', delay) };
+    const result = evaluate({ commute, samples: morning, now: at('7:40'), selectedRouteId: 'james-gichuru-road', simulation });
+    expect([result.state, time(result.eta), selected(result).id]).toEqual(['late', '9:44', 'waiyaki-way']);
   });
 });

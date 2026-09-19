@@ -19,6 +19,7 @@ const color = {
   switchOff: '#48484C', // switch track when off
   segmentOn: '#5A5A60', // selected segment
   hairline: 'rgba(255,255,255,0.07)',
+  scrim: 'rgba(0,0,0,0.72)', // behind a bottom sheet: the screen shows through at about 0.28
   border: 'rgba(255,255,255,0.12)',
   text: '#FFFFFF',
   textBody: '#E4E4E8', // body text on cards

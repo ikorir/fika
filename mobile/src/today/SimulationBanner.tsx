@@ -9,11 +9,7 @@ import { theme } from '@/theme';
 export function SimulationBanner({ evaluation }: { evaluation?: Evaluation }) {
   if (!evaluation?.simulated) return null;
   // "+25 MIN" never breaks across lines.
-  const text = ['Simulated traffic', evaluation.simulationLabel]
-    .filter(Boolean)
-    .join(' · ')
-    .toUpperCase()
-    .replace(/(\d) MIN\b/g, '$1\u00a0MIN');
+  const text = `Simulated traffic · ${evaluation.simulationLabel}`.toUpperCase().replace(/(\d) MIN\b/g, '$1\u00a0MIN');
   return (
     <View style={styles.banner} accessibilityRole="text">
       <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={theme.color.onSimBanner} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">

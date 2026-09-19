@@ -32,9 +32,7 @@ export function evaluate({ commute, samples, now, selectedRouteId, simulation = 
     .map((s) => ({ departMs: floorToMinute(Date.parse(s.departAt)), routes: s.routes.map(delayed) }));
   if (departures.length === 0) throw new Error('evaluate() needs at least one sample with a route.');
 
-  // The deadline the samples were fetched for, even if the clock has since moved on to tomorrow's.
-  const fetchedMs = Math.min(...departures.map((d) => d.departMs));
-  const deadlineMs = Date.parse(commuteDeadline(commute.arriveBy, new Date(fetchedMs)));
+  const deadlineMs = deadlineOf(commute, samples);
   const onTimeByMs = deadlineMs - commute.bufferMin * MIN;
   const standing = (arriveMs: number) => (arriveMs <= onTimeByMs ? 0 : arriveMs <= deadlineMs ? 1 : 2);
 
@@ -90,7 +88,7 @@ export function evaluate({ commute, samples, now, selectedRouteId, simulation = 
   const lateMin = Math.max(0, (eta - deadlineMs) / MIN);
 
   // Leaving at the usual time, in the traffic of the sample nearest it. Left out once that time has passed.
-  const usualMs = Date.parse(nairobiTimeOnDay(commute.usualDeparture, new Date(deadlineMs)));
+  const usualMs = Date.parse(usualDeparture(commute, samples));
   const usualArriveMs = fastestArrival(usualMs, nearestTo(usualMs).routes);
 
   // What the banner says is simulated: "Waiyaki Way +25 min · Clock set to 8:40". The clock covers a trip under way.
@@ -126,6 +124,17 @@ export function evaluate({ commute, samples, now, selectedRouteId, simulation = 
     simulated: simulationParts.length > 0,
     simulationLabel: simulationParts.length > 0 ? simulationParts.join(' · ') : null,
   };
+}
+
+/** The deadline the samples were fetched for, even if the clock has since moved on to tomorrow's. */
+function deadlineOf(commute: Commute, samples: Sample[]): number {
+  const fetchedMs = Math.min(...samples.filter((s) => s.routes.length > 0).map((s) => Date.parse(s.departAt)));
+  return Date.parse(commuteDeadline(commute.arriveBy, new Date(fetchedMs)));
+}
+
+/** The usual departure on the deadline's day, as ISO: where Demo mode's mid-trip leaves from. */
+export function usualDeparture(commute: Commute, samples: Sample[]): string {
+  return iso(Date.parse(nairobiTimeOnDay(commute.usualDeparture, new Date(deadlineOf(commute, samples)))));
 }
 
 /** "Waiyaki Way" for waiyaki-way, as the samples name it. */

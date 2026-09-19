@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import type { Commute, Evaluation, Sample } from '@/contract';
-import { ACCIDENT_MIN, accident, midTrip } from '@/demo/presets';
+import { ACCIDENT_MIN, accident, midTrip, minutesLater } from '@/demo/presets';
 import type { DemoMode } from '@/demo/useDemo';
 import { theme } from '@/theme';
 import { formatTime } from '@/time';
@@ -28,7 +28,7 @@ export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation
   const insets = useSafeAreaInsets();
   const simulation = demo.simulation ?? {};
   const shown = evaluation?.routes.find((r) => r.selected);
-  const trip = shown && midTrip(commute, samples, shown.id);
+  const trip = shown && midTrip(commute, samples, shown.id, simulation.delay);
   const disabled = !demo.on || !evaluation;
 
   const toggleDemo = (on: boolean) => {
@@ -44,11 +44,11 @@ export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation
     shown && demo.change((s) => ({ ...s, delay: s.delay ? undefined : accident(shown) }));
   // Leaving the trip puts the clock back where the demo started.
   const toggleMidTrip = () =>
-    trip && demo.change((s, first) => (s.midTrip ? { ...s, midTrip: undefined, clock: first.clock } : { ...s, ...trip }));
+    trip && demo.change((s, start) => (s.midTrip ? { ...s, midTrip: undefined, clock: start.clock } : { ...s, ...trip }));
   // From the latest simulated clock, so quick taps all count.
   const stepClock = (min: number) =>
     evaluation &&
-    demo.change((s) => ({ ...s, clock: new Date(Date.parse(s.clock ?? evaluation.now) + min * 60_000).toISOString() }));
+    demo.change((s) => ({ ...s, clock: minutesLater(s.clock ?? evaluation.now, min) }));
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -194,7 +194,7 @@ function Icon({ size, stroke, width, children }: { size: number; stroke: string;
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.72)' },
+  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: color.scrim },
   sheet: {
     backgroundColor: color.surface,
     borderTopLeftRadius: theme.radius.sheet,

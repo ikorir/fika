@@ -8,9 +8,9 @@ const { color } = theme;
 
 // Round buttons floating over the map: edit commute (left); Demo mode and refresh (right).
 // The Demo mode icon turns accent orange while Demo mode is on.
-type Props = { onRefresh: () => void; onDemo?: () => void; demoOn?: boolean };
+type Props = { onRefresh: () => void; onDemo: () => void; demoOn: boolean };
 
-export function HeaderControls({ onRefresh, onDemo, demoOn = false }: Props) {
+export function HeaderControls({ onRefresh, onDemo, demoOn }: Props) {
   return (
     <View style={styles.bar}>
       <Pressable accessibilityRole="button" accessibilityLabel="Edit commute" onPress={() => router.push('/setup')} style={[styles.round, styles.chrome]}>
@@ -21,18 +21,16 @@ export function HeaderControls({ onRefresh, onDemo, demoOn = false }: Props) {
         </Icon>
       </Pressable>
       <View style={[styles.pill, styles.chrome]}>
-        {onDemo && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={demoOn ? 'Demo mode, on' : 'Demo mode'}
-            onPress={onDemo}
-            style={styles.pillButton}
-          >
-            <Icon stroke={demoOn ? color.accent : color.text}>
-              <Path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3M7.5 15h9" />
-            </Icon>
-          </Pressable>
-        )}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={demoOn ? 'Demo mode, on' : 'Demo mode'}
+          onPress={onDemo}
+          style={styles.pillButton}
+        >
+          <Icon stroke={demoOn ? color.accent : color.text}>
+            <Path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3M7.5 15h9" />
+          </Icon>
+        </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Refresh routes" onPress={onRefresh} style={styles.pillButton}>
           <Icon>
             <Path d="M20 11a8 8 0 0 0-14.9-3M4 5v3.5h3.5M4 13a8 8 0 0 0 14.9 3M20 19v-3.5h-3.5" />

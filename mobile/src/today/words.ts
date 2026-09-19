@@ -11,11 +11,13 @@ export const routeName = (route: RouteView) => route.label.replace(/^via /, '');
 const selectedRoute = (e: Evaluation) => e.routes.find((r) => r.selected)!;
 const recommendedRoute = (e: Evaluation) => e.routes.find((r) => r.recommended)!;
 export const leavingNow = (e: Evaluation) => e.departAt === e.now;
+/** Already driving, in Demo mode's mid-trip: the departure is behind the clock. */
+const onTheRoad = (e: Evaluation) => Date.parse(e.departAt) < Date.parse(e.now);
 
-/** Over the route list: "leaving now, 7:45", "leaving 8:05", or "left 8:20" once on the road (Demo mode's mid-trip). */
+/** Over the route list: "leaving now, 7:45", "leaving 8:05", or "left 8:20" once on the road. */
 export function departureCaption(e: Evaluation): string {
   if (leavingNow(e)) return `leaving now, ${formatTime(e.departAt)}`;
-  return `${Date.parse(e.departAt) < Date.parse(e.now) ? 'left' : 'leaving'} ${formatTime(e.departAt)}`;
+  return `${onTheRoad(e) ? 'left' : 'leaving'} ${formatTime(e.departAt)}`;
 }
 
 /** The route that restores on time, which the engine names in betterRouteId. */
@@ -32,18 +34,23 @@ function untilLeaving(e: Evaluation): string {
 
 export type HeroText = { label: string; value: string; primary: string; secondary: string };
 
-/** "Leave by 8:05 · in 25 min · arrive 8:50", "Leave Now · arrive 8:55 · 5 min inside your buffer", "Arriving 9:15 · 15 min late · via Waiyaki Way". */
+/**
+ * "Leave by 8:05 · in 25 min · arrive 8:50", "Leave Now · arrive 8:55 · 5 min inside your buffer", "Arriving 9:15 ·
+ * 15 min late · via Waiyaki Way". Once on the road it is "Arriving" whatever the state.
+ */
 export function heroText(e: Evaluation, commute: Commute): HeroText {
   const selected = selectedRoute(e);
   const arrive = `arrive ${formatTime(e.eta)}`;
-  if (e.state === 'late')
-    return { label: 'Arriving', value: formatTime(e.eta), primary: `${e.lateMin} min late`, secondary: `via ${routeName(selected)}` };
+  const standing =
+    e.state === 'late'
+      ? `${e.lateMin} min late`
+      : e.state === 'at_risk'
+        ? `${selected.deltaMin + commute.bufferMin} min inside your buffer`
+        : `${-selected.deltaMin} min early`;
+  if (e.state === 'late' || onTheRoad(e))
+    return { label: 'Arriving', value: formatTime(e.eta), primary: standing, secondary: `via ${routeName(selected)}` };
   if (!leavingNow(e)) return { label: 'Leave by', value: formatTime(e.departAt), primary: untilLeaving(e), secondary: arrive };
-  const margin =
-    e.state === 'at_risk'
-      ? `${selected.deltaMin + commute.bufferMin} min inside your buffer`
-      : `${-selected.deltaMin} min early`;
-  return { label: 'Leave', value: 'Now', primary: arrive, secondary: margin };
+  return { label: 'Leave', value: 'Now', primary: arrive, secondary: standing };
 }
 
 /**
@@ -52,7 +59,7 @@ export function heroText(e: Evaluation, commute: Commute): HeroText {
  * road (Demo mode's mid-trip), where there is no leaving left to do.
  */
 export function pastLeaveBy(e: Evaluation): string | null {
-  if (e.state === 'on_time' || !leavingNow(e) || !e.leaveBy || Date.parse(e.leaveBy) >= Date.parse(e.now)) return null;
+  if (e.state === 'on_time' || onTheRoad(e) || !e.leaveBy || Date.parse(e.leaveBy) >= Date.parse(e.now)) return null;
   return `It's past your ${formatTime(e.leaveBy)} leave-by.`;
 }
 
@@ -66,6 +73,9 @@ export function decisionLine(e: Evaluation, commute: Commute): string {
       ? " That's your usual time."
       : ` Your usual ${formatTime(e.usual.departAt)} gets you there at ${formatTime(e.usual.arriveAt)}.`;
   const lead = leavingNow(e) ? 'Leave now' : `Leave by ${formatTime(e.departAt)}`;
+
+  if (onTheRoad(e) && e.state !== 'late')
+    return `You will reach ${commute.destination.label} around ${eta}, ${e.state === 'on_time' ? 'on time' : 'inside your buffer'}.`;
 
   if (e.state === 'on_time') return `${lead} via ${routeName(selected)} to arrive at ${eta}.${usual}`;
 
