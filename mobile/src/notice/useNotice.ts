@@ -34,7 +34,15 @@ export function useNotice(evaluation: Evaluation | undefined, contact: Commute['
     notice,
     /** Whether the editor sheet is showing. */
     open,
-    show: () => setOpen(notice !== null),
+    /** Whether the words are the commuter's own, and so no longer Fika's or Claude's to change. */
+    mine: edit !== null,
+    show: () => {
+      if (!notice) return;
+      // What they read when they open the editor is what they will send. Taking it as theirs from that moment
+      // stops a draft landing a second later from rewriting the message under them.
+      setEdit(notice);
+      setOpen(true);
+    },
     hide: () => setOpen(false),
     edit: (text: string) => facts && setEdit({ ...facts, text }),
   };

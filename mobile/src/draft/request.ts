@@ -34,8 +34,9 @@ export function draftRequest(commute: Commute, e: Evaluation, simulation?: Simul
       usualArrival: e.usual ? formatTime(e.usual.arriveAt) : '',
       selectedRoute: selected ? routeName(selected) : '',
       recommendedRoute: recommended ? routeName(recommended) : '',
-      // Only the engine decides that switching restores on time, so only it can be said.
-      betterRoute: better ? routeName(better) : null,
+      // Only the engine decides that switching restores on time, so only it can be said — and with the arrival
+      // that belongs to that road, not the one on the route the screen is showing.
+      betterRoute: better ? { label: routeName(better), arriveAt: formatTime(better.arriveAt) } : null,
       routes: e.routes.map((r) => ({
         label: routeName(r),
         durationMin: r.durationMin,

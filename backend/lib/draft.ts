@@ -48,8 +48,8 @@ on time" or "you are at risk": say what to do about it.
 THE THREE FIELDS
 
 "decision_line" — what to do now. One to three sentences, under 35 words. It always states eta.
-- eta is when they arrive on selected_route, and on no other road. Never attach it, or any other time, to a road it
-  does not belong to.
+- eta is when they arrive on selected_route, and on no other road. The road named in the same sentence as eta is
+  always selected_route. Never attach eta, or any other time, to a road it does not belong to.
 - leave_by is the time to leave by. leave_now instead means that time has gone by, so tell them to leave now — they
   are still standing there, not driving. already_driving, and only that, means they are on the road: then do not
   tell them to leave at all, tell them where they stand.
@@ -60,7 +60,7 @@ THE THREE FIELDS
   deadline; they should let the person named below know now, before they are late. Do not open with "you are late":
   the screen says that, and it is the arrival that is late, not them yet.
 - Never suggest changing route unless route_that_gets_them_there_on_time is in the facts, and then name only that
-  road, and say only that it gets them there on time — you have no arrival time for it. Whether another road still
+  road, and give its own "arrives" time, never eta. Whether another road still
   helps is the engine's call, not yours, and it has already made it: no such fact means no switch is worth
   offering, whatever the other roads' numbers look like. Never say a road is faster by some amount. When
   already_driving is there, no switch is possible at all.
@@ -95,7 +95,9 @@ function promptFacts(req: DraftRequest) {
     // The route the screen is showing, and the one — if any — the engine says would restore on time. Which other
     // road is "best" is deliberately not here: given it, Claude offers a switch the engine has already ruled out.
     selected_route: facts.selectedRoute,
-    ...(facts.betterRoute ? { route_that_gets_them_there_on_time: facts.betterRoute } : {}),
+    ...(facts.betterRoute
+      ? { route_that_gets_them_there_on_time: { road: facts.betterRoute.label, arrives: facts.betterRoute.arriveAt } }
+      : {}),
     routes: facts.routes.map((r) => ({
       road: r.label,
       minutes: r.durationMin,
@@ -141,6 +143,42 @@ async function inTime(answer: Promise<string>, signal: AbortController, timeoutM
   }
 }
 
+// A clock time ("9:15", "08:05") and a count of minutes ("18 min", "about 10 minutes") as they appear in writing.
+const TIME = /\d{1,2}:\d{2}/g;
+const MINUTES = /(\d+)\s*(?:min\b|minutes?\b|dakika)/g;
+
+/** Every time and minute count the engine computed, as strings, in the forms Claude was given them. */
+function knownNumbers({ facts }: DraftRequest) {
+  const times = [
+    facts.deadline,
+    facts.leaveBy,
+    facts.eta,
+    facts.usualDeparture,
+    facts.usualArrival,
+    facts.betterRoute?.arriveAt,
+  ];
+  const minutes = [facts.lateMin, facts.lateMinRounded, ...facts.routes.flatMap((r) => [r.durationMin, r.trafficDelayMin])];
+  return {
+    times: new Set(times.filter((t): t is string => Boolean(t))),
+    minutes: new Set(minutes.map(String)),
+  };
+}
+
+/**
+ * Whether the words state only numbers the engine computed. Claude is told never to work one out, and mostly does
+ * not; this is what makes that true rather than likely. A time or a count of minutes that is not among the facts —
+ * a difference between two routes, a rounded ETA, an invented "in 25 minutes" — sends the whole answer back and
+ * Fika's own words go out instead.
+ */
+function statesOnlyKnownNumbers(words: DraftWords, req: DraftRequest): boolean {
+  const known = knownNumbers(req);
+  const text = `${words.decision_line} ${words.conditions_note} ${words.notice}`;
+  // Times first, so the minutes of "9:15" are never read as a count of minutes.
+  for (const [time] of text.matchAll(TIME)) if (!known.times.has(time)) return false;
+  for (const [, count] of text.replace(TIME, " ").matchAll(MINUTES)) if (!known.minutes.has(count)) return false;
+  return true;
+}
+
 /**
  * The three pieces of writing for one screen. Claude writes them; if its answer is late, is not the JSON we asked
  * for, or leaves the ETA out of the notice, the commuter gets Fika's own words instead. This never throws: the
@@ -157,6 +195,7 @@ export async function draft(
     const words = DraftWords.parse(JSON.parse(text));
     // The message a commuter sends must state the ETA on their screen, exactly. Anything else and it is wrong.
     if (!words.notice.includes(req.facts.eta)) throw new Error("Claude's notice does not state the ETA it was given.");
+    if (!statesOnlyKnownNumbers(words, req)) throw new Error("Claude's words state a number the engine did not compute.");
     return { ...words, source: "claude" };
   } catch (e) {
     console.warn("POST /api/draft: using the template.", e instanceof Error ? e.message : e);

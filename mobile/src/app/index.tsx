@@ -48,7 +48,12 @@ export default function TodayScreen() {
   }, [selectedId, shownId]);
 
   const noticeCard = notice.notice && (
-    <NoticeCard notice={notice.notice} contact={commute.contact} loading={draft.loading} onPress={notice.show} />
+    <NoticeCard
+      notice={notice.notice}
+      contact={commute.contact}
+      loading={draft.loading && !notice.mine}
+      onPress={notice.show}
+    />
   );
 
   return (

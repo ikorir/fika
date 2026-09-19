@@ -72,10 +72,20 @@ describe("draft falls back to Fika's own words", () => {
     expect(await draft(lateRequest(), answering(JSON.stringify(roundedEta)))).toEqual(template);
   });
 
-  it("with an ETA that is a substring of a longer time, only the exact string counts", async () => {
+  it("when Claude states a time the engine never computed, even one the ETA hides inside", async () => {
+    // "9:15" does appear in "19:15", so containment alone would let this through.
     const nearly = { ...claudeWords, notice: "Hi Mary, my ETA is 19:15." };
-    // "9:15" does appear in "19:15", so this one passes the guard: the check is deliberately a plain containment.
-    expect((await draft(lateRequest(), answering(JSON.stringify(nearly)))).source).toBe("claude");
+    expect((await draft(lateRequest(), answering(JSON.stringify(nearly)))).source).toBe("template");
+  });
+
+  it("when Claude works out a number of its own, such as how much faster another road is", async () => {
+    const worked = { ...claudeWords, decision_line: "Ngong Road is 19 min faster. You will arrive at 9:15." };
+    expect((await draft(lateRequest(), answering(JSON.stringify(worked)))).source).toBe("template");
+  });
+
+  it("but not when every number it states is one it was given", async () => {
+    const given = { ...claudeWords, decision_line: "Waiyaki Way takes 70 min today, 18 min more than normal." };
+    expect((await draft(lateRequest(), answering(JSON.stringify(given)))).source).toBe("claude");
   });
 });
 
@@ -137,8 +147,10 @@ describe("the template", () => {
       "Leave now via Waiyaki Way to arrive at 8:55, inside your buffer.",
     );
 
-    request.facts = { ...request.facts, betterRoute: "Ngong Road" };
-    expect((await wordsFor(request)).decision_line).toBe("Leave now, or switch to Ngong Road and get back on time.");
+    request.facts = { ...request.facts, betterRoute: { label: "Ngong Road", arriveAt: "8:36" } };
+    expect((await wordsFor(request)).decision_line).toBe(
+      "Leave now via Waiyaki Way to arrive at 8:55, inside your buffer. Or switch to Ngong Road and arrive at 8:36, back on time.",
+    );
   });
 
   it("tells a commuter already driving where they stand, not to leave", async () => {

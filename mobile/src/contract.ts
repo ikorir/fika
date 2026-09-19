@@ -40,7 +40,7 @@ export type DraftRequest = {
     usualArrival: string;
     selectedRoute: string;
     recommendedRoute: string;
-    betterRoute: string | null; // the route that would restore on time, when there is one
+    betterRoute: { label: string; arriveAt: string } | null; // the route that would restore on time, and when it arrives
     routes: { label: string; durationMin: number; trafficDelayMin: number }[];
     cause?: string; // only for a simulated accident
     rain?: { at: string };

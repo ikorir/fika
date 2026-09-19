@@ -52,7 +52,8 @@ export const DraftRequest = z.object({
     usualArrival: z.string(),
     selectedRoute: z.string(),
     recommendedRoute: z.string(),
-    betterRoute: z.string().nullable(), // the route that would restore on time, when there is one
+    // The route that would restore on time, and when it gets there. Only the engine decides there is one.
+    betterRoute: z.object({ label: z.string(), arriveAt: z.string() }).nullable(),
     routes: z.array(
       z.object({
         label: z.string(),

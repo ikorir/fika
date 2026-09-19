@@ -106,9 +106,14 @@ describe('the facts sent to the draft endpoint', () => {
     expect([req.facts.lateMin, req.facts.lateMinRounded]).toEqual([13, 15]);
   });
 
-  it('name a better route only when the engine found one', () => {
-    const onTime = request('7:30', [waiyaki(40), ngong(51)]);
-    expect(onTime.facts.betterRoute).toBeNull();
+  it('name a better route only when the engine found one, with its own arrival time', () => {
+    expect(request('7:30', [waiyaki(40), ngong(51)]).facts.betterRoute).toBeNull();
+
+    // At risk on the road showing (8:30 + 20 + 5 = 8:55), with one that still makes 8:50 (8:30 + 12 + 5 = 8:47).
+    const routes = [waiyaki(20), ngong(12)];
+    const e = evaluate({ commute, samples: [sample('8:30', routes, 'now')], now: at('8:30'), selectedRouteId: 'waiyaki-way' });
+    expect(e.state).toBe('at_risk');
+    expect(draftRequest(commute, e).facts.betterRoute).toEqual({ label: 'Ngong Road', arriveAt: '8:47' });
   });
 
   it('carry the saved contact, and a tone that fits them', () => {

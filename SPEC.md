@@ -187,7 +187,7 @@ type DraftRequest = {
     lateMin: number; lateMinRounded: number;   // exact as the screen shows it, and rounded up for the message
     usualDeparture: string; usualArrival: string;   // "" once the usual departure has gone by
     selectedRoute: string; recommendedRoute: string;
-    betterRoute: string | null;  // the route that would restore on time, when there is one
+    betterRoute: { label: string; arriveAt: string } | null;   // the route that would restore on time, and when it gets there
     routes: { label: string; durationMin: number; trafficDelayMin: number }[];
     cause?: string;              // only for a simulated accident
     rain?: { at: string };       // ticket 11

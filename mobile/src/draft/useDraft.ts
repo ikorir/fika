@@ -15,6 +15,9 @@ export type Draft = {
   loading: boolean;
 };
 
+/** The words Claude wrote, against the facts it wrote them for. */
+type Written = { key: string; words: DraftResponse };
+
 /**
  * The decision line, conditions note and notice for what the screen is showing. Claude writes them; until its
  * answer for these exact facts is here, `words` is null and the screen uses Fika's own template, which states the
@@ -22,35 +25,44 @@ export type Draft = {
  * a backend that cannot be reached simply leaves the app with its own.
  */
 export function useDraft(commute: Commute, evaluation?: Evaluation, simulation?: Simulation): Draft {
-  const request = evaluation ? draftRequest(commute, evaluation, simulation) : null;
-  const key = request ? JSON.stringify(request) : null;
+  // The facts, and the same facts written down as the key they are remembered under. One is the other, which is why
+  // the effect can read the request back out of the key instead of closing over a value that has since moved on.
+  const key = evaluation ? JSON.stringify(draftRequest(commute, evaluation, simulation)) : null;
 
-  const asked = useRef(request);
-  asked.current = request;
-  const drafts = useRef(new Map<string, DraftResponse>()).current;
-  const [, arrived] = useState(0);
+  const remembered = useRef(new Map<string, DraftResponse>());
+  const [written, setWritten] = useState<Written | null>(null);
   const [pending, setPending] = useState<string | null>(null);
 
   useEffect(() => {
-    const req = asked.current;
-    if (key === null || req === null || drafts.has(key)) return;
+    if (key === null) return;
+    const known = remembered.current.get(key);
+    if (known) {
+      setWritten({ key, words: known });
+      return;
+    }
+
     let live = true;
+    const abandon = new AbortController();
     setPending(key);
-    fetchDraft(req)
+    fetchDraft(JSON.parse(key) as DraftRequest, abandon.signal)
       .then((words) => {
-        drafts.set(key, words);
-        while (drafts.size > REMEMBERED) drafts.delete(drafts.keys().next().value!);
+        const cache = remembered.current;
+        cache.set(key, words);
+        while (cache.size > REMEMBERED) cache.delete(cache.keys().next().value!);
+        if (live) setWritten({ key, words });
       })
-      .catch(() => {}) // No backend, no Claude: the screen keeps Fika's own words.
+      .catch(() => {}) // No backend, no Claude: the screen keeps Fika's own words, and asks again next time.
       .finally(() => {
-        if (!live) return;
-        setPending((p) => (p === key ? null : p));
-        arrived((n) => n + 1);
+        if (live) setPending((p) => (p === key ? null : p));
       });
     return () => {
       live = false;
+      abandon.abort(); // The facts have moved on; these words would be about a screen that is gone.
     };
-  }, [key, drafts]);
+  }, [key]);
 
-  return { words: key === null ? null : (drafts.get(key) ?? null), loading: pending !== null && pending === key };
+  // Only Claude's words are offered. When the backend answered with its own template the app prefers its own,
+  // which knows the commute — the destination by name, that no other route gets there on time.
+  const claude = written?.key === key && written.words.source === 'claude' ? written.words : null;
+  return { words: key === null ? null : claude, loading: key !== null && pending === key };
 }

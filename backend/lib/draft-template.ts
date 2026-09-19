@@ -22,8 +22,8 @@ function decisionLine(req: DraftRequest): string {
       ? ` Your usual ${facts.usualDeparture} gets you there at ${facts.usualArrival}.`
       : "";
 
-  const better = facts.betterRoute ? roadName(facts.betterRoute) : null;
-  const switchBack = better ? `switch to ${better} and get back on time` : null;
+  const better = facts.betterRoute;
+  const switchBack = better ? `switch to ${roadName(better.label)} and arrive at ${better.arriveAt}, back on time` : null;
 
   if (req.state === "late") {
     const late = facts.lateMin
@@ -40,9 +40,10 @@ function decisionLine(req: DraftRequest): string {
   // On the road there is no leaving left to do, so the line is about where they stand.
   const lead = facts.onTheRoad ? null : facts.leaveBy ? `Leave by ${facts.leaveBy}` : "Leave now";
   if (req.state === "at_risk") {
-    if (lead && switchBack) return `${lead}, or ${switchBack}.`;
-    if (lead) return `${lead} via ${selected} to arrive at ${facts.eta}, inside your buffer.`;
-    return `You will arrive at ${facts.eta} via ${selected}, inside your buffer.`;
+    const inside = lead
+      ? `${lead} via ${selected} to arrive at ${facts.eta}, inside your buffer.`
+      : `You will arrive at ${facts.eta} via ${selected}, inside your buffer.`;
+    return switchBack ? `${inside} Or ${switchBack}.` : inside;
   }
   if (!lead) return `You will arrive at ${facts.eta} via ${selected}, on time.`;
   return `${lead} via ${selected} to arrive at ${facts.eta}.${usual}`;

@@ -1,11 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Easing } from 'react-native';
 
 const HALF_BREATH_MS = 650;
 
 /** An opacity that breathes while `on` and rests at full when it is not: what waiting for Claude's words looks like. */
 export function usePulse(on: boolean) {
-  const opacity = useRef(new Animated.Value(1)).current;
+  // Held in state, not a ref: the value is created once and read while rendering.
+  const [opacity] = useState(() => new Animated.Value(1));
   useEffect(() => {
     if (!on) {
       opacity.setValue(1);
