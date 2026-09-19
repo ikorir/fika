@@ -17,6 +17,7 @@ const color = {
   control: '#2A2A2D', // chips, round buttons inside a sheet
   controlRaised: '#38383B', // round buttons on a raised card: the Demo mode clock steps
   switchOff: '#48484C', // switch track when off
+  segmentTrack: '#2E2E31', // the tone switch's track
   segmentOn: '#5A5A60', // selected segment
   hairline: 'rgba(255,255,255,0.07)',
   scrim: 'rgba(0,0,0,0.72)', // behind a bottom sheet: the screen shows through at about 0.28
@@ -29,6 +30,7 @@ const color = {
   accent: '#F28C38',
   onAccent: '#1A0F04', // dark text on orange; white fails contrast
   accentTint: '#3A2410', // "Best" tag background
+  accentFaint: '#2A1A0C', // selected language chip
   onAccentTint: '#F9A45C', // "Best" tag text
   onTime: '#4CC38A',
   onTimeTint: '#12261C',
@@ -63,6 +65,7 @@ const type = {
   noticePreview: { fontFamily: font.regular, fontSize: 15, lineHeight: 22 }, // the late notice on Today
   noticeEditor: { fontFamily: font.regular, fontSize: 16, lineHeight: 23 }, // the late notice in its sheet
   recipient: { fontFamily: font.semibold, fontSize: 15 }, // "Mary · manager" in the notice sheet's To row
+  segment: { fontFamily: font.semibold, fontSize: 15 }, // tone switch and language chips
   meta: { fontFamily: font.regular, fontSize: 13 },
   metaStrong: { fontFamily: font.semibold, fontSize: 13 }, // route delta
   tag: { fontFamily: font.bold, fontSize: 12 },
@@ -76,5 +79,5 @@ export const theme = {
   type,
   radius: { card: 22, sheet: 32, field: 18, pill: 999 },
   space: { screen: 16, heroInset: 20, cardPad: 16, gap: 14 },
-  size: { button: 56, buttonSecondary: 50, roundButton: 44, row: 54, routeRow: 58, chip: 28 },
+  size: { button: 56, buttonSecondary: 50, roundButton: 44, row: 54, routeRow: 58, chip: 28, chipButton: 44, segment: 34 },
 } as const;

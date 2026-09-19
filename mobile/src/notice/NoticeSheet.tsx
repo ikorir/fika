@@ -16,6 +16,8 @@ import type { Commute } from '@/contract';
 import { Icon, LockedChips, recipient, sendPath } from '@/notice/NoticeParts';
 import { shareNotice, smsNotice, whatsAppNotice } from '@/notice/send';
 import type { Notice } from '@/notice/useNotice';
+import type { Language, Tone, Voice } from '@/notice/voice';
+import { LanguageChips, ToneSwitch } from '@/notice/VoiceControls';
 import { theme } from '@/theme';
 
 const { color, type } = theme;
@@ -24,13 +26,17 @@ type Props = {
   visible: boolean;
   notice: Notice | null;
   contact: Commute['contact'];
+  voice: Voice;
+  onTone: (tone: Tone) => void;
+  onLanguage: (language: Language) => void;
   onEdit: (text: string) => void;
   onClose: () => void;
 };
 
-// Bottom sheet over the late screen: who it goes to, the editable message, its locked numbers, and the ways to send.
-// The tone and language controls go in the header (#8).
-export function NoticeSheet({ visible, notice, contact, onEdit, onClose }: Props) {
+// Bottom sheet over the late screen: the tone and language it is written in, who it goes to, the editable message,
+// its locked numbers, and the ways to send. Switching tone or language writes the message again; the ETA and the
+// lateness are the same in every one of them.
+export function NoticeSheet({ visible, notice, contact, voice, onTone, onLanguage, onEdit, onClose }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -53,11 +59,11 @@ export function NoticeSheet({ visible, notice, contact, onEdit, onClose }: Props
                     <Path d="M6 6l12 12M18 6 6 18" />
                   </Icon>
                 </Pressable>
-                <Text style={styles.title} accessibilityRole="header">
-                  Late notice
-                </Text>
+                <ToneSwitch tone={voice.tone} onChange={onTone} />
                 <View style={styles.spacer} />
               </View>
+
+              <LanguageChips language={voice.language} onChange={onLanguage} />
 
               <View style={styles.message}>
                 <View style={styles.toRow}>
@@ -139,7 +145,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   spacer: { width: theme.size.roundButton },
-  title: { ...type.sheetTitle, color: color.text },
   message: { borderRadius: theme.radius.field, backgroundColor: color.surfaceRaised },
   toRow: {
     flexDirection: 'row',

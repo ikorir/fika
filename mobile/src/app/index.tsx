@@ -8,6 +8,7 @@ import { evaluate } from '@/engine';
 import { NoticeCard } from '@/notice/NoticeCard';
 import { NoticeSheet } from '@/notice/NoticeSheet';
 import { useNotice } from '@/notice/useNotice';
+import { useVoice } from '@/notice/voice';
 import { theme } from '@/theme';
 import { ActionArea } from '@/today/ActionArea';
 import { Hero } from '@/today/Hero';
@@ -37,8 +38,12 @@ export default function TodayScreen() {
       : undefined;
   const routes = evaluation?.routes ?? [];
   // Claude writes the decision line, the conditions note and the notice from the facts the engine just computed.
+  // The screen's own words stay in English; the notice is written in the voice the commuter picked in its sheet,
+  // which is one more call only while that voice differs from the contact's own.
+  const { voice, setTone, setLanguage } = useVoice(commute.contact);
   const draft = useDraft(commute, evaluation, demo.simulation);
-  const notice = useNotice(evaluation, commute.contact, draft.words?.notice);
+  const noticeDraft = useDraft(commute, evaluation, demo.simulation, voice);
+  const notice = useNotice(evaluation, commute.contact, noticeDraft.words?.notice, voice);
 
   // Keep the route on screen selected when the numbers change, so a slower route turns the screen at risk and
   // offers "Switch to …" instead of the selection quietly following the best route.
@@ -51,7 +56,7 @@ export default function TodayScreen() {
     <NoticeCard
       notice={notice.notice}
       contact={commute.contact}
-      loading={draft.loading && !notice.mine}
+      loading={noticeDraft.loading && !notice.mine}
       onPress={notice.show}
     />
   );
@@ -101,6 +106,9 @@ export default function TodayScreen() {
         visible={notice.open}
         notice={notice.notice}
         contact={commute.contact}
+        voice={voice}
+        onTone={setTone}
+        onLanguage={setLanguage}
         onEdit={notice.edit}
         onClose={notice.hide}
       />

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import type { Commute, Evaluation } from '@/contract';
 import { noticeFacts, noticeText, updateNumbers, type NoticeFacts } from '@/notice/template';
+import { defaultVoice, type Voice } from '@/notice/voice';
 
 /** The notice to send and the numbers it states, for the locked chips. */
 export type Notice = NoticeFacts & { text: string };
@@ -12,7 +13,12 @@ export type Notice = NoticeFacts & { text: string };
  * ETA moves its numbers move with it and the message still matches the screen — and a draft arriving afterwards
  * never takes their words away. Once the screen is no longer late, the next notice starts fresh.
  */
-export function useNotice(evaluation: Evaluation | undefined, contact: Commute['contact'], draft?: string) {
+export function useNotice(
+  evaluation: Evaluation | undefined,
+  contact: Commute['contact'],
+  draft?: string,
+  voice: Voice = defaultVoice(contact),
+) {
   const [edit, setEdit] = useState<Notice | null>(null);
   const [open, setOpen] = useState(false);
   const late = evaluation?.state === 'late';
@@ -23,10 +29,14 @@ export function useNotice(evaluation: Evaluation | undefined, contact: Commute['
     setOpen(false);
   }, [late]);
 
+  // Asking for another tone or language is asking to be written a new message, so the old one goes — the only
+  // thing that takes the commuter's own words away, and only because they asked for it.
+  useEffect(() => setEdit(null), [voice.tone, voice.language]);
+
   const facts = evaluation && late ? noticeFacts(evaluation) : null;
   const notice: Notice | null =
     evaluation && facts
-      ? { ...facts, text: edit ? updateNumbers(edit.text, edit, facts) : noticeText(evaluation, contact, draft) }
+      ? { ...facts, text: edit ? updateNumbers(edit.text, edit, facts) : noticeText(evaluation, contact, draft, voice) }
       : null;
 
   return {

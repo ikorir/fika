@@ -1,12 +1,37 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { fetchDraft } from '@/api';
 import type { Commute, DraftRequest, DraftResponse, Evaluation, Simulation } from '@/contract';
 import { draftRequest } from '@/draft/request';
+import type { Voice } from '@/notice/voice';
 
 // Claude's words are asked for once per set of facts. Enough of them are kept that going back to a screen already
-// drafted — switching route and back, stepping the demo clock back — is instant instead of another call.
-const REMEMBERED = 12;
+// drafted — switching route and back, flipping the tone to friend and back, stepping the demo clock back — is
+// instant instead of another call. Six voices across the three states fit.
+const REMEMBERED = 18;
+
+// Shared by every useDraft on screen, not held per hook: the hero and the notice ask for the same words whenever
+// the commuter has not switched the voice, and that must be one call, not two.
+const remembered = new Map<string, DraftResponse>();
+const asking = new Map<string, Promise<DraftResponse>>();
+
+/**
+ * The words for these facts, from the backend or from a call already on its way. A call is never cancelled — it is
+ * not one screen's to cancel — but a caller ignores any answer for facts it is no longer showing.
+ */
+function ask(key: string): Promise<DraftResponse> {
+  const already = asking.get(key);
+  if (already) return already;
+  const call = fetchDraft(JSON.parse(key) as DraftRequest)
+    .then((words) => {
+      remembered.set(key, words);
+      while (remembered.size > REMEMBERED) remembered.delete(remembered.keys().next().value!);
+      return words;
+    })
+    .finally(() => asking.delete(key));
+  asking.set(key, call);
+  return call;
+}
 
 export type Draft = {
   /** Claude's words for exactly the facts on screen, or null while the app has only its own. */
@@ -19,36 +44,32 @@ export type Draft = {
 type Written = { key: string; words: DraftResponse };
 
 /**
- * The decision line, conditions note and notice for what the screen is showing. Claude writes them; until its
- * answer for these exact facts is here, `words` is null and the screen uses Fika's own template, which states the
- * same numbers. A draft is never shown against facts it was not written for, so the words can never go stale, and
- * a backend that cannot be reached simply leaves the app with its own.
+ * The decision line, conditions note and notice for what the screen is showing, in the voice asked for. Claude
+ * writes them; until its answer for these exact facts is here, `words` is null and the screen uses Fika's own
+ * template, which states the same numbers in the same language. A draft is never shown against facts it was not
+ * written for, so the words can never go stale, and a backend that cannot be reached simply leaves the app with
+ * its own.
  */
-export function useDraft(commute: Commute, evaluation?: Evaluation, simulation?: Simulation): Draft {
+export function useDraft(commute: Commute, evaluation?: Evaluation, simulation?: Simulation, voice?: Voice): Draft {
   // The facts, and the same facts written down as the key they are remembered under. One is the other, which is why
   // the effect can read the request back out of the key instead of closing over a value that has since moved on.
-  const key = evaluation ? JSON.stringify(draftRequest(commute, evaluation, simulation)) : null;
+  const key = evaluation ? JSON.stringify(draftRequest(commute, evaluation, simulation, voice)) : null;
 
-  const remembered = useRef(new Map<string, DraftResponse>());
   const [written, setWritten] = useState<Written | null>(null);
   const [pending, setPending] = useState<string | null>(null);
 
   useEffect(() => {
     if (key === null) return;
-    const known = remembered.current.get(key);
+    const known = remembered.get(key);
     if (known) {
       setWritten({ key, words: known });
       return;
     }
 
     let live = true;
-    const abandon = new AbortController();
     setPending(key);
-    fetchDraft(JSON.parse(key) as DraftRequest, abandon.signal)
+    ask(key)
       .then((words) => {
-        const cache = remembered.current;
-        cache.set(key, words);
-        while (cache.size > REMEMBERED) cache.delete(cache.keys().next().value!);
         if (live) setWritten({ key, words });
       })
       .catch(() => {}) // No backend, no Claude: the screen keeps Fika's own words, and asks again next time.
@@ -56,8 +77,7 @@ export function useDraft(commute: Commute, evaluation?: Evaluation, simulation?:
         if (live) setPending((p) => (p === key ? null : p));
       });
     return () => {
-      live = false;
-      abandon.abort(); // The facts have moved on; these words would be about a screen that is gone.
+      live = false; // The facts have moved on; these words would be about a screen that is gone.
     };
   }, [key]);
 
