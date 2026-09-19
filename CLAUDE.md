@@ -11,5 +11,8 @@ Tickets are GitHub issues on `ikorir/fika`, labelled `ready-for-agent`. Work one
 3. Commit as you go: 2 to 5 small commits per ticket, as the ticket's Commits section describes. This is an auto-commit workflow: commit without asking. Commit to the current branch; do not create or switch branches. Do not push unless asked.
 4. When the acceptance criteria are met and the tests pass, run `/code-review` on the ticket's changes, fix confirmed findings in their own commit, and re-run the tests.
 5. Post one "Handoff notes" comment on the ticket (contents listed in the ticket), tick the acceptance criteria, then close the ticket.
+6. Check the "Progress" list at the top of issue #2. The ticket's box ticks itself on close; if it has not, tick it.
+
+Issue #2 is `SPEC.md` with a "Progress" section on top that exists only on GitHub. When updating #2 from `SPEC.md`, keep that section.
 
 Never put API keys in the app or in a commit. Keys live in the backend's environment variables only.
