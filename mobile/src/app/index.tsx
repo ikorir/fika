@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { fetchRoutes } from '@/api';
-import { RouteList } from '@/components/RouteList';
 import type { RoutesResponse } from '@/contract';
 import { seedCommute } from '@/seed';
 import { theme } from '@/theme';
-import { formatTime, nairobiTimeOnDay } from '@/time';
+import { nairobiTimeOnDay } from '@/time';
+import { ActionArea } from '@/today/ActionArea';
+import { Hero } from '@/today/Hero';
+import { MapArea } from '@/today/MapArea';
+import { RouteList } from '@/today/RouteList';
 import { skeletonRouteViews } from '@/today/skeleton-routes';
 
 const { color, type } = theme;
@@ -47,11 +49,10 @@ export default function TodayScreen() {
   const routes = sample ? skeletonRouteViews(sample, commute, selectedId) : [];
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <View style={styles.screen}>
+      <MapArea />
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.summary}>
-          {commute.origin.label} to {commute.destination.label} · arrive by {formatTime(nairobiTimeOnDay(commute.arriveBy, new Date()))}
-        </Text>
+        <Hero commute={commute} />
 
         {sample && routes.length > 0 && (
           <RouteList routes={routes} departAt={sample.departAt} onSelect={setSelectedId} />
@@ -68,17 +69,15 @@ export default function TodayScreen() {
             </Pressable>
           </View>
         )}
-
-        {data && <Text style={styles.updated}>Updated {formatTime(data.fetchedAt)}</Text>}
       </ScrollView>
-    </SafeAreaView>
+      <ActionArea updatedAt={data?.fetchedAt} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.bg },
-  content: { paddingTop: 16, paddingBottom: 34, gap: theme.space.gap },
-  summary: { ...type.note, color: color.textMuted, paddingHorizontal: theme.space.heroInset },
+  content: { paddingTop: 2, paddingBottom: 16, gap: theme.space.gap },
   spinner: { marginTop: 40 },
   message: { ...type.note, color: color.textMuted, paddingHorizontal: theme.space.heroInset },
   errorBox: { gap: 12 },
@@ -91,5 +90,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   retryLabel: { ...type.button, color: color.text },
-  updated: { ...type.meta, color: color.textMuted, paddingHorizontal: theme.space.heroInset + 6 },
 });
