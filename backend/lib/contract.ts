@@ -37,3 +37,42 @@ export const RoutesResponse = z.object({ fetchedAt: isoInstant, samples: z.array
 export type RoutesResponse = z.infer<typeof RoutesResponse>;
 
 export type ApiError = { error: string };
+
+// POST /api/draft
+export const DraftRequest = z.object({
+  state: z.enum(["on_time", "at_risk", "late"]),
+  facts: z.object({
+    deadline: z.string(), // display strings, e.g. "9:00"
+    leaveBy: z.string().nullable(),
+    eta: z.string().min(1), // must appear verbatim in the notice
+    lateMinRounded: z.number().int().nonnegative(), // 0 unless late
+    usualDeparture: z.string(), // "" when the usual departure has gone by
+    usualArrival: z.string(),
+    selectedRoute: z.string(),
+    recommendedRoute: z.string(),
+    routes: z.array(
+      z.object({
+        label: z.string(),
+        durationMin: z.number().int().nonnegative(),
+        trafficDelayMin: z.number().int().nonnegative(),
+      }),
+    ),
+    cause: z.string().optional(), // only for a simulated accident
+    rain: z.object({ at: z.string() }).optional(), // ticket 11
+  }),
+  recipient: z.object({ name: z.string(), relationship: z.string() }),
+  tone: z.enum(["manager", "friend"]),
+  language: z.enum(["en", "sw", "sheng"]),
+});
+export type DraftRequest = z.infer<typeof DraftRequest>;
+
+/** The three pieces of writing. What Claude must answer with, and what the template produces. */
+export const DraftWords = z.object({
+  decision_line: z.string().min(1),
+  conditions_note: z.string().min(1),
+  notice: z.string().min(1),
+});
+export type DraftWords = z.infer<typeof DraftWords>;
+
+export const DraftResponse = DraftWords.extend({ source: z.enum(["claude", "template"]) });
+export type DraftResponse = z.infer<typeof DraftResponse>;
