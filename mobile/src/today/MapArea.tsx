@@ -8,7 +8,7 @@ import type { Commute, Evaluation, LatLng, RouteView } from '@/contract';
 import { theme } from '@/theme';
 import { HeaderControls } from '@/today/HeaderControls';
 import { darkMapStyle } from '@/today/map-style';
-import { decodePath, pointAlong } from '@/today/path';
+import { decodePath, distinctPoint, pointAlong } from '@/today/path';
 
 const { color } = theme;
 
@@ -31,6 +31,7 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
   const insets = useSafeAreaInsets();
   const map = useRef<MapView>(null);
   const [ready, setReady] = useState(false);
+  const [height, setHeight] = useState(0);
   const lines = useLines(routes);
   // Unselected routes fade back once the commute is late: only the one being driven still matters.
   const idle = state === 'late' ? color.routeDim : color.routeIdle;
@@ -40,17 +41,20 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
   );
 
   // The whole commute is on screen without anyone panning or zooming, and it re-fits whenever the routes change.
+  // It waits for a laid-out map: fitting into a frame that has no height yet zooms out to half the country.
+  // The padding is small because the map itself is only 250 pt tall; the lines may run under the floating
+  // controls, as they do in the design, but they stay clear of the fade at the foot of the map.
   useEffect(() => {
     const points = [...lines.values()].flatMap((l) => l.coords);
-    if (!ready || points.length === 0) return;
+    if (!ready || height === 0 || points.length === 0) return;
     map.current?.fitToCoordinates(points, {
-      edgePadding: { top: insets.top + 64, right: 44, bottom: 52, left: 44 },
+      edgePadding: { top: 30, right: 12, bottom: 20, left: 12 },
       animated: true,
     });
-  }, [ready, lines, insets.top]);
+  }, [ready, height, lines, insets.top]);
 
   return (
-    <View style={styles.map}>
+    <View style={styles.map} onLayout={(e) => setHeight(e.nativeEvent.layout.height)}>
       <MapView
         ref={map}
         style={StyleSheet.absoluteFill}
@@ -104,10 +108,15 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
               />
             ) : null;
           })}
-        <Marker coordinate={coord(commute.origin.location)} anchor={ANCHOR} title={commute.origin.label}>
+        <Marker coordinate={coord(commute.origin.location)} anchor={ANCHOR} zIndex={6} title={commute.origin.label}>
           <View style={styles.origin} />
         </Marker>
-        <Marker coordinate={coord(commute.destination.location)} anchor={ANCHOR} title={commute.destination.label}>
+        <Marker
+          coordinate={coord(commute.destination.location)}
+          anchor={ANCHOR}
+          zIndex={6}
+          title={commute.destination.label}
+        >
           <View style={styles.destination}>
             <View style={styles.destinationCore} />
           </View>
@@ -115,11 +124,11 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
         {/* How long each way takes, sitting on its own line. */}
         {routes.map((r) => {
           const line = lines.get(r.id);
-          return line ? (
+          return line?.mid ? (
             <Marker
               key={`eta-${r.id}`}
               coordinate={line.mid}
-              anchor={ANCHOR}
+              anchor={ABOVE}
               zIndex={r.selected ? 4 : 3}
               tracksViewChanges={redrawing}
               onPress={() => onSelectRoute(r.id)}
@@ -131,8 +140,8 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
           ) : null;
         })}
         {/* What the simulated accident is doing to the route it is on. */}
-        {incident && (
-          <Marker coordinate={incident.incident} anchor={ANCHOR} zIndex={5} tracksViewChanges={redrawing}>
+        {incident?.incident && (
+          <Marker coordinate={incident.incident} anchor={BELOW} zIndex={5} tracksViewChanges={redrawing}>
             <View style={[styles.incident, { backgroundColor: state === 'late' ? color.late : color.atRisk }]}>
               <Svg
                 width={18}
@@ -159,26 +168,36 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
 }
 
 const ANCHOR = { x: 0.5, y: 0.5 };
+// An ETA bubble rides above its line and the incident marker hangs below it, so the two never cover each other
+// when the accident happens to be where a route parts from the rest.
+const ABOVE = { x: 0.5, y: 1.2 };
+const BELOW = { x: 0.5, y: -0.2 };
 
 // Decoding is the expensive part, and the Today screen re-renders on every tick, so the lines are keyed on the
 // encoded shapes themselves: selecting a route re-styles them without decoding anything again.
 function useLines(routes: RouteView[]) {
-  const key = routes.map((r) => r.polyline).join('|');
+  const key = routes.map((r) => `${r.id}:${r.polyline}`).join('|');
   return useMemo(
     () =>
-      new Map(
-        routes.map((r) => {
-          const path = decodePath(r.polyline);
-          return [
-            r.id,
-            {
-              coords: path.map(coord),
-              mid: coord(pointAlong(path, 0.5)), // the ETA bubble sits on the line, clear of the other routes' bubbles
-              incident: coord(pointAlong(path, 0.6)),
-            },
-          ];
-        }),
-      ),
+      (() => {
+        const paths = routes.map((r) => decodePath(r.polyline));
+        return new Map(
+          routes.map((r, i) => {
+            const path = paths[i];
+            const at = (p: LatLng | undefined) => p && coord(p);
+            return [
+              r.id,
+              {
+                coords: path.map(coord),
+                // The ETA bubble goes where this route parts from the others, which is both where it says the
+                // most and where it cannot land on another route's bubble. Failing that, its middle.
+                mid: at(distinctPoint(path, paths.filter((_, j) => j !== i)) ?? pointAlong(path, 0.5)),
+                incident: at(pointAlong(path, 0.6)),
+              },
+            ];
+          }),
+        );
+      })(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [key],
   );
@@ -211,6 +230,8 @@ function regionAround(points: LatLng[]) {
   };
 }
 
+const FADE = 44; // the height of that fade, which the fit keeps the routes clear of
+
 /** The map meets the black screen in a soft fade, as in the design. Bands, since there is no gradient library. */
 function MapFade() {
   return (
@@ -225,7 +246,7 @@ function MapFade() {
 const styles = StyleSheet.create({
   map: { height: 250, backgroundColor: color.mapBg },
   controls: { position: 'absolute', left: theme.space.screen, right: theme.space.screen },
-  fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 64 },
+  fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: FADE },
   origin: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#000000', borderWidth: 3, borderColor: color.text },
   destination: {
     width: 20,

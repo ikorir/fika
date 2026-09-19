@@ -23,8 +23,7 @@ export function ActionArea({ commute, updatedAt, evaluation, onSelectRoute, onRe
   const selected = evaluation?.routes.find((r) => r.selected);
   const url = useMemo(() => {
     const path = selected ? decodePath(selected.polyline) : [];
-    const via = path.length > 1 ? pointAlong(path, 0.5) : undefined;
-    return directionsUrl(commute.origin.location, commute.destination.location, via);
+    return directionsUrl(commute.origin.location, commute.destination.location, pointAlong(path, 0.5));
   }, [commute.origin.location, commute.destination.location, selected?.polyline]);
 
   return (
