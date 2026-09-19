@@ -151,9 +151,9 @@ async function inTime(answer: Promise<string>, signal: AbortController, timeoutM
 }
 
 // A clock time ("9:15", "08:05") and a count of minutes as it appears in writing: after the number in English
-// ("18 min", "about 10 minutes"), before it in Swahili and Sheng ("dakika 18", "dakika 10 hivi").
+// ("18 min", "about 10 minutes"), and on either side of it in Swahili and Sheng ("dakika 18", "45 dakika").
 const TIME = /\d{1,2}:\d{2}/g;
-const MINUTES = /(\d+)\s*(?:min\b|minutes?\b)/g;
+const MINUTES = /(\d+)\s*(?:min\b|minutes?\b|dakika\b)/g;
 const DAKIKA = /\bdakika\s*(\d+)/g;
 
 /** Every time and minute count the engine computed, as strings, in the forms Claude was given them. */

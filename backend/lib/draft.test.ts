@@ -236,6 +236,16 @@ describe("the language and tone asked for", () => {
     expect(response.source).toBe("template");
   });
 
+  it("catches it whichever side of the word the number is written", async () => {
+    const worked = {
+      decision_line: "Utafika karibu 9:15.",
+      conditions_note: "Waiyaki Way ina dakika 18 zaidi ya kawaida.",
+      notice: "Habari Mary, nitachelewa kama 37 dakika. Nitafika 9:15.",
+    };
+    const response = await draft({ ...lateRequest(), language: "sw" }, answering(JSON.stringify(worked)));
+    expect(response.source).toBe("template");
+  });
+
   it("but lets a Swahili count the engine did compute through", async () => {
     const good = {
       decision_line: "Utafika karibu 9:15, dakika 15 baada ya muda wako.",
