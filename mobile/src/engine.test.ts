@@ -68,9 +68,102 @@ describe('leave-by', () => {
     expect(evaluate({ commute, samples: steps(route('a', 70)), now: at('7:30') }).remindAt).toBeNull();
   });
 
-  it('says no route makes it when none qualifies', () => {
-    const result = evaluate({ commute, samples: steps(route('a', 70)), now: at('7:30') });
-    expect(result.noRouteOnTime).toBe(true);
+  it('says no route makes it when none qualifies, not even leaving now', () => {
+    const samples = [sample('7:30', [route('a', 80), route('b', 90)], 'now'), ...steps(route('a', 80), route('b', 90))];
+    const result = evaluate({ commute, samples, now: at('7:30') });
+    expect([result.leaveBy, result.noRouteOnTime]).toEqual([null, true]);
+  });
+});
+
+/** Leaving now at 8:00 on a single route taking `min` minutes: arriving at 8:05 + `min`. */
+const leavingNowAt8 = (min: number, selectedRouteId?: string) =>
+  evaluate({ commute, samples: [sample('8:00', [route('a', min)], 'now')], now: at('8:00'), selectedRouteId });
+
+describe('state', () => {
+  it.each([
+    { eta: '8:49', min: 44, state: 'on_time' },
+    { eta: '8:50', min: 45, state: 'on_time' },
+    { eta: '8:51', min: 46, state: 'at_risk' },
+    { eta: '9:00', min: 55, state: 'at_risk' },
+    { eta: '9:01', min: 56, state: 'late' },
+  ])('is $state arriving at $eta (deadline 9:00, buffer 10)', ({ eta, min, state }) => {
+    const result = leavingNowAt8(min);
+    expect(time(result.eta)).toBe(eta);
+    expect(result.state).toBe(state);
+  });
+});
+
+describe('routes', () => {
+  const leavingNowAt8On = (routes: Route[], selectedRouteId?: string) =>
+    evaluate({ commute, samples: [sample('8:00', routes, 'now')], now: at('8:00'), selectedRouteId });
+  const recommended = (result: ReturnType<typeof evaluate>) => result.routes.find((r) => r.recommended)?.id;
+
+  it.each([
+    { case: 'the earliest arrival', routes: [route('b', 50), route('a', 40)], best: 'a' },
+    { case: 'the smaller traffic delay on a tie', routes: [route('x', 45, 15), route('y', 45, 5)], best: 'y' },
+    { case: 'the smaller traffic delay on a tie, whatever the order', routes: [route('y', 45, 5), route('x', 45, 15)], best: 'y' },
+  ])('recommends $case', ({ routes, best }) => {
+    const result = leavingNowAt8On(routes);
+    expect(result.routes.filter((r) => r.recommended).map((r) => r.id)).toEqual([best]);
+  });
+
+  it('shows each route’s traffic delay as duration − static duration, never below zero', () => {
+    const result = leavingNowAt8On([route('a', 45, 12), route('b', 16, -5)]);
+    expect(result.routes.map((r) => [r.id, r.trafficDelayMin])).toEqual([
+      ['a', 12],
+      ['b', 0],
+    ]);
+  });
+
+  it.each([
+    { min: 43, arrive: '8:48', deltaMin: -12, deltaKind: 'early' },
+    { min: 45, arrive: '8:50', deltaMin: -10, deltaKind: 'early' },
+    { min: 50, arrive: '8:55', deltaMin: -5, deltaKind: 'tight' },
+    { min: 55, arrive: '9:00', deltaMin: 0, deltaKind: 'tight' },
+    { min: 63, arrive: '9:08', deltaMin: 8, deltaKind: 'late' },
+  ])('marks a route arriving at $arrive as $deltaMin min against the deadline, $deltaKind', ({ min, arrive, deltaMin, deltaKind }) => {
+    const [view] = leavingNowAt8(min).routes;
+    expect([time(view.arriveAt), view.deltaMin, view.deltaKind]).toEqual([arrive, deltaMin, deltaKind]);
+  });
+
+  it('selects the recommended route unless another is chosen', () => {
+    const routes = [route('a', 40), route('b', 52)];
+    expect(leavingNowAt8On(routes).routes.filter((r) => r.selected).map((r) => r.id)).toEqual(['a']);
+    expect(leavingNowAt8On(routes, 'b').routes.filter((r) => r.selected).map((r) => r.id)).toEqual(['b']);
+    expect(leavingNowAt8On(routes, 'gone').routes.filter((r) => r.selected).map((r) => r.id)).toEqual(['a']);
+  });
+
+  it('takes the state from the selected route and offers the route that restores on time', () => {
+    const result = leavingNowAt8On([route('a', 40), route('b', 52)], 'b');
+    expect([time(result.eta), result.state, recommended(result), result.betterRouteId]).toEqual(['8:57', 'at_risk', 'a', 'a']);
+    expect(result.noRouteOnTime).toBe(false);
+  });
+
+  it('offers no route when none restores on time', () => {
+    const result = leavingNowAt8On([route('a', 48), route('b', 52)], 'b');
+    expect([result.state, recommended(result), result.betterRouteId, result.noRouteOnTime]).toEqual([
+      'at_risk',
+      'a',
+      null,
+      true,
+    ]);
+  });
+
+  it('offers nothing to switch to while on time', () => {
+    expect(leavingNowAt8On([route('a', 40), route('b', 42)], 'b').betterRouteId).toBeNull();
+  });
+});
+
+describe('lateness for messaging', () => {
+  it.each([
+    { min: 45, lateMin: 0, lateMinRounded: 0 },
+    { min: 55, lateMin: 0, lateMinRounded: 0 },
+    { min: 56, lateMin: 1, lateMinRounded: 5 },
+    { min: 60, lateMin: 5, lateMinRounded: 5 },
+    { min: 71, lateMin: 16, lateMinRounded: 20 },
+  ])('rounds $lateMin min late up to $lateMinRounded', ({ min, lateMin, lateMinRounded }) => {
+    const result = leavingNowAt8(min);
+    expect([result.lateMin, result.lateMinRounded]).toEqual([lateMin, lateMinRounded]);
   });
 });
 
@@ -101,6 +194,20 @@ describe('usual-time projection', () => {
   it('is left out once the usual departure has passed', () => {
     const samples = [sample('8:25', [route('a', 40)], 'now')];
     expect(evaluate({ commute, samples, now: at('8:25') }).usual).toBeNull();
+  });
+});
+
+describe('in the evening', () => {
+  it("plans tomorrow's commute", () => {
+    const sundayNight = new Date('2026-09-20T22:00:00+03:00');
+    const samples = [{ ...sample('7:00', [route('a', 20)], 'now'), departAt: sundayNight.toISOString() }, ...steps(route('a', 40))];
+    const result = evaluate({ commute, samples, now: sundayNight });
+    expect([result.leaveBy, result.departAt, result.state, result.usual?.departAt]).toEqual([
+      at('8:00').toISOString(),
+      at('8:00').toISOString(),
+      'on_time',
+      at('8:20').toISOString(),
+    ]);
   });
 });
 
