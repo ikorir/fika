@@ -34,7 +34,8 @@ const color = {
   atRiskTint: '#2B2410',
   late: '#FF6B5E',
   lateTint: '#2E1614',
-  simBanner: '#FFFFFF', // SIMULATED TRAFFIC strip, black text
+  simBanner: '#FFFFFF', // SIMULATED TRAFFIC strip
+  onSimBanner: '#000000',
   mapBg: '#0C0E11',
   mapRoad: '#1A1E25',
   routeIdle: '#55555C',

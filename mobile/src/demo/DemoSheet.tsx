@@ -45,9 +45,10 @@ export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation
   // Leaving the trip puts the clock back where the demo started.
   const toggleMidTrip = () =>
     trip && demo.change((s, first) => (s.midTrip ? { ...s, midTrip: undefined, clock: first.clock } : { ...s, ...trip }));
+  // From the latest simulated clock, so quick taps all count.
   const stepClock = (min: number) =>
     evaluation &&
-    demo.change((s) => ({ ...s, clock: new Date(Date.parse(evaluation.now) + min * 60_000).toISOString() }));
+    demo.change((s) => ({ ...s, clock: new Date(Date.parse(s.clock ?? evaluation.now) + min * 60_000).toISOString() }));
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>

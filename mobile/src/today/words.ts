@@ -12,6 +12,12 @@ const selectedRoute = (e: Evaluation) => e.routes.find((r) => r.selected)!;
 const recommendedRoute = (e: Evaluation) => e.routes.find((r) => r.recommended)!;
 export const leavingNow = (e: Evaluation) => e.departAt === e.now;
 
+/** Over the route list: "leaving now, 7:45", "leaving 8:05", or "left 8:20" once on the road (Demo mode's mid-trip). */
+export function departureCaption(e: Evaluation): string {
+  if (leavingNow(e)) return `leaving now, ${formatTime(e.departAt)}`;
+  return `${Date.parse(e.departAt) < Date.parse(e.now) ? 'left' : 'leaving'} ${formatTime(e.departAt)}`;
+}
+
 /** The route that restores on time, which the engine names in betterRouteId. */
 export const betterRoute = (e: Evaluation) => e.routes.find((r) => r.id === e.betterRouteId) ?? null;
 

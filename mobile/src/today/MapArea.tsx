@@ -10,15 +10,16 @@ type Props = {
   onSelectRoute: (routeId: string) => void; // tapping a route line (#9)
   onRefresh: () => void;
   onDemo: () => void;
+  demoOn: boolean;
 };
 
 // Placeholder ground for the route map (#9), with the header controls floating over it.
-export function MapArea({ onRefresh, onDemo }: Props) {
+export function MapArea({ onRefresh, onDemo, demoOn }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <View style={styles.map}>
       <View style={[styles.controls, { top: insets.top + 6 }]}>
-        <HeaderControls onRefresh={onRefresh} onDemo={onDemo} />
+        <HeaderControls onRefresh={onRefresh} onDemo={onDemo} demoOn={demoOn} />
       </View>
     </View>
   );

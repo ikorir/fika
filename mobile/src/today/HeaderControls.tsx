@@ -7,7 +7,10 @@ import { theme } from '@/theme';
 const { color } = theme;
 
 // Round buttons floating over the map: edit commute (left); Demo mode and refresh (right).
-export function HeaderControls({ onRefresh, onDemo }: { onRefresh: () => void; onDemo?: () => void }) {
+// The Demo mode icon turns accent orange while Demo mode is on.
+type Props = { onRefresh: () => void; onDemo?: () => void; demoOn?: boolean };
+
+export function HeaderControls({ onRefresh, onDemo, demoOn = false }: Props) {
   return (
     <View style={styles.bar}>
       <Pressable accessibilityRole="button" accessibilityLabel="Edit commute" onPress={() => router.push('/setup')} style={[styles.round, styles.chrome]}>
@@ -19,8 +22,13 @@ export function HeaderControls({ onRefresh, onDemo }: { onRefresh: () => void; o
       </Pressable>
       <View style={[styles.pill, styles.chrome]}>
         {onDemo && (
-          <Pressable accessibilityRole="button" accessibilityLabel="Demo mode" onPress={onDemo} style={styles.pillButton}>
-            <Icon>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={demoOn ? 'Demo mode, on' : 'Demo mode'}
+            onPress={onDemo}
+            style={styles.pillButton}
+          >
+            <Icon stroke={demoOn ? color.accent : color.text}>
               <Path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3M7.5 15h9" />
             </Icon>
           </Pressable>
@@ -36,9 +44,9 @@ export function HeaderControls({ onRefresh, onDemo }: { onRefresh: () => void; o
 }
 
 // 22 pt stroke icon, as in the design.
-function Icon({ children }: { children: React.ReactNode }) {
+function Icon({ stroke = color.text, children }: { stroke?: string; children: React.ReactNode }) {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={color.text} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       {children}
     </Svg>
   );

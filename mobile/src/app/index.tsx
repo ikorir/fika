@@ -9,9 +9,10 @@ import { ActionArea } from '@/today/ActionArea';
 import { Hero } from '@/today/Hero';
 import { MapArea } from '@/today/MapArea';
 import { RouteList } from '@/today/RouteList';
+import { SimulationBanner } from '@/today/SimulationBanner';
 import { useNow } from '@/today/useNow';
 import { useRoutes } from '@/today/useRoutes';
-import { leavingNow } from '@/today/words';
+import { departureCaption } from '@/today/words';
 import { useCommute } from '@/useCommute';
 
 const { color, type } = theme;
@@ -41,15 +42,21 @@ export default function TodayScreen() {
 
   return (
     <View style={styles.screen}>
-      <MapArea routes={routes} onSelectRoute={setSelectedId} onRefresh={refresh} onDemo={() => setDemoOpen(true)} />
+      <MapArea
+        routes={routes}
+        onSelectRoute={setSelectedId}
+        onRefresh={refresh}
+        onDemo={() => setDemoOpen(true)}
+        demoOn={demo.on}
+      />
+      <SimulationBanner evaluation={evaluation} />
       <ScrollView contentContainerStyle={styles.content}>
         <Hero commute={commute} evaluation={evaluation} />
 
         {evaluation && (
           <RouteList
             routes={routes}
-            departAt={evaluation.departAt}
-            leavingNow={leavingNow(evaluation)}
+            caption={departureCaption(evaluation)}
             onSelect={setSelectedId}
           />
         )}
