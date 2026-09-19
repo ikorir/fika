@@ -15,6 +15,15 @@ export function lateNotice(e: Evaluation, contact: Commute['contact']): string {
   return `Hi${name ? ` ${name}` : ''}, I will be about ${lateMin} minutes late. My ETA is ${eta}. Apologies for the delay.`;
 }
 
+/**
+ * The notice to offer: Claude's words when they state the ETA the screen is showing, Fika's own otherwise. The
+ * backend checks the same thing before it answers; this is the app's own guard, so a message the commuter is about
+ * to send under their name can never name a time they are not arriving at.
+ */
+export function noticeText(e: Evaluation, contact: Commute['contact'], draft?: string): string {
+  return draft && draft.includes(noticeFacts(e).eta) ? draft : lateNotice(e, contact);
+}
+
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**

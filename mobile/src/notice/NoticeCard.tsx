@@ -1,16 +1,19 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Commute } from '@/contract';
+import { usePulse } from '@/draft/usePulse';
 import { LockedChips, recipient } from '@/notice/NoticeParts';
 import type { Notice } from '@/notice/useNotice';
 import { theme } from '@/theme';
 
 const { color, type } = theme;
 
-type Props = { notice: Notice; contact: Commute['contact']; onPress: () => void };
+type Props = { notice: Notice; contact: Commute['contact']; loading?: boolean; onPress: () => void };
 
 // The late state's preview of the notice. Tapping it opens the editor, as "Review and send notice" does.
-export function NoticeCard({ notice, contact, onPress }: Props) {
+// The message breathes while Claude is still writing it; the words under it are Fika's own until then.
+export function NoticeCard({ notice, contact, loading, onPress }: Props) {
+  const opacity = usePulse(loading ?? false);
   const to = recipient(contact);
   return (
     <Pressable
@@ -27,7 +30,7 @@ export function NoticeCard({ notice, contact, onPress }: Props) {
           </Text>
         )}
       </View>
-      <Text style={styles.text}>{notice.text}</Text>
+      <Animated.Text style={[styles.text, { opacity }]}>{notice.text}</Animated.Text>
       <LockedChips notice={notice} />
     </Pressable>
   );

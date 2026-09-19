@@ -1,7 +1,7 @@
 import type { Commute, Route, Sample } from '@/contract';
 import { accident, midTrip } from '@/demo/presets';
 import { evaluate } from '@/engine';
-import { lateNotice, updateNumbers } from '@/notice/template';
+import { lateNotice, noticeText, updateNumbers } from '@/notice/template';
 import { heroText } from '@/today/words';
 
 // Deadline 9:00, buffer 10, extra 5.
@@ -97,5 +97,24 @@ describe("the commuter's edit when the numbers move", () => {
 
   it('puts back no number they took out', () => {
     expect(updateNumbers('Running late, sorry!', was, now)).toBe('Running late, sorry!');
+  });
+});
+
+describe('the notice offered to the commuter', () => {
+  const claude = (eta: string) => `Hi Mary, traffic is heavy. I will be about 15 minutes late, arriving ${eta}.`;
+
+  it("is Claude's when it states the ETA on screen", () => {
+    const e = leavingAt830(waiyaki(40));
+    expect(noticeText(e, commute.contact, claude('9:15'))).toBe(claude('9:15'));
+  });
+
+  it("is Fika's own when Claude's states a different ETA", () => {
+    const e = leavingAt830(waiyaki(40));
+    expect(noticeText(e, commute.contact, claude('9:20'))).toBe(lateNotice(e, commute.contact));
+  });
+
+  it("is Fika's own when Claude has not written one", () => {
+    const e = leavingAt830(waiyaki(40));
+    expect(noticeText(e, commute.contact)).toBe(lateNotice(e, commute.contact));
   });
 });

@@ -38,7 +38,7 @@ export default function TodayScreen() {
   const routes = evaluation?.routes ?? [];
   // Claude writes the decision line, the conditions note and the notice from the facts the engine just computed.
   const draft = useDraft(commute, evaluation, demo.simulation);
-  const notice = useNotice(evaluation, commute.contact);
+  const notice = useNotice(evaluation, commute.contact, draft.words?.notice);
 
   // Keep the route on screen selected when the numbers change, so a slower route turns the screen at risk and
   // offers "Switch to …" instead of the selection quietly following the best route.
@@ -48,7 +48,7 @@ export default function TodayScreen() {
   }, [selectedId, shownId]);
 
   const noticeCard = notice.notice && (
-    <NoticeCard notice={notice.notice} contact={commute.contact} onPress={notice.show} />
+    <NoticeCard notice={notice.notice} contact={commute.contact} loading={draft.loading} onPress={notice.show} />
   );
 
   return (
