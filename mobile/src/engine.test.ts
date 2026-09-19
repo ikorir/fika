@@ -1,4 +1,5 @@
 import type { Commute, Route, Sample } from '@/contract';
+import { accident } from '@/demo/presets';
 import { evaluate } from '@/engine';
 import { formatTime } from '@/time';
 
@@ -252,5 +253,47 @@ describe('arrival', () => {
     const result = evaluate({ commute, samples, now: at(now) });
     expect(time(result.departAt)).toBe(departAt);
     expect(time(result.eta)).toBe(eta);
+  });
+});
+
+describe('Demo mode', () => {
+  // The seeded commute on a Monday morning. Leave-by is 8:00 on Waiyaki Way (arriving 8:49); the usual 8:20 is late.
+  const waiyaki = (min: number): Route => ({ ...route('waiyaki-way', min, 10), label: 'via Waiyaki Way' });
+  const gichuru = (min: number): Route => ({ ...route('james-gichuru-road', min, 8), label: 'via James Gichuru Road' });
+  const morning = [
+    sample('7:30', [waiyaki(38), gichuru(45)]),
+    sample('7:45', [waiyaki(39), gichuru(47)]),
+    sample('8:00', [waiyaki(44), gichuru(50)]),
+    sample('8:20', [waiyaki(50), gichuru(55)], 'usual'),
+    sample('8:30', [waiyaki(55), gichuru(58)]),
+  ];
+  const selected = (result: ReturnType<typeof evaluate>) => result.routes.find((r) => r.selected)!;
+  const delay = { routeId: 'waiyaki-way', addMin: 25, cause: 'Accident on Waiyaki Way' };
+
+  it.each([
+    { case: 'no simulation', simulation: undefined, simulated: false, label: null },
+    { case: 'an empty simulation', simulation: {}, simulated: false, label: null },
+    { case: 'a delay', simulation: { delay }, simulated: true, label: 'Waiyaki Way +25 min' },
+  ])('reports $case as $label', ({ simulation, simulated, label }) => {
+    const result = evaluate({ commute, samples: morning, now: at('7:40'), simulation });
+    expect([result.simulated, result.simulationLabel]).toEqual([simulated, label]);
+  });
+
+  it('turns the shown route at risk with the accident preset, and recommends the other route', () => {
+    const live = evaluate({ commute, samples: morning, now: at('7:40') });
+    const route = selected(live);
+    const result = evaluate({
+      commute,
+      samples: morning,
+      now: at('7:40'),
+      selectedRouteId: route.id,
+      simulation: { delay: accident(route) },
+    });
+    expect([live.state, route.id]).toEqual(['on_time', 'waiyaki-way']);
+    expect([result.state, time(result.eta), selected(result).id]).toEqual(['at_risk', '8:54', 'waiyaki-way']);
+    expect([result.routes.find((r) => r.recommended)?.id, result.betterRouteId]).toEqual([
+      'james-gichuru-road',
+      'james-gichuru-road',
+    ]);
   });
 });

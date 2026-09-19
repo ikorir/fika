@@ -1,6 +1,6 @@
 // The commute engine: every commute decision the screen shows, from the commute, the route samples and the clock.
 // Pure: no I/O, the clock is passed in. See SPEC.md → Technical Contract → Commute engine.
-import type { Commute, Evaluation, Route, RouteView, Sample } from '@/contract';
+import type { Commute, Evaluation, Route, RouteView, Sample, Simulation } from '@/contract';
 import { commuteDeadline, nairobiTimeOnDay } from '@/time';
 
 const MIN = 60_000;
@@ -16,15 +16,20 @@ const iso = (ms: number) => new Date(ms).toISOString();
 const DELTA_KINDS = ['early', 'tight', 'late'] as const;
 const STATES = ['on_time', 'at_risk', 'late'] as const;
 
-type Input = { commute: Commute; samples: Sample[]; now: Date; selectedRouteId?: string };
+type Input = { commute: Commute; samples: Sample[]; now: Date; selectedRouteId?: string; simulation?: Simulation };
 type Departure = { departMs: number; routes: Route[] };
 
 /** Needs at least one sample with a route; throws otherwise. */
-export function evaluate({ commute, samples, now, selectedRouteId }: Input): Evaluation {
+export function evaluate({ commute, samples, now, selectedRouteId, simulation = {} }: Input): Evaluation {
+  // Demo mode's simulation goes on top of the real routes before anything else is worked out.
+  const { delay } = simulation;
+  const delayed = (r: Route) =>
+    r.id === delay?.routeId ? { ...r, durationSec: r.durationSec + delay.addMin * 60 } : r;
+
   const nowMs = floorToMinute(now.getTime());
   const departures: Departure[] = samples
     .filter((s) => s.routes.length > 0)
-    .map((s) => ({ departMs: floorToMinute(Date.parse(s.departAt)), routes: s.routes }));
+    .map((s) => ({ departMs: floorToMinute(Date.parse(s.departAt)), routes: s.routes.map(delayed) }));
   if (departures.length === 0) throw new Error('evaluate() needs at least one sample with a route.');
 
   // The deadline the samples were fetched for, even if the clock has since moved on to tomorrow's.
@@ -95,7 +100,13 @@ export function evaluate({ commute, samples, now, selectedRouteId }: Input): Eva
     routes,
     betterRouteId: state !== 'on_time' && best.arriveMs <= onTimeByMs ? best.id : null,
     noRouteOnTime: best.arriveMs > onTimeByMs,
-    simulated: false,
-    simulationLabel: null,
+    simulated: delay !== undefined,
+    simulationLabel: delay ? `${roadName(delay.routeId, samples)} +${delay.addMin} min` : null,
   };
+}
+
+/** "Waiyaki Way" for waiyaki-way, as the samples name it. */
+function roadName(routeId: string, samples: Sample[]): string {
+  const route = samples.flatMap((s) => s.routes).find((r) => r.id === routeId);
+  return route ? route.label.replace(/^via /, '') : routeId;
 }
