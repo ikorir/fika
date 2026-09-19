@@ -1,5 +1,5 @@
 import type { Commute, Route, Sample } from '@/contract';
-import { accident } from '@/demo/presets';
+import { accident, midTrip, start } from '@/demo/presets';
 import { evaluate } from '@/engine';
 import { formatTime } from '@/time';
 
@@ -274,9 +274,34 @@ describe('Demo mode', () => {
     { case: 'no simulation', simulation: undefined, simulated: false, label: null },
     { case: 'an empty simulation', simulation: {}, simulated: false, label: null },
     { case: 'a delay', simulation: { delay }, simulated: true, label: 'Waiyaki Way +25 min' },
+    { case: 'a clock', simulation: { clock: at('7:40').toISOString() }, simulated: true, label: 'Clock set to 7:40' },
+    {
+      case: 'a trip under way',
+      simulation: { midTrip: { routeId: 'waiyaki-way', departedAt: at('8:20').toISOString() } },
+      simulated: true,
+      label: 'Left at 8:20',
+    },
+    {
+      case: 'both',
+      simulation: { delay, clock: at('8:40').toISOString() },
+      simulated: true,
+      label: 'Waiyaki Way +25 min · Clock set to 8:40',
+    },
   ])('reports $case as $label', ({ simulation, simulated, label }) => {
     const result = evaluate({ commute, samples: morning, now: at('7:40'), simulation });
     expect([result.simulated, result.simulationLabel]).toEqual([simulated, label]);
+  });
+
+  it('replaces the clock with the simulated one', () => {
+    const sundayNight = new Date('2026-09-20T22:00:00+03:00');
+    const clock = at('7:40').toISOString();
+    const result = evaluate({ commute, samples: morning, now: sundayNight, simulation: { clock } });
+    expect([time(result.now), time(result.departAt), time(result.remindAt), result.state]).toEqual([
+      '7:40',
+      '8:00',
+      '7:50',
+      'on_time',
+    ]);
   });
 
   it('turns the shown route at risk with the accident preset, and recommends the other route', () => {
@@ -294,6 +319,61 @@ describe('Demo mode', () => {
     expect([result.routes.find((r) => r.recommended)?.id, result.betterRouteId]).toEqual([
       'james-gichuru-road',
       'james-gichuru-road',
+    ]);
+  });
+
+  it('turns it late with the mid-trip preset: 20 min after leaving at the usual 8:20, into the accident', () => {
+    const route = selected(evaluate({ commute, samples: morning, now: at('7:40') }));
+    const simulation = { delay: accident(route), ...midTrip(commute, morning, route.id) };
+    const result = evaluate({ commute, samples: morning, now: at('7:40'), selectedRouteId: route.id, simulation });
+    // 20 of the 75 min gone; the other 55/75 in the 8:30 traffic (80 min) take 59 min, + 5 extra.
+    expect([time(result.now), result.state, time(result.eta), result.lateMinRounded, selected(result).id]).toEqual([
+      '8:40',
+      'late',
+      '9:44',
+      45,
+      'waiyaki-way',
+    ]);
+  });
+
+  it.each([
+    { case: 'in the traffic at the clock, 20 min into the trip', clock: '8:40', eta: '9:18' },
+    { case: 'as planned before leaving', clock: '8:10', eta: '9:15' },
+    { case: 'as planned once the trip is over', clock: '9:15', eta: '9:15' },
+  ])('projects a trip that left at 8:20 on Waiyaki Way (50 min, then 55 at 8:30) $case', ({ clock, eta }) => {
+    const simulation = { clock: at(clock).toISOString(), midTrip: { routeId: 'waiyaki-way', departedAt: at('8:20').toISOString() } };
+    const result = evaluate({ commute, samples: morning, now: at('7:40'), simulation });
+    expect([time(result.departAt), time(result.eta)]).toEqual(['8:20', eta]);
+  });
+
+  it('offers no route to switch to while on the road', () => {
+    const simulation = {
+      delay,
+      clock: at('8:05').toISOString(),
+      midTrip: { routeId: 'waiyaki-way', departedAt: at('7:45').toISOString() },
+    };
+    const result = evaluate({ commute, samples: morning, now: at('7:40'), simulation });
+    expect([result.state, result.routes.find((r) => r.recommended)?.id, result.betterRouteId]).toEqual([
+      'at_risk',
+      'james-gichuru-road',
+      null,
+    ]);
+  });
+
+  it('runs the stage arc from the evening before: on time at the start, at risk after the accident, late mid-trip', () => {
+    const sundayNight = new Date('2026-09-20T22:00:00+03:00');
+    const samples = [{ ...sample('7:00', [waiyaki(18), gichuru(20)], 'now'), departAt: sundayNight.toISOString() }, ...morning];
+    const live = evaluate({ commute, samples, now: sundayNight });
+    const route = selected(live);
+    const arc = [
+      start(live),
+      { ...start(live), delay: accident(route) },
+      { ...start(live), delay: accident(route), ...midTrip(commute, samples, route.id) },
+    ].map((simulation) => evaluate({ commute, samples, now: sundayNight, selectedRouteId: route.id, simulation }));
+    expect(arc.map((e) => [time(e.now), e.state, time(e.eta), e.simulationLabel])).toEqual([
+      ['7:40', 'on_time', '8:49', 'Clock set to 7:40'],
+      ['7:40', 'at_risk', '8:54', 'Waiyaki Way +25 min · Clock set to 7:40'],
+      ['8:40', 'late', '9:44', 'Waiyaki Way +25 min · Clock set to 8:40'],
     ]);
   });
 });

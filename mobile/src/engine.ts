@@ -1,7 +1,7 @@
 // The commute engine: every commute decision the screen shows, from the commute, the route samples and the clock.
 // Pure: no I/O, the clock is passed in. See SPEC.md → Technical Contract → Commute engine.
 import type { Commute, Evaluation, Route, RouteView, Sample, Simulation } from '@/contract';
-import { commuteDeadline, nairobiTimeOnDay } from '@/time';
+import { commuteDeadline, formatTime, nairobiTimeOnDay } from '@/time';
 
 const MIN = 60_000;
 const REMIND_BEFORE_MIN = 10;
@@ -22,11 +22,11 @@ type Departure = { departMs: number; routes: Route[] };
 /** Needs at least one sample with a route; throws otherwise. */
 export function evaluate({ commute, samples, now, selectedRouteId, simulation = {} }: Input): Evaluation {
   // Demo mode's simulation goes on top of the real routes before anything else is worked out.
-  const { delay } = simulation;
+  const { delay, clock, midTrip } = simulation;
   const delayed = (r: Route) =>
     r.id === delay?.routeId ? { ...r, durationSec: r.durationSec + delay.addMin * 60 } : r;
 
-  const nowMs = floorToMinute(now.getTime());
+  const nowMs = floorToMinute(clock ? Date.parse(clock) : now.getTime());
   const departures: Departure[] = samples
     .filter((s) => s.routes.length > 0)
     .map((s) => ({ departMs: floorToMinute(Date.parse(s.departAt)), routes: s.routes.map(delayed) }));
@@ -49,9 +49,24 @@ export function evaluate({ commute, samples, now, selectedRouteId, simulation = 
     .reduce<number | null>((latest, d) => (latest === null || d.departMs > latest ? d.departMs : latest), null);
 
   // Leave at leave-by while it is ahead; otherwise now, in the traffic of the sample nearest now.
-  const departMs = leaveBy !== null && leaveBy > nowMs ? leaveBy : nowMs;
+  // Mid-trip (Demo mode), the departure is the one already made.
+  const departMs = midTrip
+    ? floorToMinute(Date.parse(midTrip.departedAt))
+    : leaveBy !== null && leaveBy > nowMs
+      ? leaveBy
+      : nowMs;
+
+  // On the road: the share of the trip still ahead at the clock, driven in the traffic of the sample nearest the clock.
+  const onTheRoad = (r: Route) => {
+    const plannedMin = minutes(r.durationSec);
+    const drivenMin = (nowMs - departMs) / MIN;
+    if (drivenMin <= 0 || drivenMin >= plannedMin) return arrival(departMs, r);
+    const current = nearestTo(nowMs).routes.find((c) => c.id === r.id) ?? r;
+    return nowMs + (Math.round((1 - drivenMin / plannedMin) * minutes(current.durationSec)) + commute.extraMin) * MIN;
+  };
+
   const views = nearestTo(departMs).routes.map((r) => {
-    const arriveMs = arrival(departMs, r);
+    const arriveMs = r.id === midTrip?.routeId ? onTheRoad(r) : arrival(departMs, r);
     return {
       id: r.id,
       label: r.label,
@@ -69,7 +84,7 @@ export function evaluate({ commute, samples, now, selectedRouteId, simulation = 
   const best = views.reduce((a, b) =>
     b.arriveMs < a.arriveMs || (b.arriveMs === a.arriveMs && b.trafficDelayMin < a.trafficDelayMin) ? b : a,
   );
-  const selected = views.find((v) => v.id === selectedRouteId) ?? best;
+  const selected = views.find((v) => v.id === (midTrip?.routeId ?? selectedRouteId)) ?? best;
   const eta = selected.arriveMs;
   const state = STATES[standing(eta)];
   const lateMin = Math.max(0, (eta - deadlineMs) / MIN);
@@ -77,6 +92,13 @@ export function evaluate({ commute, samples, now, selectedRouteId, simulation = 
   // Leaving at the usual time, in the traffic of the sample nearest it. Left out once that time has passed.
   const usualMs = Date.parse(nairobiTimeOnDay(commute.usualDeparture, new Date(deadlineMs)));
   const usualArriveMs = fastestArrival(usualMs, nearestTo(usualMs).routes);
+
+  // What the banner says is simulated: "Waiyaki Way +25 min · Clock set to 8:40". The clock covers a trip under way.
+  const simulationParts = [
+    delay && `${roadName(delay.routeId, samples)} +${delay.addMin} min`,
+    clock && `Clock set to ${formatTime(clock)}`,
+    midTrip && !clock && `Left at ${formatTime(midTrip.departedAt)}`,
+  ].filter((part) => !!part);
 
   const remindMs = leaveBy === null ? null : leaveBy - REMIND_BEFORE_MIN * MIN;
   const routes: RouteView[] = views.map(({ arriveMs, ...view }) => ({
@@ -98,10 +120,11 @@ export function evaluate({ commute, samples, now, selectedRouteId, simulation = 
         ? null
         : { departAt: iso(usualMs), arriveAt: iso(usualArriveMs), lateMin: Math.max(0, (usualArriveMs - deadlineMs) / MIN) },
     routes,
-    betterRouteId: state !== 'on_time' && best.arriveMs <= onTimeByMs ? best.id : null,
+    // Nothing to switch to once on the road.
+    betterRouteId: !midTrip && state !== 'on_time' && best.arriveMs <= onTimeByMs ? best.id : null,
     noRouteOnTime: best.arriveMs > onTimeByMs,
-    simulated: delay !== undefined,
-    simulationLabel: delay ? `${roadName(delay.routeId, samples)} +${delay.addMin} min` : null,
+    simulated: simulationParts.length > 0,
+    simulationLabel: simulationParts.length > 0 ? simulationParts.join(' · ') : null,
   };
 }
 
