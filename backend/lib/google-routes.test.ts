@@ -59,6 +59,23 @@ describe("toRoutes", () => {
     expect(toRoutes([viaNgong, viaGichuru]).map((r) => r.label)).toEqual(["via Waiyaki Way", "via James Gichuru Road"]);
   });
 
+  it("lets the faster route keep a main road that two routes spend the same distance on", () => {
+    const expressway = step(7570, "Slight right onto Nairobi Expy/A8");
+    const routes = toRoutes([
+      { duration: "1097s", legs: [{ steps: [expressway, step(915, "Take the 2nd exit onto Lower Hill Rd")] }] },
+      { duration: "1017s", legs: [{ steps: [expressway, step(1051, "Turn left onto Upper Hill Rd")] }] },
+    ]);
+    expect(routes.map((r) => r.label)).toEqual(["via Lower Hill Road", "via Nairobi Expressway"]);
+  });
+
+  it("breaks a tie between names of one stretch by how far that name runs across all the routes", () => {
+    const routes = toRoutes([
+      { legs: [{ steps: [step(2570, "Merge onto Kisumu- Nairobi Rd/Waiyaki Wy/A104"), step(2118, "Slight right onto Nairobi Expy/A8")] }] },
+      { legs: [{ steps: [step(9000, "Continue onto Mombasa Rd"), step(500, "Turn left onto Waiyaki Wy")] }] },
+    ]);
+    expect(routes.map((r) => r.label)).toEqual(["via Waiyaki Way", "via Mombasa Road"]);
+  });
+
   it("reads the road up to a \"toward\" landmark", () => {
     const [route] = toRoutes([{ legs: [{ steps: [step(900, "Head east on Waiyaki Wy toward Kapenguria Rd")] }] }]);
     expect(route.label).toBe("via Waiyaki Way");

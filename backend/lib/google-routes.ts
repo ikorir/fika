@@ -59,9 +59,10 @@ function roadNames(road: string): string[] {
 }
 
 type Roads = {
-  names: string[]; // most distance first, then the names in the description
-  mainDistance: number; // metres on names[0]
+  distance: Map<string, number>; // metres on each road name
+  described: string[]; // names in the route description, the fallback
   aliases: Map<string, Set<string>>; // each name to the names sharing a step with it, itself included
+  durationSec: number;
 };
 
 /** A step can give one stretch several names ("Kisumu-Nairobi Rd/Waiyaki Wy"); those are aliases of one road. */
@@ -80,27 +81,39 @@ function roadsOf(googleRoute: GoogleRoute): Roads {
   }
   const described = roadNames(googleRoute.description ?? "");
   addAliases(described);
-  const byDistance = [...distance].sort((a, b) => b[1] - a[1]).map(([name]) => name);
-  const names = [...byDistance, ...described];
-  return { names, mainDistance: distance.get(names[0]) ?? 0, aliases };
+  return { distance, described, aliases, durationSec: seconds(googleRoute.duration) };
 }
 
 /**
  * One name per route: its main road, or its next-longest other road when another route has that name.
- * Routes with the most distance on their main road choose first, so Google's order does not change the names.
+ * A tie between names of one stretch goes to the name that runs furthest across all the routes.
+ * Routes with the most distance on their main road choose first (the faster on a tie), so Google's order does
+ * not change the names.
  */
 function pickNames(roads: Roads[]): (string | undefined)[] {
-  const byClaim = roads
+  const overall = new Map<string, number>();
+  for (const { distance } of roads) for (const [name, m] of distance) overall.set(name, (overall.get(name) ?? 0) + m);
+  const ranked = roads.map(({ distance, described }) => {
+    const byDistance = [...distance.keys()].sort(
+      (a, b) => distance.get(b)! - distance.get(a)! || overall.get(b)! - overall.get(a)!,
+    );
+    const names = [...byDistance, ...described];
+    return { names, mainDistance: distance.get(names[0]) ?? 0 };
+  });
+  const byClaim = ranked
     .map((_, i) => i)
     .sort(
       (a, b) =>
-        roads[b].mainDistance - roads[a].mainDistance || roads[a].names.join("|").localeCompare(roads[b].names.join("|")),
+        ranked[b].mainDistance - ranked[a].mainDistance ||
+        roads[a].durationSec - roads[b].durationSec ||
+        ranked[a].names.join("|").localeCompare(ranked[b].names.join("|")),
     );
   const taken = new Set<string>();
   const picked: (string | undefined)[] = [];
   for (const i of byClaim) {
-    const { names, aliases } = roads[i];
+    const { aliases } = roads[i];
     const sameRoad = (name: string) => aliases.get(name) ?? new Set([name]);
+    const names = ranked[i].names;
     const name = names.find((n) => ![...sameRoad(n)].some((a) => taken.has(a))) ?? names[0];
     if (name) sameRoad(name).forEach((a) => taken.add(a));
     picked[i] = name;
