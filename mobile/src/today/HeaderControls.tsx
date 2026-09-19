@@ -7,7 +7,6 @@ import { theme } from '@/theme';
 const { color } = theme;
 
 // Round buttons floating over the map: edit commute (left); Demo mode and refresh (right).
-// Demo mode (#5) passes onDemo; the button appears then.
 export function HeaderControls({ onRefresh, onDemo }: { onRefresh: () => void; onDemo?: () => void }) {
   return (
     <View style={styles.bar}>

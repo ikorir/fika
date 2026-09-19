@@ -15,6 +15,8 @@ const color = {
   surface: '#1B1B1D', // cards, bottom sheets
   surfaceRaised: '#252527', // cards inside a sheet, text area
   control: '#2A2A2D', // chips, round buttons inside a sheet
+  controlRaised: '#38383B', // round buttons on a raised card: the Demo mode clock steps
+  switchOff: '#48484C', // switch track when off
   segmentOn: '#5A5A60', // selected segment
   hairline: 'rgba(255,255,255,0.07)',
   border: 'rgba(255,255,255,0.12)',
@@ -46,6 +48,9 @@ const type = {
   status: { fontFamily: font.bold, fontSize: 14 }, // status pill
   callout: { fontFamily: font.semibold, fontSize: 15 }, // "It's past your 8:05 leave-by.
   title: { fontFamily: font.extrabold, fontSize: 32 },
+  sheetTitle: { fontFamily: font.bold, fontSize: 20 },
+  clock: { fontFamily: font.bold, fontSize: 18 }, // Demo mode app clock
+  banner: { fontFamily: font.extrabold, fontSize: 12, letterSpacing: 0.96 }, // SIMULATED TRAFFIC, 0.08em
   decision: { fontFamily: font.medium, fontSize: 16, lineHeight: 22 },
   body: { fontFamily: font.regular, fontSize: 16 },
   rowTitle: { fontFamily: font.semibold, fontSize: 16 },

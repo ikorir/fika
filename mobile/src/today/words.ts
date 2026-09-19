@@ -42,10 +42,11 @@ export function heroText(e: Evaluation, commute: Commute): HeroText {
 
 /**
  * "It's past your 8:00 leave-by." once leave-by has gone by and leaving now no longer arrives on time. While it still
- * does, leave-by was only the last sampled time that worked, so the screen just says to leave now.
+ * does, leave-by was only the last sampled time that worked, so the screen just says to leave now. Not once on the
+ * road (Demo mode's mid-trip), where there is no leaving left to do.
  */
 export function pastLeaveBy(e: Evaluation): string | null {
-  if (e.state === 'on_time' || !e.leaveBy || Date.parse(e.leaveBy) >= Date.parse(e.now)) return null;
+  if (e.state === 'on_time' || !leavingNow(e) || !e.leaveBy || Date.parse(e.leaveBy) >= Date.parse(e.now)) return null;
   return `It's past your ${formatTime(e.leaveBy)} leave-by.`;
 }
 

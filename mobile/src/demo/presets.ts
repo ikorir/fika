@@ -24,7 +24,11 @@ export function accident(route: RouteView): NonNullable<Simulation['delay']> {
 }
 
 /** On the road: left at the usual departure on the route, and the clock 20 min later. */
-export function midTrip(commute: Commute, samples: Sample[], routeId: string): Pick<Simulation, 'clock' | 'midTrip'> {
+export function midTrip(
+  commute: Commute,
+  samples: Sample[],
+  routeId: string,
+): Required<Pick<Simulation, 'clock' | 'midTrip'>> {
   // The usual departure on the day evaluate() judges the samples against: the deadline they were fetched for.
   const fetchedAt = new Date(Math.min(...samples.map((s) => Date.parse(s.departAt))));
   const deadline = new Date(commuteDeadline(commute.arriveBy, fetchedAt));

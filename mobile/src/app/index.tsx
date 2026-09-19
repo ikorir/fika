@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { DemoSheet } from '@/demo/DemoSheet';
+import { useDemo } from '@/demo/useDemo';
 import { evaluate } from '@/engine';
 import { theme } from '@/theme';
 import { ActionArea } from '@/today/ActionArea';
@@ -19,11 +21,15 @@ export default function TodayScreen() {
   const { data, error, loading, refresh } = useRoutes(commute);
   const [selectedId, setSelectedId] = useState<string>();
   const now = useNow(data);
+  const demo = useDemo();
+  const [demoOpen, setDemoOpen] = useState(false);
 
   // The screen renders the engine's Evaluation and makes no commute decisions of its own.
   const hasRoute = data?.samples.some((s) => s.routes.length > 0) ?? false;
   const evaluation =
-    data && hasRoute ? evaluate({ commute, samples: data.samples, now, selectedRouteId: selectedId }) : undefined;
+    data && hasRoute
+      ? evaluate({ commute, samples: data.samples, now, selectedRouteId: selectedId, simulation: demo.simulation })
+      : undefined;
   const routes = evaluation?.routes ?? [];
 
   // Keep the route on screen selected when the numbers change, so a slower route turns the screen at risk and
@@ -35,7 +41,7 @@ export default function TodayScreen() {
 
   return (
     <View style={styles.screen}>
-      <MapArea routes={routes} onSelectRoute={setSelectedId} onRefresh={refresh} />
+      <MapArea routes={routes} onSelectRoute={setSelectedId} onRefresh={refresh} onDemo={() => setDemoOpen(true)} />
       <ScrollView contentContainerStyle={styles.content}>
         <Hero commute={commute} evaluation={evaluation} />
 
@@ -61,6 +67,15 @@ export default function TodayScreen() {
         )}
       </ScrollView>
       <ActionArea updatedAt={data?.fetchedAt} evaluation={evaluation} onSelectRoute={setSelectedId} />
+      <DemoSheet
+        visible={demoOpen}
+        onClose={() => setDemoOpen(false)}
+        demo={demo}
+        commute={commute}
+        samples={data?.samples ?? []}
+        evaluation={evaluation}
+        onRestart={() => setSelectedId(undefined)}
+      />
     </View>
   );
 }
