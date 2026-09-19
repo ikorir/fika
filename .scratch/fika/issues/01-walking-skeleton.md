@@ -14,6 +14,8 @@
 - [ ] One real response is saved aside for later use as the offline demo fixture
 - [ ] Test runners are set up in both projects with one passing placeholder test each
 - [ ] Theme tokens and Figtree are set up once and used by the route cards; cards match the route list in the design
+- [ ] Today screen is split into separate components, one file each, with placeholders where needed: map area, hero (status, time, decision line, conditions note), route list, action area, plus a separate setup screen route. Wave 2 tickets then edit different files and can be built in parallel without conflicts
+- [ ] Every library named in the spec's Technical Contract is installed now in both projects (maps, notifications, storage, polyline, Figtree, zod, Anthropic SDK), so later tickets do not touch the package files or lockfiles
 
 **Technical notes:** Create the repository layout (Expo app and Next.js backend side by side), the theme tokens, and `POST /api/routes` returning `RoutesResponse` with a single `now` sample. Use the Google Routes request and field mask from the spec's Technical Contract. Record the folder layout, run commands and the deployed URL in the handoff notes; every later ticket depends on them. Shapes and stack: see "Technical Contract" in the spec.
 
