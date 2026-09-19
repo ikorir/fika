@@ -41,6 +41,10 @@ const color = {
 // Ready-to-spread text styles.
 const type = {
   hero: { fontFamily: font.extrabold, fontSize: 64, lineHeight: 64, letterSpacing: -2 },
+  heroLabel: { fontFamily: font.semibold, fontSize: 14 }, // "Leave by" over the hero time
+  heroAside: { fontFamily: font.bold, fontSize: 16 }, // "in 25 min" beside it
+  status: { fontFamily: font.bold, fontSize: 14 }, // status pill
+  callout: { fontFamily: font.semibold, fontSize: 15 }, // "It's past your 8:05 leave-by.
   title: { fontFamily: font.extrabold, fontSize: 32 },
   decision: { fontFamily: font.medium, fontSize: 16, lineHeight: 22 },
   body: { fontFamily: font.regular, fontSize: 16 },
@@ -60,5 +64,5 @@ export const theme = {
   type,
   radius: { card: 22, sheet: 32, field: 18, pill: 999 },
   space: { screen: 16, heroInset: 20, cardPad: 16, gap: 14 },
-  size: { button: 56, buttonSecondary: 50, roundButton: 44, row: 54, routeRow: 58 },
+  size: { button: 56, buttonSecondary: 50, roundButton: 44, row: 54, routeRow: 58, chip: 28 },
 } as const;

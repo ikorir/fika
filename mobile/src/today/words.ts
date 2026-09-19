@@ -1,7 +1,7 @@
 // What the Today screen says, worded from an Evaluation. No commute decisions here: the engine makes them.
 // The decision line and conditions note are a fixed English template until Claude writes them (#7).
 import type { Commute, Evaluation, RouteView } from '@/contract';
-import { formatClock, formatTime, nairobiTimeOnDay } from '@/time';
+import { formatTime, nairobiTimeOnDay } from '@/time';
 
 const MIN = 60_000;
 
@@ -12,16 +12,8 @@ const selectedRoute = (e: Evaluation) => e.routes.find((r) => r.selected)!;
 const recommendedRoute = (e: Evaluation) => e.routes.find((r) => r.recommended)!;
 export const leavingNow = (e: Evaluation) => e.departAt === e.now;
 
-/**
- * The route to offer instead of the selected one: the recommended route when at risk, and when late only if it
- * arrives by the deadline. Null when on time or when the selected route is already the best.
- */
-export function switchTarget(e: Evaluation): RouteView | null {
-  const best = recommendedRoute(e);
-  if (e.state === 'on_time' || best.selected) return null;
-  if (e.state === 'late' && best.deltaKind === 'late') return null;
-  return best;
-}
+/** The route that restores on time, which the engine names in betterRouteId. */
+export const betterRoute = (e: Evaluation) => e.routes.find((r) => r.id === e.betterRouteId) ?? null;
 
 /** The minutes until leaving, or "tomorrow" when that is on another Nairobi day. */
 function untilLeaving(e: Evaluation): string {
@@ -59,7 +51,7 @@ export function pastLeaveBy(e: Evaluation): string | null {
 
 export function decisionLine(e: Evaluation, commute: Commute): string {
   const selected = selectedRoute(e);
-  const other = switchTarget(e);
+  const better = betterRoute(e);
   const eta = formatTime(e.eta);
   const usual = !e.usual
     ? ''
@@ -70,26 +62,24 @@ export function decisionLine(e: Evaluation, commute: Commute): string {
 
   if (e.state === 'on_time') return `${lead} via ${routeName(selected)} to arrive at ${eta}.${usual}`;
 
+  const switchBack = better && `switch to ${routeName(better)} and arrive at ${formatTime(better.arriveAt)}, back on time`;
+
   if (e.state === 'at_risk') {
-    if (other)
-      return `${lead}, or switch to ${routeName(other)} and arrive at ${formatTime(other.arriveAt)}${e.betterRouteId ? ', back on time' : ''}.`;
+    if (switchBack) return `${lead}, or ${switchBack}.`;
     return `${lead} to arrive at ${eta}, inside your buffer. ${
-      e.routes.length > 1 ? 'No other route gets you there sooner.' : 'This is the only route found.'
+      e.routes.length > 1 ? 'No other route gets you there on time.' : 'This is the only route found.'
     }`;
   }
 
   const lateness = `You will reach ${commute.destination.label} around ${eta}, ${e.lateMin} min past your deadline.`;
-  if (other)
-    return `${lateness} Switch to ${routeName(other)} to arrive at ${formatTime(other.arriveAt)}${
-      e.betterRouteId ? ', back on time' : ', before your deadline'
-    }.`;
+  if (switchBack) return `${lateness} Or ${switchBack}.`;
   return `${lateness} Let ${commute.contact.name} know now, before you are late.`;
 }
 
-/** Which route is slower than normal, or that nothing gets there by the deadline. */
-export function conditionsNote(e: Evaluation, commute: Commute): string {
-  if (e.routes.every((r) => r.deltaKind === 'late'))
-    return `No ${e.routes.length > 1 ? 'other ' : ''}route gets you there by ${formatClock(commute.arriveBy)}.`;
+/** Which route is slower than normal, or, when late, that no route gets there on time. */
+export function conditionsNote(e: Evaluation): string {
+  if (e.state === 'late' && e.noRouteOnTime)
+    return `No ${e.routes.length > 1 ? 'other ' : ''}route gets you there on time.`;
   const selected = selectedRoute(e);
   return selected.trafficDelayMin > 0
     ? `${routeName(selected)} is ${selected.trafficDelayMin} min slower than normal.`

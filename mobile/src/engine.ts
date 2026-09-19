@@ -12,19 +12,26 @@ const floorToMinute = (ms: number) => Math.floor(ms / MIN) * MIN;
 const minutes = (sec: number) => Math.round(sec / 60);
 const iso = (ms: number) => new Date(ms).toISOString();
 
+// Inside the buffer, inside the deadline, past it: how a route (deltaKind) and the selected one (state) are labelled.
+const DELTA_KINDS = ['early', 'tight', 'late'] as const;
+const STATES = ['on_time', 'at_risk', 'late'] as const;
+
 type Input = { commute: Commute; samples: Sample[]; now: Date; selectedRouteId?: string };
 type Departure = { departMs: number; routes: Route[] };
 
 /** Needs at least one sample with a route; throws otherwise. */
 export function evaluate({ commute, samples, now, selectedRouteId }: Input): Evaluation {
   const nowMs = floorToMinute(now.getTime());
-  const deadlineMs = Date.parse(commuteDeadline(commute.arriveBy, now));
-  const onTimeByMs = deadlineMs - commute.bufferMin * MIN;
-
   const departures: Departure[] = samples
     .filter((s) => s.routes.length > 0)
     .map((s) => ({ departMs: floorToMinute(Date.parse(s.departAt)), routes: s.routes }));
   if (departures.length === 0) throw new Error('evaluate() needs at least one sample with a route.');
+
+  // The deadline the samples were fetched for, even if the clock has since moved on to tomorrow's.
+  const fetchedMs = Math.min(...departures.map((d) => d.departMs));
+  const deadlineMs = Date.parse(commuteDeadline(commute.arriveBy, new Date(fetchedMs)));
+  const onTimeByMs = deadlineMs - commute.bufferMin * MIN;
+  const standing = (arriveMs: number) => (arriveMs <= onTimeByMs ? 0 : arriveMs <= deadlineMs ? 1 : 2);
 
   const arrival = (departMs: number, route: Route) => departMs + (minutes(route.durationSec) + commute.extraMin) * MIN;
   const fastestArrival = (departMs: number, routes: Route[]) => Math.min(...routes.map((r) => arrival(departMs, r)));
@@ -48,9 +55,9 @@ export function evaluate({ commute, samples, now, selectedRouteId }: Input): Eva
       arriveMs,
       arriveAt: iso(arriveMs),
       deltaMin: (arriveMs - deadlineMs) / MIN,
-      deltaKind: arriveMs <= onTimeByMs ? 'early' : arriveMs <= deadlineMs ? 'tight' : 'late',
+      deltaKind: DELTA_KINDS[standing(arriveMs)],
       polyline: r.polyline,
-    } as const;
+    };
   });
 
   // Earliest arrival; a tie goes to the smaller traffic delay.
@@ -59,7 +66,7 @@ export function evaluate({ commute, samples, now, selectedRouteId }: Input): Eva
   );
   const selected = views.find((v) => v.id === selectedRouteId) ?? best;
   const eta = selected.arriveMs;
-  const state = eta <= onTimeByMs ? 'on_time' : eta <= deadlineMs ? 'at_risk' : 'late';
+  const state = STATES[standing(eta)];
   const lateMin = Math.max(0, (eta - deadlineMs) / MIN);
 
   // Leaving at the usual time, in the traffic of the sample nearest it. Left out once that time has passed.

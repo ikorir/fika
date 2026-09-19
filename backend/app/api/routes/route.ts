@@ -23,9 +23,10 @@ function cachedRoutes(req: RoutesRequest, apiKey: string): Promise<RoutesRespons
   if (hit) return hit.response;
 
   const fetchedAt = new Date(now);
-  const response = fetchSamples(req, apiKey, fetchedAt).then((samples) =>
-    RoutesResponse.parse({ fetchedAt: fetchedAt.toISOString(), samples }),
-  );
+  const response = fetchSamples(req, apiKey, fetchedAt).then(({ samples, complete }) => {
+    if (!complete) cache.delete(key); // missing samples are fetched again next time
+    return RoutesResponse.parse({ fetchedAt: fetchedAt.toISOString(), samples });
+  });
   cache.set(key, { expires: now + CACHE_MS, response });
   response.catch(() => cache.delete(key)); // a failure is not cached
   return response;

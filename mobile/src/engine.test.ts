@@ -211,6 +211,14 @@ describe('in the evening', () => {
   });
 });
 
+describe('the deadline', () => {
+  it("stays the one the samples were fetched for, even once the clock passes the switch to tomorrow's", () => {
+    // Fetched at 10:58, two hours before which the screen was about today's 9:00; now it is 11:01.
+    const result = evaluate({ commute, samples: [sample('10:58', [route('a', 20)], 'now')], now: at('11:01') });
+    expect([result.state, time(result.eta), result.lateMin]).toEqual(['late', '11:26', 146]);
+  });
+});
+
 describe('arrival', () => {
   it('is departure + duration + extra minutes, for every route', () => {
     const samples = [sample('8:00', [route('a', 40), route('b', 47)])];

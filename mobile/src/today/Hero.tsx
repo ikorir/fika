@@ -49,7 +49,7 @@ export function Hero({ commute, evaluation }: { commute: Commute; evaluation?: E
 
       {past && <Text style={[styles.past, { color: state.color }]}>{past}</Text>}
       <Text style={styles.decision}>{decisionLine(evaluation, commute)}</Text>
-      <Text style={styles.note}>{conditionsNote(evaluation, commute)}</Text>
+      <Text style={styles.note}>{conditionsNote(evaluation)}</Text>
     </View>
   );
 }
@@ -57,17 +57,24 @@ export function Hero({ commute, evaluation }: { commute: Commute; evaluation?: E
 const styles = StyleSheet.create({
   hero: { paddingHorizontal: theme.space.heroInset, gap: 8 },
   statusLine: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 28, paddingHorizontal: 12, borderRadius: 14 },
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: theme.size.chip,
+    paddingHorizontal: 12,
+    borderRadius: theme.size.chip / 2,
+  },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  pillLabel: { fontFamily: theme.font.bold, fontSize: 14 },
+  pillLabel: type.status,
   summary: { ...type.note, color: color.textMuted, flexShrink: 1 },
   timeRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
-  label: { fontFamily: theme.font.semibold, fontSize: 14, color: color.textMuted },
+  label: { ...type.heroLabel, color: color.textMuted },
   time: { ...type.hero, color: color.text },
   aside: { alignItems: 'flex-end', gap: 2, paddingBottom: 8 },
-  primary: { fontFamily: theme.font.bold, fontSize: 16, color: color.text },
+  primary: { ...type.heroAside, color: color.text },
   secondary: { ...type.note, color: color.textMuted },
-  past: { fontFamily: theme.font.semibold, fontSize: 15 },
+  past: type.callout,
   decision: { ...type.decision, color: color.text, marginTop: 2 },
   note: { ...type.note, color: color.textMuted },
 });

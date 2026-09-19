@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { evaluate } from '@/engine';
@@ -25,6 +25,13 @@ export default function TodayScreen() {
   const evaluation =
     data && hasRoute ? evaluate({ commute, samples: data.samples, now, selectedRouteId: selectedId }) : undefined;
   const routes = evaluation?.routes ?? [];
+
+  // Keep the route on screen selected when the numbers change, so a slower route turns the screen at risk and
+  // offers "Switch to …" instead of the selection quietly following the best route.
+  const shownId = routes.find((r) => r.selected)?.id;
+  useEffect(() => {
+    if (selectedId === undefined && shownId) setSelectedId(shownId);
+  }, [selectedId, shownId]);
 
   return (
     <View style={styles.screen}>

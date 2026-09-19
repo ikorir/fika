@@ -3,16 +3,16 @@ import Svg, { Path } from 'react-native-svg';
 
 import type { Evaluation } from '@/contract';
 import { theme } from '@/theme';
-import { routeName, switchTarget } from '@/today/words';
+import { betterRoute, routeName } from '@/today/words';
 
 const { color } = theme;
 
 type Props = { evaluation?: Evaluation; onSelectRoute: (routeId: string) => void };
 
-// The state's one primary action: "Switch to <route>" when another route does better (at risk, or late when it
-// still makes the deadline). "Remind me at 7:55" (#11) and "Review and send notice" (#6) are not built yet.
+// The state's one primary action. At risk: "Switch to <route>" when another route restores on time.
+// "Remind me at 7:55" (on time, #11) and "Review and send notice" (late, #6) are not built yet.
 export function PrimaryAction({ evaluation, onSelectRoute }: Props) {
-  const target = evaluation && switchTarget(evaluation);
+  const target = evaluation?.state === 'at_risk' ? betterRoute(evaluation) : null;
   if (!target) return null;
   return (
     <Pressable accessibilityRole="button" onPress={() => onSelectRoute(target.id)} style={styles.button}>
