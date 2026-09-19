@@ -12,7 +12,7 @@ export type RoutesRequest = {
   usualDeparture: string; // ISO
 };
 export type Route = {
-  id: string; // slug of the route description, stable across samples
+  id: string; // slug of the main road, stable across samples
   label: string; // "via Waiyaki Way"
   durationSec: number;
   staticDurationSec: number;

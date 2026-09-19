@@ -51,6 +51,19 @@ describe("toRoutes", () => {
     ]);
   });
 
+  it("names the same routes the same way whatever order Google returns them in", () => {
+    const shared = step(6000, "Continue onto Waiyaki Wy/A104");
+    const viaGichuru = { legs: [{ steps: [shared, step(1000, "Turn right onto James Gichuru Rd")] }] };
+    const viaNgong = { legs: [{ steps: [step(7000, "Continue onto Waiyaki Wy"), step(3000, "Turn left onto Ngong Rd")] }] };
+    expect(toRoutes([viaGichuru, viaNgong]).map((r) => r.label)).toEqual(["via James Gichuru Road", "via Waiyaki Way"]);
+    expect(toRoutes([viaNgong, viaGichuru]).map((r) => r.label)).toEqual(["via Waiyaki Way", "via James Gichuru Road"]);
+  });
+
+  it("reads the road up to a \"toward\" landmark", () => {
+    const [route] = toRoutes([{ legs: [{ steps: [step(900, "Head east on Waiyaki Wy toward Kapenguria Rd")] }] }]);
+    expect(route.label).toBe("via Waiyaki Way");
+  });
+
   it("falls back to the route description, then to a number, and caps the list at 3", () => {
     const routes = toRoutes([
       { description: "Nairobi Expy/A8" },

@@ -17,7 +17,7 @@ export const RoutesRequest = z.object({
 export type RoutesRequest = z.infer<typeof RoutesRequest>;
 
 export const Route = z.object({
-  id: z.string().min(1), // slug of the route description, stable across samples
+  id: z.string().min(1), // slug of the main road, stable across samples
   label: z.string().min(1), // "via Waiyaki Way"
   durationSec: z.number().int().nonnegative(),
   staticDurationSec: z.number().int().nonnegative(),

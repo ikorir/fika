@@ -23,8 +23,6 @@ export type GoogleRoute = {
 };
 type GoogleStep = { distanceMeters?: number; navigationInstruction?: { instructions?: string } };
 
-export class GoogleRoutesError extends Error {}
-
 const seconds = (d: string | undefined) => Math.round(parseFloat(d ?? "0")) || 0;
 const slug = (s: string) =>
   s
@@ -60,52 +58,73 @@ function roadNames(road: string): string[] {
   return proper.length ? proper : names;
 }
 
-/**
- * Road names on this route, most distance first, then the names in its description.
- * A step can give one stretch several names ("Kisumu-Nairobi Rd/Waiyaki Wy"); `aliases` maps each name to those.
- */
-function roadsOf(g: GoogleRoute): { names: string[]; aliases: Map<string, Set<string>> } {
+type Roads = {
+  names: string[]; // most distance first, then the names in the description
+  mainDistance: number; // metres on names[0]
+  aliases: Map<string, Set<string>>; // each name to the names sharing a step with it, itself included
+};
+
+/** A step can give one stretch several names ("Kisumu-Nairobi Rd/Waiyaki Wy"); those are aliases of one road. */
+function roadsOf(googleRoute: GoogleRoute): Roads {
   const distance = new Map<string, number>();
   const aliases = new Map<string, Set<string>>();
   const addAliases = (names: string[]) => {
     for (const name of names) aliases.set(name, new Set([...(aliases.get(name) ?? []), ...names]));
   };
-  for (const step of g.legs?.flatMap((l) => l.steps ?? []) ?? []) {
+  for (const step of googleRoute.legs?.flatMap((l) => l.steps ?? []) ?? []) {
     const firstLine = step.navigationInstruction?.instructions?.split("\n")[0] ?? "";
-    const road = firstLine.match(/\b(?:onto|on) (.+)$/)?.[1];
+    const road = firstLine.match(/\b(?:onto|on) (.+?)(?: towards? .*)?$/)?.[1];
     const names = road ? roadNames(road) : [];
     addAliases(names);
     for (const name of names) distance.set(name, (distance.get(name) ?? 0) + (step.distanceMeters ?? 0));
   }
-  const described = roadNames(g.description ?? "");
+  const described = roadNames(googleRoute.description ?? "");
   addAliases(described);
   const byDistance = [...distance].sort((a, b) => b[1] - a[1]).map(([name]) => name);
-  return { names: [...byDistance, ...described], aliases };
+  const names = [...byDistance, ...described];
+  return { names, mainDistance: distance.get(names[0]) ?? 0, aliases };
 }
 
 /**
- * Google's routes as contract Routes, each named by its main road: the road it spends the most distance on,
- * or its next-longest other road when an earlier route already has that name. The id is a slug of the name,
- * so the app can match a route across samples.
+ * One name per route: its main road, or its next-longest other road when another route has that name.
+ * Routes with the most distance on their main road choose first, so Google's order does not change the names.
  */
-export function toRoutes(google: GoogleRoute[]): Route[] {
+function pickNames(roads: Roads[]): (string | undefined)[] {
+  const byClaim = roads
+    .map((_, i) => i)
+    .sort(
+      (a, b) =>
+        roads[b].mainDistance - roads[a].mainDistance || roads[a].names.join("|").localeCompare(roads[b].names.join("|")),
+    );
   const taken = new Set<string>();
-  const ids = new Map<string, number>();
-  return google.slice(0, 3).map((g, i) => {
-    const { names, aliases } = roadsOf(g);
+  const picked: (string | undefined)[] = [];
+  for (const i of byClaim) {
+    const { names, aliases } = roads[i];
     const sameRoad = (name: string) => aliases.get(name) ?? new Set([name]);
     const name = names.find((n) => ![...sameRoad(n)].some((a) => taken.has(a))) ?? names[0];
     if (name) sameRoad(name).forEach((a) => taken.add(a));
+    picked[i] = name;
+  }
+  return picked;
+}
+
+/** Google's routes as contract Routes, named by main road. The id is a slug of the name, so the app can match a route across samples. */
+export function toRoutes(google: GoogleRoute[]): Route[] {
+  const googleRoutes = google.slice(0, 3);
+  const names = pickNames(googleRoutes.map(roadsOf));
+  const seen = new Map<string, number>();
+  return googleRoutes.map((googleRoute, i) => {
+    const name = names[i];
     const base = (name && slug(name)) || `route-${i + 1}`;
-    const n = (ids.get(base) ?? 0) + 1;
-    ids.set(base, n);
+    const occurrence = (seen.get(base) ?? 0) + 1;
+    seen.set(base, occurrence);
     return {
-      id: n === 1 ? base : `${base}-${n}`,
+      id: occurrence === 1 ? base : `${base}-${occurrence}`,
       label: name ? `via ${name}` : `Route ${i + 1}`,
-      durationSec: seconds(g.duration),
-      staticDurationSec: seconds(g.staticDuration),
-      distanceM: g.distanceMeters ?? 0,
-      polyline: g.polyline?.encodedPolyline ?? "",
+      durationSec: seconds(googleRoute.duration),
+      staticDurationSec: seconds(googleRoute.staticDuration),
+      distanceM: googleRoute.distanceMeters ?? 0,
+      polyline: googleRoute.polyline?.encodedPolyline ?? "",
     };
   });
 }
@@ -133,6 +152,6 @@ export async function computeRoutes(
   const json = (await res.json().catch(() => null)) as
     | { routes?: GoogleRoute[]; error?: { message?: string } }
     | null;
-  if (!res.ok) throw new GoogleRoutesError(`Google Routes ${res.status}: ${json?.error?.message ?? res.statusText}`);
+  if (!res.ok) throw new Error(`Google Routes ${res.status}: ${json?.error?.message ?? res.statusText}`);
   return toRoutes(json?.routes ?? []);
 }
