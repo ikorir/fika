@@ -1,6 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 
 import type { Commute, Evaluation } from '@/contract';
+import type { Draft } from '@/draft/useDraft';
+import { usePulse } from '@/draft/usePulse';
 import { theme } from '@/theme';
 import { formatClock } from '@/time';
 import { conditionsNote, decisionLine, heroText, pastLeaveBy } from '@/today/words';
@@ -13,9 +15,13 @@ const stateStyle: Record<Evaluation['state'], { label: string; color: string; ti
   late: { label: 'Late', color: color.late, tint: color.lateTint },
 };
 
+type Props = { commute: Commute; evaluation?: Evaluation; draft?: Draft };
+
 // Status pill, commute summary, leave-by / ETA, decision line and conditions note.
-// Without an evaluation (loading, or no route) only the summary shows.
-export function Hero({ commute, evaluation }: { commute: Commute; evaluation?: Evaluation }) {
+// Without an evaluation (loading, or no route) only the summary shows. The decision line and conditions note are
+// Claude's when it has written them for these facts, and Fika's own template until then.
+export function Hero({ commute, evaluation, draft }: Props) {
+  const opacity = usePulse(draft?.loading ?? false);
   const summary = (
     <Text style={styles.summary} numberOfLines={1}>
       {commute.origin.label} to {commute.destination.label} · arrive by {formatClock(commute.arriveBy)}
@@ -48,8 +54,10 @@ export function Hero({ commute, evaluation }: { commute: Commute; evaluation?: E
       </View>
 
       {past && <Text style={[styles.past, { color: state.color }]}>{past}</Text>}
-      <Text style={styles.decision}>{decisionLine(evaluation, commute)}</Text>
-      <Text style={styles.note}>{conditionsNote(evaluation)}</Text>
+      <Animated.View style={[styles.words, { opacity }]}>
+        <Text style={styles.decision}>{draft?.words?.decision_line ?? decisionLine(evaluation, commute)}</Text>
+        <Text style={styles.note}>{draft?.words?.conditions_note ?? conditionsNote(evaluation)}</Text>
+      </Animated.View>
     </View>
   );
 }
@@ -75,6 +83,7 @@ const styles = StyleSheet.create({
   primary: { ...type.heroAside, color: color.text },
   secondary: { ...type.note, color: color.textMuted },
   past: type.callout,
+  words: { gap: 8 },
   decision: { ...type.decision, color: color.text, marginTop: 2 },
   note: { ...type.note, color: color.textMuted },
 });

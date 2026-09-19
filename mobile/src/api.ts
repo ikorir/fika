@@ -1,4 +1,4 @@
-import type { ApiError, RoutesRequest, RoutesResponse } from '@/contract';
+import type { ApiError, DraftRequest, DraftResponse, RoutesRequest, RoutesResponse } from '@/contract';
 
 // Always the deployed backend, never a laptop. Set in mobile/.env (see .env.example).
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -16,3 +16,4 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 export const fetchRoutes = (req: RoutesRequest) => post<RoutesResponse>('/api/routes', req);
+export const fetchDraft = (req: DraftRequest) => post<DraftResponse>('/api/draft', req);

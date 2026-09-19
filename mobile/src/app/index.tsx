@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 
 import { DemoSheet } from '@/demo/DemoSheet';
 import { useDemo } from '@/demo/useDemo';
+import { useDraft } from '@/draft/useDraft';
 import { evaluate } from '@/engine';
 import { NoticeCard } from '@/notice/NoticeCard';
 import { NoticeSheet } from '@/notice/NoticeSheet';
@@ -35,6 +36,8 @@ export default function TodayScreen() {
       ? evaluate({ commute, samples: data.samples, now, selectedRouteId: selectedId, simulation: demo.simulation })
       : undefined;
   const routes = evaluation?.routes ?? [];
+  // Claude writes the decision line, the conditions note and the notice from the facts the engine just computed.
+  const draft = useDraft(commute, evaluation, demo.simulation);
   const notice = useNotice(evaluation, commute.contact);
 
   // Keep the route on screen selected when the numbers change, so a slower route turns the screen at risk and
@@ -59,7 +62,7 @@ export default function TodayScreen() {
       />
       <SimulationBanner evaluation={evaluation} />
       <ScrollView contentContainerStyle={styles.content}>
-        <Hero commute={commute} evaluation={evaluation} />
+        <Hero commute={commute} evaluation={evaluation} draft={draft} />
 
         {/* Late, the notice takes the routes' place. The routes stay above it only while switching gets back on time. */}
         {evaluation && (!noticeCard || evaluation.betterRouteId) && (
