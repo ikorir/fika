@@ -64,6 +64,7 @@ export default function TodayScreen() {
   return (
     <View style={styles.screen}>
       <MapArea
+        commute={commute}
         routes={routes}
         onSelectRoute={setSelectedId}
         onRefresh={refresh}
