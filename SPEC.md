@@ -108,7 +108,7 @@ Inputs: the commute settings, a set of route samples, the current time, and an o
 - **Simulation overlay** = adds a delay to a named route and/or advances the clock; applied to samples before any other calculation. The engine reports whether any simulation is active; the banner is driven only by that flag.
 
 ### Backend contract
-- **Routes endpoint** — input: origin, destination, deadline, usual departure time. It queries Google Routes (`DRIVE`, `TRAFFIC_AWARE_OPTIMAL`, alternatives on) for about 6 departure times in parallel, stepping back from the deadline in 10–15 minute increments and including "now" and the usual departure time. Driving has no arrive-by in the Routes API, hence the search. Output: a list of samples, each with its departure time and up to 3 routes (label from the route description, duration, static duration, distance, encoded polyline). No decision logic. Responses cached per commute for a few minutes.
+- **Routes endpoint** — input: origin, destination, deadline, usual departure time. It queries Google Routes (`DRIVE`, `TRAFFIC_AWARE_OPTIMAL`, alternatives on) for about 6 departure times in parallel, stepping back from the deadline in 10–15 minute increments and including "now" and the usual departure time. Driving has no arrive-by in the Routes API, hence the search. Output: a list of samples, each with its departure time and up to 3 routes (label from the route's main road, duration, static duration, distance, encoded polyline). No decision logic. Responses cached per commute for a few minutes.
 - **Draft endpoint** — input: facts already computed by the engine (state, deadline, leave-by, ETA as display strings, rounded lateness, per-route traffic delays, recipient name and relationship, tone, language, optional rain flag). One Claude call (Haiku 4.5) returning JSON with `decision_line`, `conditions_note`, `notice`. Claude is told never to compute or alter numbers.
 - **Draft guard** — the response is schema-validated, and the notice must contain the exact ETA string that was passed in. On any failure (timeout, invalid JSON, missing ETA) the endpoint returns a deterministic template in the requested language. The app has the same English template for offline use. This is what makes story 41 and 42 true.
 - **Places proxy** — autocomplete and place details, passthrough, restricted to Kenya.
@@ -156,9 +156,10 @@ Tickets 02, 07 and 08 run in parallel, and so do 03, 04 and 09, so the shapes be
 
 ### Google calls (backend only)
 
-- Routes: `POST https://routes.googleapis.com/directions/v2:computeRoutes`, `travelMode: DRIVE`, `routingPreference: TRAFFIC_AWARE_OPTIMAL`, `computeAlternativeRoutes: true`, `departureTime` set for future samples and omitted for "now". Field mask: `routes.duration, routes.staticDuration, routes.distanceMeters, routes.description, routes.polyline.encodedPolyline`. Durations arrive as strings such as `"2700s"`.
+- Routes: `POST https://routes.googleapis.com/directions/v2:computeRoutes`, `travelMode: DRIVE`, `routingPreference: TRAFFIC_AWARE_OPTIMAL`, `computeAlternativeRoutes: true`, `departureTime` set for future samples and omitted for "now". Field mask: `routes.duration, routes.staticDuration, routes.distanceMeters, routes.description, routes.polyline.encodedPolyline, routes.legs.steps.distanceMeters, routes.legs.steps.navigationInstruction.instructions`. Durations arrive as strings such as `"2700s"`.
 - Places (New): autocomplete with `includedRegionCodes: ["ke"]`; place details for `location`, `displayName`, `formattedAddress`.
-- Routes differ between samples. A route's `id` is a slug of its description ("via Waiyaki Way" → `waiyaki-way`), and that is how the app matches a route across samples.
+- A route is named by its main road: the road its steps spend the most distance on, with abbreviations expanded ("Waiyaki Wy/A104" → "Waiyaki Way"). When an earlier route in the same response already has that name, it takes its next-longest road. It falls back to the names in `description`, which alone is not enough: Google fills it with road numbers ("A104") and it varies between calls for the same route.
+- Routes differ between samples. A route's `id` is a slug of its main road ("via Waiyaki Way" → `waiyaki-way`), and that is how the app matches a route across samples.
 
 ### Backend endpoints
 

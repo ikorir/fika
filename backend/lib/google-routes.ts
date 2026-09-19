@@ -8,6 +8,8 @@ const FIELD_MASK = [
   "routes.distanceMeters",
   "routes.description",
   "routes.polyline.encodedPolyline",
+  "routes.legs.steps.distanceMeters",
+  "routes.legs.steps.navigationInstruction.instructions",
 ].join(",");
 const TIMEOUT_MS = 10_000;
 
@@ -15,9 +17,11 @@ export type GoogleRoute = {
   duration?: string; // "2700s"
   staticDuration?: string;
   distanceMeters?: number;
-  description?: string; // main road, e.g. "Waiyaki Way"
+  description?: string; // e.g. "A104" or "Nairobi Expy/A8"; varies between calls for the same route
   polyline?: { encodedPolyline?: string };
+  legs?: { steps?: GoogleStep[] }[];
 };
+type GoogleStep = { distanceMeters?: number; navigationInstruction?: { instructions?: string } };
 
 export class GoogleRoutesError extends Error {}
 
@@ -28,17 +32,61 @@ const slug = (s: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-/** Google's routes as contract Routes. The id is a slug of the description, so the app can match a route across samples. */
+const ABBREVIATIONS: Record<string, string> = {
+  Ave: "Avenue",
+  Blvd: "Boulevard",
+  Dr: "Drive",
+  Expy: "Expressway",
+  Hwy: "Highway",
+  Ln: "Lane",
+  Rd: "Road",
+  St: "Street",
+  Wy: "Way",
+};
+const isRouteNumber = (name: string) => /^[A-Z]\d+$/.test(name);
+
+/** "Waiyaki Wy/A104" → ["Waiyaki Way"]; a bare "A104" is kept when there is no name. */
+function roadNames(road: string): string[] {
+  const names = road
+    .split("/")
+    .map((n) => n.trim().replace(/[A-Za-z]+$/, (w) => ABBREVIATIONS[w] ?? w))
+    .filter((n) => /^[A-Z0-9]/.test(n));
+  const proper = names.filter((n) => !isRouteNumber(n));
+  return proper.length ? proper : names;
+}
+
+/** Road names on this route, most distance first, then the names in its description. */
+function candidateNames(g: GoogleRoute): string[] {
+  const distance = new Map<string, number>();
+  for (const step of g.legs?.flatMap((l) => l.steps ?? []) ?? []) {
+    const firstLine = step.navigationInstruction?.instructions?.split("\n")[0] ?? "";
+    const road = firstLine.match(/\b(?:onto|on) (.+)$/)?.[1];
+    for (const name of road ? roadNames(road) : []) {
+      distance.set(name, (distance.get(name) ?? 0) + (step.distanceMeters ?? 0));
+    }
+  }
+  const byDistance = [...distance].sort((a, b) => b[1] - a[1]).map(([name]) => name);
+  return [...byDistance, ...roadNames(g.description ?? "")];
+}
+
+/**
+ * Google's routes as contract Routes, each named by its main road: the road it spends the most distance on,
+ * or the next one when an earlier route already has that name. The id is a slug of the name, so the app can
+ * match a route across samples.
+ */
 export function toRoutes(google: GoogleRoute[]): Route[] {
-  const seen = new Map<string, number>();
+  const taken = new Set<string>();
+  const ids = new Map<string, number>();
   return google.slice(0, 3).map((g, i) => {
-    const description = g.description?.trim();
-    const base = (description && slug(description)) || `route-${i + 1}`;
-    const n = (seen.get(base) ?? 0) + 1;
-    seen.set(base, n);
+    const candidates = candidateNames(g);
+    const name = candidates.find((n) => !taken.has(n)) ?? candidates[0];
+    if (name) taken.add(name);
+    const base = (name && slug(name)) || `route-${i + 1}`;
+    const n = (ids.get(base) ?? 0) + 1;
+    ids.set(base, n);
     return {
       id: n === 1 ? base : `${base}-${n}`,
-      label: description ? `via ${description}` : `Route ${i + 1}`,
+      label: name ? `via ${name}` : `Route ${i + 1}`,
       durationSec: seconds(g.duration),
       staticDurationSec: seconds(g.staticDuration),
       distanceM: g.distanceMeters ?? 0,

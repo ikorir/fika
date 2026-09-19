@@ -23,6 +23,7 @@ export async function POST(request: Request) {
     );
   } catch (e) {
     console.error("POST /api/routes", e);
-    return fail(e instanceof Error ? e.message : "Could not fetch routes.", 502);
+    // 503, not 502: Cloudflare in front of Coolify swaps an origin 502 body for its own page.
+    return fail(e instanceof Error ? e.message : "Could not fetch routes.", 503);
   }
 }
