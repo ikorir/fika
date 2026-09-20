@@ -100,9 +100,13 @@ export default function TodayScreen() {
 
         {loading && !data && <ActivityIndicator color={color.accent} style={styles.spinner} />}
 
+        {/* A failed fetch keeps the last numbers on screen above this, and says so. */}
         {error && (
           <View style={styles.errorBox}>
-            <Text style={styles.message}>Couldn’t get routes. {error}</Text>
+            <Text style={styles.message}>
+              {data ? 'Couldn’t refresh — these are the numbers Fika last got. ' : 'Couldn’t get routes. '}
+              {error}
+            </Text>
             <Pressable accessibilityRole="button" onPress={refresh} disabled={loading} style={styles.retry}>
               <Text style={styles.retryLabel}>{loading ? 'Trying…' : 'Try again'}</Text>
             </Pressable>
