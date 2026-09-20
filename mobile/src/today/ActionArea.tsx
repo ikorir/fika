@@ -3,6 +3,7 @@ import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Commute, Evaluation } from '@/contract';
+import type { Reminder } from '@/reminders/useReminders';
 import { theme } from '@/theme';
 import { formatTime } from '@/time';
 import { directionsUrl } from '@/today/directions';
@@ -14,11 +15,12 @@ type Props = {
   commute: Commute;
   updatedAt?: string;
   evaluation?: Evaluation;
+  reminder: Reminder;
   onSelectRoute: (routeId: string) => void;
   onReviewNotice: () => void;
 };
 
-export function ActionArea({ commute, updatedAt, evaluation, onSelectRoute, onReviewNotice }: Props) {
+export function ActionArea({ commute, updatedAt, evaluation, reminder, onSelectRoute, onReviewNotice }: Props) {
   const insets = useSafeAreaInsets();
   const selected = evaluation?.routes.find((r) => r.selected);
   const url = useMemo(() => {
@@ -28,7 +30,12 @@ export function ActionArea({ commute, updatedAt, evaluation, onSelectRoute, onRe
 
   return (
     <View style={[styles.area, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-      <PrimaryAction evaluation={evaluation} onSelectRoute={onSelectRoute} onReviewNotice={onReviewNotice} />
+      <PrimaryAction
+        evaluation={evaluation}
+        reminder={reminder}
+        onSelectRoute={onSelectRoute}
+        onReviewNotice={onReviewNotice}
+      />
       <View style={styles.footer}>
         {updatedAt ? <Text style={styles.updated}>Updated {formatTime(updatedAt)}</Text> : <View />}
         <Pressable accessibilityRole="link" onPress={() => openDirections(url)} hitSlop={10}>

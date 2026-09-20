@@ -9,6 +9,7 @@ import { NoticeCard } from '@/notice/NoticeCard';
 import { NoticeSheet } from '@/notice/NoticeSheet';
 import { useNotice } from '@/notice/useNotice';
 import { useVoice } from '@/notice/voice';
+import { useDailyReminder, useDemoReminderCue, useOneOffReminder, useRefreshOnWake } from '@/reminders/useReminders';
 import { theme } from '@/theme';
 import { ActionArea } from '@/today/ActionArea';
 import { Hero } from '@/today/Hero';
@@ -17,7 +18,7 @@ import { RouteList } from '@/today/RouteList';
 import { SimulationBanner } from '@/today/SimulationBanner';
 import { useNow } from '@/today/useNow';
 import { useRoutes } from '@/today/useRoutes';
-import { departureCaption } from '@/today/words';
+import { departureCaption, reminderBody } from '@/today/words';
 import { useCommute } from '@/useCommute';
 
 const { color, type } = theme;
@@ -37,6 +38,15 @@ export default function TodayScreen() {
       ? evaluate({ commute, samples: data.samples, now, selectedRouteId: selectedId, simulation: demo.simulation })
       : undefined;
   const routes = evaluation?.routes ?? [];
+
+  // Reminders: the daily one the commuter never has to think about, and the one-off one behind "Remind me at 7:55".
+  // Fresh numbers whenever the app comes forward or a reminder is tapped; no polling in between.
+  const body = evaluation ? reminderBody(evaluation) : '';
+  useDailyReminder(commute.usualDeparture);
+  useRefreshOnWake(refresh);
+  const reminder = useOneOffReminder(evaluation?.remindAt ?? null, body);
+  useDemoReminderCue(evaluation, demo.on, body);
+
   // Claude writes the decision line, the conditions note and the notice from the facts the engine just computed.
   // The screen's own words stay in English; the notice is written in the voice the commuter picked in its sheet,
   // which is one more call only while that voice differs from the contact's own.
@@ -103,6 +113,7 @@ export default function TodayScreen() {
         commute={commute}
         updatedAt={data?.fetchedAt}
         evaluation={evaluation}
+        reminder={reminder}
         onSelectRoute={setSelectedId}
         onReviewNotice={notice.show}
       />

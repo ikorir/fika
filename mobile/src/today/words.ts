@@ -93,6 +93,12 @@ export function decisionLine(e: Evaluation, commute: Commute): string {
   return `${lateness} Let ${commute.contact.name} know now, before you are late.`;
 }
 
+/** What the one-off reminder says once it goes off: the leave-by it was asked for. */
+export function reminderBody(e: Evaluation): string {
+  if (!e.leaveBy) return 'See what traffic is doing before you leave.';
+  return `Leave by ${formatTime(e.leaveBy)} to arrive at ${formatTime(e.eta)}.`;
+}
+
 /** Which route is slower than normal, or, when late, that no route gets there on time. */
 export function conditionsNote(e: Evaluation): string {
   if (e.state === 'late' && e.noRouteOnTime)
