@@ -1,25 +1,153 @@
 {
-  "fetchedAt": "2026-09-19T19:14:40.378Z",
+  "fetchedAt": "2026-09-20T01:04:24.085Z",
   "samples": [
     {
-      "departAt": "2026-09-19T19:14:40.378Z",
-      "kind": "now",
+      "departAt": "2026-09-21T04:30:00.000Z",
+      "kind": "step",
       "routes": [
         {
           "id": "nairobi-expressway",
           "label": "via Nairobi Expressway",
-          "durationSec": 1019,
-          "staticDurationSec": 1270,
-          "distanceM": 13255,
-          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoB]}BwA_MIe@g@eCWOMWA[F[LMFC{@kLMqC?uDN}BNu@N}C|@oOd@_G`@wGl@sNDo@XkCNaAz@kH`@gFl@aJ`@aIZcDt@mDl@iBnAeCjAeBl@s@|@cAtE}D|DgD`DmCtF{EhHkGnAeAHKnAcAhAeAtJgIdC_CrBaC|GmJbA{AbByBz@{@p@m@bC_B~Ai@rA]dBY|Eg@tD]tBc@`Cw@jEeBpBs@tFyBjHoCrAi@vCgAz\\sM|B_A|BiAtCcBbBwAfAs@DMpGeFr@]`Bm@r@Mt@IfEgAnBg@XAdFgAHSPKVCR@PNHZGXILMFOfAG|A[~Bg@vCSpB?PLTRHLGlA_ArBqAZGX@d@NRVbApCNt@JlALBDLELM@SNaC~@oHrCeFdBuCjAu@f@g@`@aAbAHn@tB|CHXPt@h@tB`@Bj@KxA]"
+          "durationSec": 1438,
+          "staticDurationSec": 1238,
+          "distanceM": 13237,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoBDOEw@}ByRw@sGUqCWsEIsCF{DJkBAKN}C|@oOd@_G`@wGl@sNDo@XkCTyAt@sG`@gFl@aJ`@aIZcDt@mDl@iBnAeCjAeBl@s@|@cAtE}D|DgD`DmCtF{EhHkGnAeAHKnAcAhAeAtJgIdC_CrBaC|GmJbA{AbByBz@{@p@m@bC_B~Ai@rA]dBY|Eg@tD]tBc@`Cw@jEeBpBs@tFyBjHoCrAi@vCgAz\\sM|B_A|BiAtCcBbBwAfAs@DMpGeFr@]`Bm@r@Mt@IfEgAnBg@XAdFgAHSPKVCR@PNHZGXILMFOfAG|A[~Bg@vCSpB?PLTRHLGlA_ArBqAZGX@d@NRVbApCNt@JlALBDLELM@SNaC~@oHrCeFdBuCjAu@f@g@`@aAbAHn@tB|CHXPt@h@tB`@Bj@KxA]"
+        },
+        {
+          "id": "james-gichuru-road",
+          "label": "via James Gichuru Road",
+          "durationSec": 1752,
+          "staticDurationSec": 1647,
+          "distanceM": 12568,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoB]}BwA_MIe@g@eCWOMWA[F[LM`@M\\?NHJFtAX`CMl@Bh@Nh@Zj@v@zA|C~@vB`AbBn@t@XXv@`@v@VfAP`@Bp@Av@Ol@OnAg@xFoDtIaF|Ai@dAQzAIxB@jE\\pAX|Ad@fAb@bAl@lM|JtAn@t@`@LDNAzAgAf@a@bAg@bBk@p@c@z@w@d@k@\\s@X}@NwAp@eJn@}F\\}EPw@hAyBlCwEtA{BRc@d@{@zHeNnBeDJq@DICUHSPIL?v@{@rCyErAuBZi@ZSl@WBCAsA[iCg@wDAw@`@oQJu@pF}Z^oBIK@MJGLBDN?@dR~CBMt@StEeBlFyB|EwA|FaBd@Ib@WFOPEFU@_@I_HQMEUFQPKFm@CoEEKIeEBuDCeAQ_@GMBKLEB@d@UJ?xGeCJm@yA{Cc@k@KM^i@ZUf@Kb@ApD@nIN^?K}@iC_NeAcF_@qAQSCSBIYcAc@{B?[c@}BCM`@Bj@KxA]"
         },
         {
           "id": "waiyaki-way",
           "label": "via Waiyaki Way",
-          "durationSec": 1132,
-          "staticDurationSec": 1320,
-          "distanceM": 12121,
-          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoB]}BwA_MIe@g@eCWOMWA[F[LMFC{@kLMqC?uDN}BNu@N}C|@oOd@_G`@wGl@sNDo@XkCNaAEa@h@kFV{Cz@}Kb@iJHqAVoBd@eC~AuFXaA`@y@|@eAjCyBnAcAjC_Bp@o@JW\\YZGR?l@a@pEuDz@aAxAmBxEcEhCuBrE}DlC{BxBoBrByAhB{Az@y@|B_DjDoHj@_A~AcBd@c@pAaArCeB`CaAtBa@fBW~JgA~AYfAWrDuAVQJURIV?NH`HaCn@YjMgFdAg@NMDULQXITBLFf@Iz@WbI_DrAc@nMiFvDeBJIFOTKPAPHHP?PGNBRCh@rBhQZbCd@pC\\rA`@|@V^zAxAh@p@TYJSb@uAlAwCn@aCb@qAVc@bAsAVUBAHJHn@tB|CHXPt@h@tB`@Bj@KxA]"
+          "durationSec": 1821,
+          "staticDurationSec": 1288,
+          "distanceM": 12103,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoBDOEw@}ByRw@sGUqCWsEIsCF{DJkBAKN}C|@oOd@_G`@wGl@sNDo@XkCNaAEa@h@kFV{Cz@}Kb@iJHqAVoBd@eC~AuFXaA`@y@|@eAjCyBnAcAjC_Bp@o@JW\\YZGR?l@a@pEuDz@aAxAmBxEcEhCuBrE}DlC{BxBoBrByAhB{Az@y@|B_DjDoHj@_A~AcBd@c@pAaArCeB`CaAtBa@fBW~JgA~AYfAWrDuAVQJURIV?NH`HaCn@YjMgFdAg@NMDULQXITBLFf@Iz@WbI_DrAc@nMiFvDeBJIFOTKPAPHHP?PGNBRCh@rBhQZbCd@pC\\rA`@|@V^zAxAh@p@TYJSb@uAlAwCn@aCb@qAVc@bAsAVUBAHJHn@tB|CHXPt@h@tB`@Bj@KxA]"
+        }
+      ]
+    },
+    {
+      "departAt": "2026-09-21T04:45:00.000Z",
+      "kind": "step",
+      "routes": [
+        {
+          "id": "nairobi-expressway",
+          "label": "via Nairobi Expressway",
+          "durationSec": 1471,
+          "staticDurationSec": 1238,
+          "distanceM": 13237,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoBDOEw@}ByRw@sGUqCWsEIsCF{DJkBAKN}C|@oOd@_G`@wGl@sNDo@XkCTyAt@sG`@gFl@aJ`@aIZcDt@mDl@iBnAeCjAeBl@s@|@cAtE}D|DgD`DmCtF{EhHkGnAeAHKnAcAhAeAtJgIdC_CrBaC|GmJbA{AbByBz@{@p@m@bC_B~Ai@rA]dBY|Eg@tD]tBc@`Cw@jEeBpBs@tFyBjHoCrAi@vCgAz\\sM|B_A|BiAtCcBbBwAfAs@DMpGeFr@]`Bm@r@Mt@IfEgAnBg@XAdFgAHSPKVCR@PNHZGXILMFOfAG|A[~Bg@vCSpB?PLTRHLGlA_ArBqAZGX@d@NRVbApCNt@JlALBDLELM@SNaC~@oHrCeFdBuCjAu@f@g@`@aAbAHn@tB|CHXPt@h@tB`@Bj@KxA]"
+        },
+        {
+          "id": "james-gichuru-road",
+          "label": "via James Gichuru Road",
+          "durationSec": 1771,
+          "staticDurationSec": 1647,
+          "distanceM": 12568,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoB]}BwA_MIe@g@eCWOMWA[F[LM`@M\\?NHJFtAX`CMl@Bh@Nh@Zj@v@zA|C~@vB`AbBn@t@XXv@`@v@VfAP`@Bp@Av@Ol@OnAg@xFoDtIaF|Ai@dAQzAIxB@jE\\pAX|Ad@fAb@bAl@lM|JtAn@t@`@LDNAzAgAf@a@bAg@bBk@p@c@z@w@d@k@\\s@X}@NwAp@eJn@}F\\}EPw@hAyBlCwEtA{BRc@d@{@zHeNnBeDJq@DICUHSPIL?v@{@rCyErAuBZi@ZSl@WBCAsA[iCg@wDAw@`@oQJu@pF}Z^oBIK@MJGLBDN?@dR~CBMt@StEeBlFyB|EwA|FaBd@Ib@WFOPEFU@_@I_HQMEUFQPKFm@CoEEKIeEBuDCeAQ_@GMBKLEB@d@UJ?xGeCJm@yA{Cc@k@KM^i@ZUf@Kb@ApD@nIN^?K}@iC_NeAcF_@qAQSCSBIYcAc@{B?[c@}BCM`@Bj@KxA]"
+        },
+        {
+          "id": "waiyaki-way",
+          "label": "via Waiyaki Way",
+          "durationSec": 1828,
+          "staticDurationSec": 1288,
+          "distanceM": 12103,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoBDOEw@}ByRw@sGUqCWsEIsCF{DJkBAKN}C|@oOd@_G`@wGl@sNDo@XkCNaAEa@h@kFV{Cz@}Kb@iJHqAVoBd@eC~AuFXaA`@y@|@eAjCyBnAcAjC_Bp@o@JW\\YZGR?l@a@pEuDz@aAxAmBxEcEhCuBrE}DlC{BxBoBrByAhB{Az@y@|B_DjDoHj@_A~AcBd@c@pAaArCeB`CaAtBa@fBW~JgA~AYfAWrDuAVQJURIV?NH`HaCn@YjMgFdAg@NMDULQXITBLFf@Iz@WbI_DrAc@nMiFvDeBJIFOTKPAPHHP?PGNBRCh@rBhQZbCd@pC\\rA`@|@V^zAxAh@p@TYJSb@uAlAwCn@aCb@qAVc@bAsAVUBAHJHn@tB|CHXPt@h@tB`@Bj@KxA]"
+        }
+      ]
+    },
+    {
+      "departAt": "2026-09-21T05:00:00.000Z",
+      "kind": "step",
+      "routes": [
+        {
+          "id": "nairobi-expressway",
+          "label": "via Nairobi Expressway",
+          "durationSec": 1489,
+          "staticDurationSec": 1238,
+          "distanceM": 13237,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoBDOEw@}ByRw@sGUqCWsEIsCF{DJkBAKN}C|@oOd@_G`@wGl@sNDo@XkCTyAt@sG`@gFl@aJ`@aIZcDt@mDl@iBnAeCjAeBl@s@|@cAtE}D|DgD`DmCtF{EhHkGnAeAHKnAcAhAeAtJgIdC_CrBaC|GmJbA{AbByBz@{@p@m@bC_B~Ai@rA]dBY|Eg@tD]tBc@`Cw@jEeBpBs@tFyBjHoCrAi@vCgAz\\sM|B_A|BiAtCcBbBwAfAs@DMpGeFr@]`Bm@r@Mt@IfEgAnBg@XAdFgAHSPKVCR@PNHZGXILMFOfAG|A[~Bg@vCSpB?PLTRHLGlA_ArBqAZGX@d@NRVbApCNt@JlALBDLELM@SNaC~@oHrCeFdBuCjAu@f@g@`@aAbAHn@tB|CHXPt@h@tB`@Bj@KxA]"
+        },
+        {
+          "id": "james-gichuru-road",
+          "label": "via James Gichuru Road",
+          "durationSec": 1808,
+          "staticDurationSec": 1647,
+          "distanceM": 12568,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoB]}BwA_MIe@g@eCWOMWA[F[LM`@M\\?NHJFtAX`CMl@Bh@Nh@Zj@v@zA|C~@vB`AbBn@t@XXv@`@v@VfAP`@Bp@Av@Ol@OnAg@xFoDtIaF|Ai@dAQzAIxB@jE\\pAX|Ad@fAb@bAl@lM|JtAn@t@`@LDNAzAgAf@a@bAg@bBk@p@c@z@w@d@k@\\s@X}@NwAp@eJn@}F\\}EPw@hAyBlCwEtA{BRc@d@{@zHeNnBeDJq@DICUHSPIL?v@{@rCyErAuBZi@ZSl@WBCAsA[iCg@wDAw@`@oQJu@pF}Z^oBIK@MJGLBDN?@dR~CBMt@StEeBlFyB|EwA|FaBd@Ib@WFOPEFU@_@I_HQMEUFQPKFm@CoEEKIeEBuDCeAQ_@GMBKLEB@d@UJ?xGeCJm@yA{Cc@k@KM^i@ZUf@Kb@ApD@nIN^?K}@iC_NeAcF_@qAQSCSBIYcAc@{B?[c@}BCM`@Bj@KxA]"
+        },
+        {
+          "id": "waiyaki-way",
+          "label": "via Waiyaki Way",
+          "durationSec": 1826,
+          "staticDurationSec": 1288,
+          "distanceM": 12103,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoBDOEw@}ByRw@sGUqCWsEIsCF{DJkBAKN}C|@oOd@_G`@wGl@sNDo@XkCNaAEa@h@kFV{Cz@}Kb@iJHqAVoBd@eC~AuFXaA`@y@|@eAjCyBnAcAjC_Bp@o@JW\\YZGR?l@a@pEuDz@aAxAmBxEcEhCuBrE}DlC{BxBoBrByAhB{Az@y@|B_DjDoHj@_A~AcBd@c@pAaArCeB`CaAtBa@fBW~JgA~AYfAWrDuAVQJURIV?NH`HaCn@YjMgFdAg@NMDULQXITBLFf@Iz@WbI_DrAc@nMiFvDeBJIFOTKPAPHHP?PGNBRCh@rBhQZbCd@pC\\rA`@|@V^zAxAh@p@TYJSb@uAlAwCn@aCb@qAVc@bAsAVUBAHJHn@tB|CHXPt@h@tB`@Bj@KxA]"
+        }
+      ]
+    },
+    {
+      "departAt": "2026-09-21T05:20:00.000Z",
+      "kind": "usual",
+      "routes": [
+        {
+          "id": "nairobi-expressway",
+          "label": "via Nairobi Expressway",
+          "durationSec": 1450,
+          "staticDurationSec": 1238,
+          "distanceM": 13237,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoBDOEw@}ByRw@sGUqCWsEIsCF{DJkBAKN}C|@oOd@_G`@wGl@sNDo@XkCTyAt@sG`@gFl@aJ`@aIZcDt@mDl@iBnAeCjAeBl@s@|@cAtE}D|DgD`DmCtF{EhHkGnAeAHKnAcAhAeAtJgIdC_CrBaC|GmJbA{AbByBz@{@p@m@bC_B~Ai@rA]dBY|Eg@tD]tBc@`Cw@jEeBpBs@tFyBjHoCrAi@vCgAz\\sM|B_A|BiAtCcBbBwAfAs@DMpGeFr@]`Bm@r@Mt@IfEgAnBg@XAdFgAHSPKVCR@PNHZGXILMFOfAG|A[~Bg@vCSpB?PLTRHLGlA_ArBqAZGX@d@NRVbApCNt@JlALBDLELM@SNaC~@oHrCeFdBuCjAu@f@g@`@aAbAHn@tB|CHXPt@h@tB`@Bj@KxA]"
+        },
+        {
+          "id": "waiyaki-way",
+          "label": "via Waiyaki Way",
+          "durationSec": 1799,
+          "staticDurationSec": 1288,
+          "distanceM": 12103,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoBDOEw@}ByRw@sGUqCWsEIsCF{DJkBAKN}C|@oOd@_G`@wGl@sNDo@XkCNaAEa@h@kFV{Cz@}Kb@iJHqAVoBd@eC~AuFXaA`@y@|@eAjCyBnAcAjC_Bp@o@JW\\YZGR?l@a@pEuDz@aAxAmBxEcEhCuBrE}DlC{BxBoBrByAhB{Az@y@|B_DjDoHj@_A~AcBd@c@pAaArCeB`CaAtBa@fBW~JgA~AYfAWrDuAVQJURIV?NH`HaCn@YjMgFdAg@NMDULQXITBLFf@Iz@WbI_DrAc@nMiFvDeBJIFOTKPAPHHP?PGNBRCh@rBhQZbCd@pC\\rA`@|@V^zAxAh@p@TYJSb@uAlAwCn@aCb@qAVc@bAsAVUBAHJHn@tB|CHXPt@h@tB`@Bj@KxA]"
+        },
+        {
+          "id": "james-gichuru-road",
+          "label": "via James Gichuru Road",
+          "durationSec": 1836,
+          "staticDurationSec": 1647,
+          "distanceM": 12568,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoB]}BwA_MIe@g@eCWOMWA[F[LM`@M\\?NHJFtAX`CMl@Bh@Nh@Zj@v@zA|C~@vB`AbBn@t@XXv@`@v@VfAP`@Bp@Av@Ol@OnAg@xFoDtIaF|Ai@dAQzAIxB@jE\\pAX|Ad@fAb@bAl@lM|JtAn@t@`@LDNAzAgAf@a@bAg@bBk@p@c@z@w@d@k@\\s@X}@NwAp@eJn@}F\\}EPw@hAyBlCwEtA{BRc@d@{@zHeNnBeDJq@DICUHSPIL?v@{@rCyErAuBZi@ZSl@WBCAsA[iCg@wDAw@`@oQJu@pF}Z^oBIK@MJGLBDN?@dR~CBMt@StEeBlFyB|EwA|FaBd@Ib@WFOPEFU@_@I_HQMEUFQPKFm@CoEEKIeEBuDCeAQ_@GMBKLEB@d@UJ?xGeCJm@yA{Cc@k@KM^i@ZUf@Kb@ApD@nIN^?K}@iC_NeAcF_@qAQSCSBIYcAc@{B?[c@}BCM`@Bj@KxA]"
+        }
+      ]
+    },
+    {
+      "departAt": "2026-09-21T05:30:00.000Z",
+      "kind": "step",
+      "routes": [
+        {
+          "id": "nairobi-expressway",
+          "label": "via Nairobi Expressway",
+          "durationSec": 1447,
+          "staticDurationSec": 1238,
+          "distanceM": 13237,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoBDOEw@}ByRw@sGUqCWsEIsCF{DJkBAKN}C|@oOd@_G`@wGl@sNDo@XkCTyAt@sG`@gFl@aJ`@aIZcDt@mDl@iBnAeCjAeBl@s@|@cAtE}D|DgD`DmCtF{EhHkGnAeAHKnAcAhAeAtJgIdC_CrBaC|GmJbA{AbByBz@{@p@m@bC_B~Ai@rA]dBY|Eg@tD]tBc@`Cw@jEeBpBs@tFyBjHoCrAi@vCgAz\\sM|B_A|BiAtCcBbBwAfAs@DMpGeFr@]`Bm@r@Mt@IfEgAnBg@XAdFgAHSPKVCR@PNHZGXILMFOfAG|A[~Bg@vCSpB?PLTRHLGlA_ArBqAZGX@d@NRVbApCNt@JlALBDLELM@SNaC~@oHrCeFdBuCjAu@f@g@`@aAbAHn@tB|CHXPt@h@tB`@Bj@KxA]"
+        },
+        {
+          "id": "waiyaki-way",
+          "label": "via Waiyaki Way",
+          "durationSec": 1714,
+          "staticDurationSec": 1288,
+          "distanceM": 12103,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoBDOEw@}ByRw@sGUqCWsEIsCF{DJkBAKN}C|@oOd@_G`@wGl@sNDo@XkCNaAEa@h@kFV{Cz@}Kb@iJHqAVoBd@eC~AuFXaA`@y@|@eAjCyBnAcAjC_Bp@o@JW\\YZGR?l@a@pEuDz@aAxAmBxEcEhCuBrE}DlC{BxBoBrByAhB{Az@y@|B_DjDoHj@_A~AcBd@c@pAaArCeB`CaAtBa@fBW~JgA~AYfAWrDuAVQJURIV?NH`HaCn@YjMgFdAg@NMDULQXITBLFf@Iz@WbI_DrAc@nMiFvDeBJIFOTKPAPHHP?PGNBRCh@rBhQZbCd@pC\\rA`@|@V^zAxAh@p@TYJSb@uAlAwCn@aCb@qAVc@bAsAVUBAHJHn@tB|CHXPt@h@tB`@Bj@KxA]"
+        },
+        {
+          "id": "james-gichuru-road",
+          "label": "via James Gichuru Road",
+          "durationSec": 1845,
+          "staticDurationSec": 1647,
+          "distanceM": 12568,
+          "polyline": "rzuFwch_FOsBY}Ag@gA@U_@a@KS_@sAMGGO@SJMRERFHJ@PIPIFLx@P`@PLXBZGLKJQPgAEmE?uEB}B?oEBqGSuDA_CUyCe@aM_@kHy@eIUaDEcAo@_Fk@qBaFcK{AuCaAoCa@kBqAeKGs@GoB]}BwA_MIe@g@eCWOMWA[F[LM`@M\\?NHJFtAX`CMl@Bh@Nh@Zj@v@zA|C~@vB`AbBn@t@XXv@`@v@VfAP`@Bp@Av@Ol@OnAg@xFoDtIaF|Ai@dAQzAIxB@jE\\pAX|Ad@fAb@bAl@lM|JtAn@t@`@LDNAzAgAf@a@bAg@bBk@p@c@z@w@d@k@\\s@X}@NwAp@eJn@}F\\}EPw@hAyBlCwEtA{BRc@d@{@zHeNnBeDJq@DICUHSPIL?v@{@rCyErAuBZi@ZSl@WBCAsA[iCg@wDAw@`@oQJu@pF}Z^oBIK@MJGLBDN?@dR~CBMt@StEeBlFyB|EwA|FaBd@Ib@WFOPEFU@_@I_HQMEUFQPKFm@CoEEKIeEBuDCeAQ_@GMBKLEB@d@UJ?xGeCJm@yA{Cc@k@KM^i@ZUf@Kb@ApD@nIN^?K}@iC_NeAcF_@qAQSCSBIYcAc@{B?[c@}BCM`@Bj@KxA]"
         }
       ]
     }
