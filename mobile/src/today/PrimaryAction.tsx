@@ -21,16 +21,17 @@ const bellPath = 'M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0';
 const tickPath = 'M20 6 9 17l-5-5';
 
 // The state's one primary action. On time: "Remind me at 7:55", which the commuter can tap again to drop. At risk:
-// "Switch to <route>" when another route restores on time. Late: "Review and send notice".
+// "Switch to <route>" when another route restores on time. Late: the same switch while there is still one to make
+// (not yet on the road), otherwise "Review and send notice".
 export function PrimaryAction({ evaluation, reminder, onSelectRoute, onReviewNotice }: Props) {
+  const target = evaluation && betterRoute(evaluation);
+  if (target)
+    return (
+      <Action icon="M4 8h13l-3-3M20 16H7l3 3" label={`Switch to ${routeName(target)}`} onPress={() => onSelectRoute(target.id)} />
+    );
   if (evaluation?.state === 'late')
     return <Action icon={sendPath} label="Review and send notice" onPress={onReviewNotice} />;
-  if (evaluation?.state === 'at_risk') {
-    const target = betterRoute(evaluation);
-    return target ? (
-      <Action icon="M4 8h13l-3-3M20 16H7l3 3" label={`Switch to ${routeName(target)}`} onPress={() => onSelectRoute(target.id)} />
-    ) : null;
-  }
+  if (evaluation?.state === 'at_risk') return null;
   // Nothing to remind about once the leave-by has gone: the screen already says to leave now.
   if (evaluation?.state !== 'on_time' || !reminder.at) return null;
   const at = formatTime(reminder.at);

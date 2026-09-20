@@ -28,7 +28,7 @@ Source of truth for how the app looks: the "Fika app design" canvas, https://cla
 
 - Route difference colour: green when arrival is at or before deadline − buffer, amber when inside the buffer, red when past the deadline.
 - The hero changes by state: "Leave by 8:05" with "in 25 min · arrive 8:50" (on time); "Leave Now" with "arrive 8:55 · 5 min inside your buffer" (at risk); "Arriving 9:15" with "15 min late · via Waiyaki Way" (late).
-- One primary action per state: "Remind me at <leave-by − 10 min>" (on time), "Switch to <best route>" (at risk), "Review and send notice" (late).
+- One primary action per state: "Remind me at <leave-by − 10 min>" (on time), "Switch to <best route>" (at risk, and late while not yet on the road and another route is still on time), "Review and send notice" (late otherwise).
 - Header controls on the map: edit commute (left), Demo mode and manual refresh (right). The Demo mode icon turns accent orange while Demo mode is on.
 - The map shows an ETA bubble on each route and an incident marker on the delayed route while a simulated accident is active. Unselected routes dim further in the late state.
 - The banner says what is simulated: "SIMULATED TRAFFIC · WAIYAKI WAY +25 MIN", "SIMULATED TRAFFIC · CLOCK SET TO 8:40".
