@@ -111,11 +111,15 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
           .sort((a, b) => Number(a.selected) - Number(b.selected))
           .map((r) => {
             const line = lines.get(r.id);
+            // The road the accident is on, once switched away from: kept in the accident's colour, so the map still
+            // shows the way that was given up beside the one taken instead. Solid: Apple Maps breaks a dashed line
+            // this long into stray wedges.
+            const left = r.id === incidentRouteId && !r.selected;
             return line ? (
               <Polyline
                 key={r.id}
                 coordinates={line.coords}
-                strokeColor={r.selected ? color.accent : idle}
+                strokeColor={r.selected ? color.accent : left ? color.atRisk : idle}
                 strokeWidth={r.selected ? 5 : 4}
                 zIndex={r.selected ? 2 : 1}
                 lineCap="round"
@@ -150,8 +154,14 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
               tracksViewChanges={redrawing}
               onPress={() => onSelectRoute(r.id)}
             >
-              <View style={r.selected ? styles.bubbleOn : styles.bubble}>
-                <Text style={r.selected ? styles.bubbleOnText : styles.bubbleText}>{r.durationMin} min</Text>
+              <View style={r.selected ? styles.bubbleOn : r.id === incidentRouteId ? styles.bubbleLeft : styles.bubble}>
+                <Text
+                  style={
+                    r.selected ? styles.bubbleOnText : r.id === incidentRouteId ? styles.bubbleLeftText : styles.bubbleText
+                  }
+                >
+                  {r.durationMin} min
+                </Text>
               </View>
             </Marker>
           ) : null;
@@ -202,16 +212,13 @@ function useLines(routes: RouteView[]) {
           routes.map((r, i) => {
             const path = paths[i];
             const at = (p: LatLng | undefined) => p && coord(p);
-            return [
-              r.id,
-              {
-                coords: path.map(coord),
-                // The ETA bubble goes where this route parts from the others, which is both where it says the
-                // most and where it cannot land on another route's bubble. Failing that, its middle.
-                mid: at(distinctPoint(path, paths.filter((_, j) => j !== i)) ?? pointAlong(path, 0.5)),
-                incident: at(pointAlong(path, 0.6)),
-              },
-            ];
+            // The ETA bubble goes where this route parts from the others, which is both where it says the
+            // most and where it cannot land on another route's bubble. Failing that, its middle.
+            const mid = distinctPoint(path, paths.filter((_, j) => j !== i)) ?? pointAlong(path, 0.5);
+            // The accident sits past halfway, or wherever along the road is furthest from the bubble: the map is too short for both in one place.
+            const apart = (p: LatLng | undefined) => (p && mid ? (p.lat - mid.lat) ** 2 + (p.lng - mid.lng) ** 2 : 0);
+            const incident = [0.6, 0.2, 0.8].map((f) => pointAlong(path, f)).reduce((a, b) => (apart(b) > apart(a) ? b : a));
+            return [r.id, { coords: path.map(coord), mid: at(mid), incident: at(incident) }];
           }),
         );
       })(),
@@ -277,6 +284,8 @@ const styles = StyleSheet.create({
   destinationCore: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: color.onAccent },
   bubble: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 11, backgroundColor: color.control },
   bubbleText: { ...theme.type.segment, fontSize: 12, color: color.textChip },
+  bubbleLeft: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 11, backgroundColor: color.atRiskTint },
+  bubbleLeftText: { ...theme.type.segment, fontSize: 12, color: color.atRisk },
   bubbleOn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: color.accent },
   bubbleOnText: { ...theme.type.metaStrong, fontFamily: theme.font.bold, color: color.onAccent },
   incident: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
