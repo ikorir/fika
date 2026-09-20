@@ -24,7 +24,8 @@ export type RoutesResponse = { fetchedAt: string; samples: Sample[] };
 
 // GET /api/places/autocomplete?q=…  →  PlaceSuggestions
 // GET /api/places/details?placeId=… →  Place
-export type PlaceSuggestions = { suggestions: { placeId: string; label: string }[] };
+export type PlaceSuggestion = { placeId: string; label: string };
+export type PlaceSuggestions = { suggestions: PlaceSuggestion[] };
 
 // POST /api/draft
 export type DraftRequest = {
