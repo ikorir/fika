@@ -22,14 +22,14 @@ describe('the bundled routes response', () => {
     const arc = script().filter((s) => s.scenario !== 'switched');
 
     expect(arc.map(({ evaluation: e }) => [time(e.now), e.state, time(e.eta), e.simulationLabel])).toEqual([
-      ['8:00', 'on_time', '8:49', 'Clock set to 8:00'],
-      ['8:00', 'at_risk', '8:55', 'Nairobi Expressway +25 min · Clock set to 8:00'],
-      ['8:40', 'late', '9:14', 'Nairobi Expressway +25 min · Clock set to 8:40'],
+      ['7:30', 'on_time', '8:49', 'Clock set to 7:30'],
+      ['7:30', 'at_risk', '8:54', 'Limuru Road +25 min · Clock set to 7:30'],
+      ['8:10', 'late', '9:13', 'Limuru Road +25 min · Clock set to 8:10'],
     ]);
   });
 
   it('offers a route that gets there on time while at risk, so the presenter can switch', () => {
-    expect(step('at_risk').evaluation.betterRouteId).toBe('james-gichuru-road');
+    expect(step('at_risk').evaluation.betterRouteId).toBe('nairobi-expressway');
     expect(step('switched').evaluation.state).toBe('on_time');
   });
 });
@@ -66,7 +66,7 @@ describe('the saved drafts', () => {
       commute,
       samples: savedRoutes.samples,
       now: anyDay,
-      selectedRouteId: 'waiyaki-way',
+      selectedRouteId: 'kiambu-road',
       simulation: onTime.simulation,
     });
 

@@ -4,31 +4,31 @@
       "state": "on_time",
       "facts": {
         "deadline": "9:00",
-        "leaveBy": "8:20",
+        "leaveBy": "7:50",
         "onTheRoad": false,
         "eta": "8:49",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
+        "usualDeparture": "7:50",
         "usualArrival": "8:49",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "Nairobi Expressway",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Limuru Road",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 49,
+            "trafficDelayMin": 8
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 24,
+            "durationMin": 53,
             "trafficDelayMin": 4
           },
           {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
+            "label": "Kiambu Road",
+            "durationMin": 56,
             "trafficDelayMin": 9
-          },
-          {
-            "label": "James Gichuru Road",
-            "durationMin": 31,
-            "trafficDelayMin": 3
           }
         ]
       },
@@ -40,9 +40,9 @@
       "language": "en"
     },
     "words": {
-      "decision_line": "Leave by 8:20 via Nairobi Expressway to arrive at 8:49, well ahead of your 9:00 deadline.",
-      "conditions_note": "Nairobi Expressway is 4 min slower than normal; Waiyaki Way is 9 min slower; James Gichuru Road is 3 min slower.",
-      "notice": "Hi Mary, I am on track to arrive at 8:49 this morning, which gives me time before the 9:00 deadline. Thank you.",
+      "decision_line": "Leave by 7:50 via Limuru Road to arrive at 8:49.",
+      "conditions_note": "Limuru Road is 8 min slower than normal. Nairobi Expressway and Kiambu Road are also slower than normal.",
+      "notice": "Hi Mary, I'm on track to arrive at 8:49 this morning. Thank you.",
       "source": "claude"
     }
   },
@@ -51,31 +51,31 @@
       "state": "on_time",
       "facts": {
         "deadline": "9:00",
-        "leaveBy": "8:20",
+        "leaveBy": "7:50",
         "onTheRoad": false,
         "eta": "8:49",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
+        "usualDeparture": "7:50",
         "usualArrival": "8:49",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "Nairobi Expressway",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Limuru Road",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 49,
+            "trafficDelayMin": 8
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 24,
+            "durationMin": 53,
             "trafficDelayMin": 4
           },
           {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
+            "label": "Kiambu Road",
+            "durationMin": 56,
             "trafficDelayMin": 9
-          },
-          {
-            "label": "James Gichuru Road",
-            "durationMin": 31,
-            "trafficDelayMin": 3
           }
         ]
       },
@@ -87,9 +87,9 @@
       "language": "sw"
     },
     "words": {
-      "decision_line": "Ondoka saa 8:20 kupitia Nairobi Expressway na utafika saa 8:49. Kuondoka kwa muda wako wa kawaida wa saa 8:20 pia kungekufikisha saa 8:49.",
-      "conditions_note": "Nairobi Expressway ni dakika 4 polepole kuliko kawaida, Waiyaki Way ni dakika 9 polepole kuliko kawaida, na James Gichuru Road ni dakika 3 polepole kuliko kawaida.",
-      "notice": "Habari Mary, ninatarajia kuwasili saa 8:49 kupitia Nairobi Expressway. Nitakujulisha endapo kutakuwa na mabadiliko yoyote. Asante.",
+      "decision_line": "Ondoka saa 7:50 kupitia Limuru Road ili ufike saa 8:49. Ukiondoka kwa muda wako wa kawaida wa saa 7:50, bado utafika saa 8:49.",
+      "conditions_note": "Limuru Road ni dakika 8 polepole kuliko kawaida, Nairobi Expressway dakika 4 polepole, na Kiambu Road dakika 9 polepole.",
+      "notice": "Habari Mary, ninatarajia kuwasili saa 8:49 leo. Nitakujulisha endapo kutakuwa na mabadiliko yoyote njiani. Asante kwa uelewa wako.",
       "source": "claude"
     }
   },
@@ -98,31 +98,31 @@
       "state": "on_time",
       "facts": {
         "deadline": "9:00",
-        "leaveBy": "8:20",
+        "leaveBy": "7:50",
         "onTheRoad": false,
         "eta": "8:49",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
+        "usualDeparture": "7:50",
         "usualArrival": "8:49",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "Nairobi Expressway",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Limuru Road",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 49,
+            "trafficDelayMin": 8
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 24,
+            "durationMin": 53,
             "trafficDelayMin": 4
           },
           {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
+            "label": "Kiambu Road",
+            "durationMin": 56,
             "trafficDelayMin": 9
-          },
-          {
-            "label": "James Gichuru Road",
-            "durationMin": 31,
-            "trafficDelayMin": 3
           }
         ]
       },
@@ -134,9 +134,9 @@
       "language": "sheng"
     },
     "words": {
-      "decision_line": "Ondoka by 8:20 upitie Nairobi Expressway, utafika 8:49. Kama utaondoka saa yako ya kawaida ya 8:20, utafika 8:49 tu, so uko sawa.",
-      "conditions_note": "Nairobi Expressway ni 4 min slower than normal, Waiyaki Way ni 9 min slower than normal, na James Gichuru Road ni 3 min slower than normal.",
-      "notice": "Hi Mary, nikikuupdate tu, nitafika around 8:49. Niko njiani na safari inaenda sawa. Nitakupa update ingine kama kuna mabadiliko.",
+      "decision_line": "Ondoka by 7:50 upitie Limuru Road, utafika 8:49. Ukiondoka usual time yako 7:50, bado utafika 8:49.",
+      "conditions_note": "Limuru Road ni 8 min slower than normal, Nairobi Expressway ni 4 min slower, na Kiambu Road ni 9 min slower than normal.",
+      "notice": "Hi Mary, nataka ku-update kuhusu safari yangu ya leo. Nitafika saa saa 8:49 kama planned. Nitakuwa in touch nikikaribia. Asante.",
       "source": "claude"
     }
   },
@@ -145,31 +145,31 @@
       "state": "on_time",
       "facts": {
         "deadline": "9:00",
-        "leaveBy": "8:20",
+        "leaveBy": "7:50",
         "onTheRoad": false,
         "eta": "8:49",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
+        "usualDeparture": "7:50",
         "usualArrival": "8:49",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "Nairobi Expressway",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Limuru Road",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 49,
+            "trafficDelayMin": 8
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 24,
+            "durationMin": 53,
             "trafficDelayMin": 4
           },
           {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
+            "label": "Kiambu Road",
+            "durationMin": 56,
             "trafficDelayMin": 9
-          },
-          {
-            "label": "James Gichuru Road",
-            "durationMin": 31,
-            "trafficDelayMin": 3
           }
         ]
       },
@@ -181,9 +181,9 @@
       "language": "en"
     },
     "words": {
-      "decision_line": "Leave by 8:20 via Nairobi Expressway to arrive at 8:49, well ahead of your 9:00 deadline.",
-      "conditions_note": "Nairobi Expressway is 4 min slower than normal. Waiyaki Way is 9 min slower, James Gichuru Road is 3 min slower.",
-      "notice": "Hi Mary, I'm on track to be with you by 8:49. See you then!",
+      "decision_line": "Leave by 7:50 via Limuru Road and arrive at 8:49.",
+      "conditions_note": "Limuru Road is 8 min slower than normal. Nairobi Expressway is 4 min slower. Kiambu Road is 9 min slower.",
+      "notice": "Hi Mary, I'm on track to arrive at 8:49 this morning. See you then.",
       "source": "claude"
     }
   },
@@ -192,31 +192,31 @@
       "state": "on_time",
       "facts": {
         "deadline": "9:00",
-        "leaveBy": "8:20",
+        "leaveBy": "7:50",
         "onTheRoad": false,
         "eta": "8:49",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
+        "usualDeparture": "7:50",
         "usualArrival": "8:49",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "Nairobi Expressway",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Limuru Road",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 49,
+            "trafficDelayMin": 8
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 24,
+            "durationMin": 53,
             "trafficDelayMin": 4
           },
           {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
+            "label": "Kiambu Road",
+            "durationMin": 56,
             "trafficDelayMin": 9
-          },
-          {
-            "label": "James Gichuru Road",
-            "durationMin": 31,
-            "trafficDelayMin": 3
           }
         ]
       },
@@ -228,9 +228,9 @@
       "language": "sw"
     },
     "words": {
-      "decision_line": "Ondoka saa 8:20 kupitia Nairobi Expressway na utafika saa 8:49. Kuondoka saa yako ya kawaida ya 8:20 kutakufikisha saa 8:49 pia.",
-      "conditions_note": "Nairobi Expressway ni dakika 4 pole zaidi kuliko kawaida, Waiyaki Way ni dakika 9 pole zaidi, na James Gichuru Road ni dakika 3 pole zaidi.",
-      "notice": "Habari Mary, safari inaendelea vizuri leo. Nitafika saa 8:49. Tuonane hivi karibuni!",
+      "decision_line": "Ondoka saa 7:50 kupitia Limuru Road na utafika saa 8:49. Kuondoka saa yako ya kawaida ya 7:50 kungekufikisha saa 8:49 pia.",
+      "conditions_note": "Limuru Road ni dakika 8 min slower than normal, Nairobi Expressway 4 min slower, na Kiambu Road 9 min slower than normal.",
+      "notice": "Mary, mambo vipi. Nitafika saa 8:49, safari inaenda sawa kabisa. Tuonane hivi karibuni.",
       "source": "claude"
     }
   },
@@ -239,31 +239,31 @@
       "state": "on_time",
       "facts": {
         "deadline": "9:00",
-        "leaveBy": "8:20",
+        "leaveBy": "7:50",
         "onTheRoad": false,
         "eta": "8:49",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
+        "usualDeparture": "7:50",
         "usualArrival": "8:49",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "Nairobi Expressway",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Limuru Road",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 49,
+            "trafficDelayMin": 8
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 24,
+            "durationMin": 53,
             "trafficDelayMin": 4
           },
           {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
+            "label": "Kiambu Road",
+            "durationMin": 56,
             "trafficDelayMin": 9
-          },
-          {
-            "label": "James Gichuru Road",
-            "durationMin": 31,
-            "trafficDelayMin": 3
           }
         ]
       },
@@ -275,9 +275,9 @@
       "language": "sheng"
     },
     "words": {
-      "decision_line": "Ondoka by 8:20 upitie Nairobi Expressway, utafika 8:49. Ukiondoka kwa saa yako ya kawaida 8:20, bado utafika 8:49.",
-      "conditions_note": "Nairobi Expressway ni 4 min slower than normal, Waiyaki Way ni 9 min slower than normal, James Gichuru Road ni 3 min slower than normal.",
-      "notice": "Mary, mambo vipi. Nataka tu kukujulisha nitafika around 8:49. Uendelee poa, tutaonana kesho hapo.",
+      "decision_line": "Ondoka by 7:50 uende via Limuru Road, utafika 8:49. Ukiondoka usual time yako ya 7:50, bado utafika 8:49.",
+      "conditions_note": "Limuru Road ni 8 min slower than normal, Nairobi Expressway ni 4 min slower, na Kiambu Road ni 9 min slower.",
+      "notice": "Mary, mambo? Nataka tu kukujulisha nitafika around 8:49. Tutaonana hapo.",
       "source": "claude"
     }
   },
@@ -288,35 +288,35 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": false,
-        "eta": "8:55",
+        "eta": "8:54",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
-        "usualArrival": "8:55",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "James Gichuru Road",
+        "usualDeparture": "7:50",
+        "usualArrival": "8:53",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": {
-          "label": "James Gichuru Road",
-          "arriveAt": "8:35"
+          "label": "Nairobi Expressway",
+          "arriveAt": "8:34"
         },
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 34
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 50,
-            "trafficDelayMin": 29
+            "durationMin": 54,
+            "trafficDelayMin": 6
           },
           {
-            "label": "James Gichuru Road",
-            "durationMin": 30,
-            "trafficDelayMin": 3
-          },
-          {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
-            "trafficDelayMin": 9
+            "label": "Kiambu Road",
+            "durationMin": 58,
+            "trafficDelayMin": 10
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -326,9 +326,9 @@
       "language": "en"
     },
     "words": {
-      "decision_line": "Leave now. You will arrive at 8:55 via Nairobi Expressway, within your buffer. James Gichuru Road gets you there at 8:35 if you switch now.",
-      "conditions_note": "Nairobi Expressway is 29 min slower than normal due to an accident. James Gichuru Road is 3 min slower than normal and Waiyaki Way is 9 min slower than normal.",
-      "notice": "Hi Mary, I'm leaving now and expect to arrive at 8:55. I wanted to let you know in case you need to adjust anything on your end. Thank you for your patience.",
+      "decision_line": "Leave now via Nairobi Expressway to arrive at 8:34, well ahead of your 9:00 deadline. Limuru Road will get you there at 8:54, cutting it close.",
+      "conditions_note": "Limuru Road is 34 min slower than normal due to an accident; Nairobi Expressway is 6 min slower than normal; Kiambu Road is 10 min slower than normal.",
+      "notice": "Hi Mary, I'm leaving now and expect to arrive by 8:54. I wanted to give you a heads-up on my ETA. Thank you.",
       "source": "claude"
     }
   },
@@ -339,35 +339,35 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": false,
-        "eta": "8:55",
+        "eta": "8:54",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
-        "usualArrival": "8:55",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "James Gichuru Road",
+        "usualDeparture": "7:50",
+        "usualArrival": "8:53",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": {
-          "label": "James Gichuru Road",
-          "arriveAt": "8:35"
+          "label": "Nairobi Expressway",
+          "arriveAt": "8:34"
         },
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 34
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 50,
-            "trafficDelayMin": 29
+            "durationMin": 54,
+            "trafficDelayMin": 6
           },
           {
-            "label": "James Gichuru Road",
-            "durationMin": 30,
-            "trafficDelayMin": 3
-          },
-          {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
-            "trafficDelayMin": 9
+            "label": "Kiambu Road",
+            "durationMin": 58,
+            "trafficDelayMin": 10
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -377,9 +377,9 @@
       "language": "sw"
     },
     "words": {
-      "decision_line": "Ondoka sasa hivi kupitia Nairobi Expressway, utafika 8:55. Hii iko ndani ya muda wako, lakini ukitaka uwe salama zaidi, James Gichuru Road inafika 8:35.",
-      "conditions_note": "Nairobi Expressway iko na msongamano wa dakika 29 zaidi ya kawaida kutokana na ajali. James Gichuru Road iko na dakika 3 zaidi, na Waiyaki Way iko na dakika 9 zaidi.",
-      "notice": "Habari Mary, naandika kukujulisha kuhusu safari yangu ya leo. Ninatarajia kuwasili saa 8:55. Nitakuwa njiani, tutaonana hivi karibuni.",
+      "decision_line": "Ondoka sasa hivi kupitia Limuru Road, utafika saa 8:54. Kwa wakati unaofika, hii iko ndani ya muda wako wa ziada. Kama unataka kufika mapema zaidi, tumia Nairobi Expressway, ambayo inafika saa 8:34.",
+      "conditions_note": "Limuru Road ina ucheleweshaji wa dakika 34 kutokana na ajali, Nairobi Expressway ni dakika 6 na Kiambu Road ni dakika 10 taratibu kuliko kawaida.",
+      "notice": "Habari Mary, nataka kukujulisha kuwa nitawasili karibu saa 8:54. Nimeondoka sasa hivi kuepuka kuchelewa zaidi. Nitakujulisha endapo kutakuwa na mabadiliko yoyote.",
       "source": "claude"
     }
   },
@@ -390,35 +390,35 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": false,
-        "eta": "8:55",
+        "eta": "8:54",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
-        "usualArrival": "8:55",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "James Gichuru Road",
+        "usualDeparture": "7:50",
+        "usualArrival": "8:53",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": {
-          "label": "James Gichuru Road",
-          "arriveAt": "8:35"
+          "label": "Nairobi Expressway",
+          "arriveAt": "8:34"
         },
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 34
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 50,
-            "trafficDelayMin": 29
+            "durationMin": 54,
+            "trafficDelayMin": 6
           },
           {
-            "label": "James Gichuru Road",
-            "durationMin": 30,
-            "trafficDelayMin": 3
-          },
-          {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
-            "trafficDelayMin": 9
+            "label": "Kiambu Road",
+            "durationMin": 58,
+            "trafficDelayMin": 10
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -428,9 +428,9 @@
       "language": "sheng"
     },
     "words": {
-      "decision_line": "Ondoka sasa hivi ukitumia Nairobi Expressway, utafika 8:55. Ukiweza, chukua James Gichuru Road badala yake, hiyo inafika 8:35.",
-      "conditions_note": "Nairobi Expressway ni 29 min slower than normal kwa sababu ya accident, James Gichuru Road ni 3 min slower than normal, na Waiyaki Way ni 9 min slower than normal.",
-      "notice": "Hi Mary, nataka tu kukujulisha nitafika kazini saa 8:55. Traffic iko heavy leo kwa hiyo naenda haraka niwezavyo. Nitakuupdate kama kuna mabadiliko.",
+      "decision_line": "Ondoka sasa hivi via Limuru Road, utafika 8:54. Ukiona hali, Nairobi Expressway itakufikisha 8:34, ni poa zaidi.",
+      "conditions_note": "Limuru Road ni 34 min slower than normal kwa sababu ya accident, Nairobi Expressway ni 6 min slower, Kiambu Road ni 10 min slower.",
+      "notice": "Hi Mary, naomba kukujulisha nitafika saa hivi 8:54. Kuna msongamano njiani lakini nafuatilia muda. Nitakuupdate nikiwa karibu.",
       "source": "claude"
     }
   },
@@ -441,35 +441,35 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": false,
-        "eta": "8:55",
+        "eta": "8:54",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
-        "usualArrival": "8:55",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "James Gichuru Road",
+        "usualDeparture": "7:50",
+        "usualArrival": "8:53",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": {
-          "label": "James Gichuru Road",
-          "arriveAt": "8:35"
+          "label": "Nairobi Expressway",
+          "arriveAt": "8:34"
         },
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 34
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 50,
-            "trafficDelayMin": 29
+            "durationMin": 54,
+            "trafficDelayMin": 6
           },
           {
-            "label": "James Gichuru Road",
-            "durationMin": 30,
-            "trafficDelayMin": 3
-          },
-          {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
-            "trafficDelayMin": 9
+            "label": "Kiambu Road",
+            "durationMin": 58,
+            "trafficDelayMin": 10
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -479,9 +479,9 @@
       "language": "en"
     },
     "words": {
-      "decision_line": "Leave now. You'll arrive at 8:55 via Nairobi Expressway, inside your buffer. James Gichuru Road gets you there at 8:35 if you switch now.",
-      "conditions_note": "Nairobi Expressway is 29 min slower than normal due to an accident. James Gichuru Road is 3 min slower than normal, Waiyaki Way 9 min slower.",
-      "notice": "Hi Mary, just heading out now. I'm expecting to arrive around 8:55, so should be with you just before the deadline. Thanks for your patience.",
+      "decision_line": "Leave now via Nairobi Expressway to arrive at 8:34. Limuru Road will get you there at 8:54, inside your buffer but cutting it close.",
+      "conditions_note": "Limuru Road is 34 min slower than normal due to accident; Nairobi Expressway is 6 min slower; Kiambu Road is 10 min slower.",
+      "notice": "Hi Mary, I'm heading out now and should be with you by 8:54. There's an accident on my usual route, so I'm taking the expressway to be safe. See you soon.",
       "source": "claude"
     }
   },
@@ -492,35 +492,35 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": false,
-        "eta": "8:55",
+        "eta": "8:54",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
-        "usualArrival": "8:55",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "James Gichuru Road",
+        "usualDeparture": "7:50",
+        "usualArrival": "8:53",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": {
-          "label": "James Gichuru Road",
-          "arriveAt": "8:35"
+          "label": "Nairobi Expressway",
+          "arriveAt": "8:34"
         },
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 34
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 50,
-            "trafficDelayMin": 29
+            "durationMin": 54,
+            "trafficDelayMin": 6
           },
           {
-            "label": "James Gichuru Road",
-            "durationMin": 30,
-            "trafficDelayMin": 3
-          },
-          {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
-            "trafficDelayMin": 9
+            "label": "Kiambu Road",
+            "durationMin": 58,
+            "trafficDelayMin": 10
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -530,9 +530,9 @@
       "language": "sw"
     },
     "words": {
-      "decision_line": "Ondoka sasa hivi na uende kupitia Nairobi Expressway, utafika saa 8:55. Ukipenda kufika mapema zaidi, tumia James Gichuru Road, utafika 8:35.",
-      "conditions_note": "Nairobi Expressway ni dakika 29 min slower than normal kutokana na ajali, James Gichuru Road ni 3 min slower, na Waiyaki Way ni 9 min slower.",
-      "notice": "Habari Mary, kuna msongamano leo njiani. Nategemea kufika saa 8:55, itakuwa karibu sawa na saa ya kawaida. Tuonane hivi karibuni.",
+      "decision_line": "Ondoka sasa hivi ukitumia Limuru Road, ambayo ni ya polepole kwa dakika 34 kutokana na ajali, utafika 8:54. Ukitaka kufika mapema zaidi, tumia Nairobi Expressway, itafika 8:34.",
+      "conditions_note": "Limuru Road ni dakika 34 polepole kuliko kawaida kwa sababu ya ajali, Nairobi Expressway ni dakika 6 polepole, na Kiambu Road ni dakika 10 polepole.",
+      "notice": "Habari Mary, ni mimi tu nakujulisha niko njiani. Nategemea kufika saa 8:54. Tuonane hivi karibuni.",
       "source": "claude"
     }
   },
@@ -543,35 +543,35 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": false,
-        "eta": "8:55",
+        "eta": "8:54",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
-        "usualArrival": "8:55",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "James Gichuru Road",
+        "usualDeparture": "7:50",
+        "usualArrival": "8:53",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": {
-          "label": "James Gichuru Road",
-          "arriveAt": "8:35"
+          "label": "Nairobi Expressway",
+          "arriveAt": "8:34"
         },
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 34
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 50,
-            "trafficDelayMin": 29
+            "durationMin": 54,
+            "trafficDelayMin": 6
           },
           {
-            "label": "James Gichuru Road",
-            "durationMin": 30,
-            "trafficDelayMin": 3
-          },
-          {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
-            "trafficDelayMin": 9
+            "label": "Kiambu Road",
+            "durationMin": 58,
+            "trafficDelayMin": 10
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -581,9 +581,9 @@
       "language": "sheng"
     },
     "words": {
-      "decision_line": "Ondoka sasa hivi via Nairobi Expressway, utafika 8:55. Kama kuna nafasi, James Gichuru Road inafika 8:35, ni safer option.",
-      "conditions_note": "Nairobi Expressway ni 29 min slower than normal kwa sababu ya accident, James Gichuru Road ni 3 min slower, Waiyaki Way ni 9 min slower.",
-      "notice": "Mary, mambo? Naenda kufika around 8:55 leo, traffic iko noma kidogo Expressway kuna accident. Nitakuupdate nikikaribia, chill.",
+      "decision_line": "Toka sasa hivi via Limuru Road, utafika 8:54. Ukitaka kufika on time, jaribu Nairobi Expressway, inafika 8:34.",
+      "conditions_note": "Limuru Road ni 34 min slower than normal coz ya accident, Nairobi Expressway ni 6 min slower, Kiambu Road ni 10 min slower.",
+      "notice": "Mary, niko njiani sasa. Nitafika around 8:54, si mbali sana. Utaniona hivi punde.",
       "source": "claude"
     }
   },
@@ -594,32 +594,32 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": false,
-        "eta": "8:35",
+        "eta": "8:34",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
-        "usualArrival": "8:55",
-        "selectedRoute": "James Gichuru Road",
-        "recommendedRoute": "James Gichuru Road",
+        "usualDeparture": "7:50",
+        "usualArrival": "8:53",
+        "selectedRoute": "Nairobi Expressway",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 34
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 50,
-            "trafficDelayMin": 29
+            "durationMin": 54,
+            "trafficDelayMin": 6
           },
           {
-            "label": "James Gichuru Road",
-            "durationMin": 30,
-            "trafficDelayMin": 3
-          },
-          {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
-            "trafficDelayMin": 9
+            "label": "Kiambu Road",
+            "durationMin": 58,
+            "trafficDelayMin": 10
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -629,9 +629,9 @@
       "language": "en"
     },
     "words": {
-      "decision_line": "Leave now via James Gichuru Road and arrive at 8:35. Leaving at your usual 8:20 would get you at 8:55.",
-      "conditions_note": "James Gichuru Road is 3 min slower than normal. Nairobi Expressway is 29 min slower than normal. Waiyaki Way is 9 min slower than normal.",
-      "notice": "Hi Mary, I am leaving now and expect to arrive at 8:35. Thank you for your patience.",
+      "decision_line": "Leave now via Nairobi Expressway to arrive at 8:34, well before your 9:00 deadline. Leaving at your usual time of 7:50 would get you at 8:53 instead.",
+      "conditions_note": "Limuru Road is 34 min slower than normal due to an accident; Nairobi Expressway is 6 min slower; Kiambu Road is 10 min slower.",
+      "notice": "Good morning Mary, I am leaving now and expect to arrive at 8:34. Thank you for your time.",
       "source": "claude"
     }
   },
@@ -642,32 +642,32 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": false,
-        "eta": "8:35",
+        "eta": "8:34",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
-        "usualArrival": "8:55",
-        "selectedRoute": "James Gichuru Road",
-        "recommendedRoute": "James Gichuru Road",
+        "usualDeparture": "7:50",
+        "usualArrival": "8:53",
+        "selectedRoute": "Nairobi Expressway",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 34
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 50,
-            "trafficDelayMin": 29
+            "durationMin": 54,
+            "trafficDelayMin": 6
           },
           {
-            "label": "James Gichuru Road",
-            "durationMin": 30,
-            "trafficDelayMin": 3
-          },
-          {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
-            "trafficDelayMin": 9
+            "label": "Kiambu Road",
+            "durationMin": 58,
+            "trafficDelayMin": 10
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -677,9 +677,9 @@
       "language": "sw"
     },
     "words": {
-      "decision_line": "Ondoka sasa kupitia James Gichuru Road na utafika saa 8:35. Ukiondoka muda wako wa kawaida wa saa 8:20, ungefika saa 8:55.",
-      "conditions_note": "Nairobi Expressway ni dakika 29 polepole kuliko kawaida kutokana na ajali, Waiyaki Way ni dakika 9 polepole, na James Gichuru Road ni dakika 3 polepole.",
-      "notice": "Habari Mary, ninatarajia kuwasili saa 8:35. Nimeondoka safarini na safari inaendelea vizuri. Nitakujulisha endapo kutakuwa na mabadiliko yoyote.",
+      "decision_line": "Ondoka sasa kupitia Nairobi Expressway ili ufike saa 8:34. Ukiondoka kwa muda wako wa kawaida, ungefika saa 8:53.",
+      "conditions_note": "Limuru Road ni dakika 34 taratibu kuliko kawaida kutokana na ajali, Kiambu Road ni dakika 10 taratibu kuliko kawaida, Nairobi Expressway ni dakika 6 taratibu kuliko kawaida.",
+      "notice": "Habari Mary, nataka kukujulisha kuwa nitawasili saa 8:34. Nimeondoka sasa kupitia Nairobi Expressway. Nitakuwa njiani hadi hapo.",
       "source": "claude"
     }
   },
@@ -690,32 +690,32 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": false,
-        "eta": "8:35",
+        "eta": "8:34",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
-        "usualArrival": "8:55",
-        "selectedRoute": "James Gichuru Road",
-        "recommendedRoute": "James Gichuru Road",
+        "usualDeparture": "7:50",
+        "usualArrival": "8:53",
+        "selectedRoute": "Nairobi Expressway",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 34
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 50,
-            "trafficDelayMin": 29
+            "durationMin": 54,
+            "trafficDelayMin": 6
           },
           {
-            "label": "James Gichuru Road",
-            "durationMin": 30,
-            "trafficDelayMin": 3
-          },
-          {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
-            "trafficDelayMin": 9
+            "label": "Kiambu Road",
+            "durationMin": 58,
+            "trafficDelayMin": 10
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -725,9 +725,9 @@
       "language": "sheng"
     },
     "words": {
-      "decision_line": "Toka sasa via James Gichuru Road, utafika 8:35. Kama ungetoka saa yako ya kawaida 8:20, ungefika 8:55.",
-      "conditions_note": "Nairobi Expressway iko 29 min slower than normal kwa sababu ya accident, Waiyaki Way iko 9 min slower than normal, James Gichuru Road iko 3 min slower than normal.",
-      "notice": "Hi Mary, nataka kukujulisha niko njiani na nitafika 8:35. Nimeamua kutumia James Gichuru Road kuepuka msongamano. Nitakuupdate kama kuna mabadiliko yoyote.",
+      "decision_line": "Toka sasa hivi via Nairobi Expressway, utafika 8:34. Ukitoka kwa muda wako wa kawaida ungefika 8:53.",
+      "conditions_note": "Limuru Road ni 34 min slower than normal kwa sababu ya accident, Kiambu Road ni 10 min slower than normal. Nairobi Expressway ni 6 min slower than normal.",
+      "notice": "Hi Mary, nataka kukujulisha nitafika saa 8:34. Niko njiani, nitakuupdate ikitokea mabadiliko. Asante kwa uelewa wako.",
       "source": "claude"
     }
   },
@@ -738,32 +738,32 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": false,
-        "eta": "8:35",
+        "eta": "8:34",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
-        "usualArrival": "8:55",
-        "selectedRoute": "James Gichuru Road",
-        "recommendedRoute": "James Gichuru Road",
+        "usualDeparture": "7:50",
+        "usualArrival": "8:53",
+        "selectedRoute": "Nairobi Expressway",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 34
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 50,
-            "trafficDelayMin": 29
+            "durationMin": 54,
+            "trafficDelayMin": 6
           },
           {
-            "label": "James Gichuru Road",
-            "durationMin": 30,
-            "trafficDelayMin": 3
-          },
-          {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
-            "trafficDelayMin": 9
+            "label": "Kiambu Road",
+            "durationMin": 58,
+            "trafficDelayMin": 10
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -773,9 +773,9 @@
       "language": "en"
     },
     "words": {
-      "decision_line": "Leave now via James Gichuru Road and you will arrive at 8:35. If you left at your usual 8:20, you would get there at 8:55.",
-      "conditions_note": "James Gichuru Road is 3 min slower than normal. Waiyaki Way is 9 min slower than normal. Nairobi Expressway is 29 min slower than normal due to an accident.",
-      "notice": "Hi Mary, I'm heading out now and should be with you by 8:35. See you soon!",
+      "decision_line": "Leave now via Nairobi Expressway, arriving at 8:34.",
+      "conditions_note": "Limuru Road is 34 min slower than normal due to accident; Nairobi Expressway is 6 min slower; Kiambu Road is 10 min slower.",
+      "notice": "Hi Mary, I'm heading out now and should be with you by 8:34. See you soon!",
       "source": "claude"
     }
   },
@@ -786,32 +786,32 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": false,
-        "eta": "8:35",
+        "eta": "8:34",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
-        "usualArrival": "8:55",
-        "selectedRoute": "James Gichuru Road",
-        "recommendedRoute": "James Gichuru Road",
+        "usualDeparture": "7:50",
+        "usualArrival": "8:53",
+        "selectedRoute": "Nairobi Expressway",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 34
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 50,
-            "trafficDelayMin": 29
+            "durationMin": 54,
+            "trafficDelayMin": 6
           },
           {
-            "label": "James Gichuru Road",
-            "durationMin": 30,
-            "trafficDelayMin": 3
-          },
-          {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
-            "trafficDelayMin": 9
+            "label": "Kiambu Road",
+            "durationMin": 58,
+            "trafficDelayMin": 10
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -821,9 +821,9 @@
       "language": "sw"
     },
     "words": {
-      "decision_line": "Ondoka sasa hivi kupitia James Gichuru Road na utafika saa 8:35. Ukiondoka kwa muda wako wa kawaida wa saa 8:20, ungefika saa 8:55.",
-      "conditions_note": "Nairobi Expressway ni dakika 29 polepole kuliko kawaida kutokana na ajali, Waiyaki Way ni dakika 9 polepole kuliko kawaida, na James Gichuru Road ni dakika 3 polepole kuliko kawaida.",
-      "notice": "Mary, hujambo. Nataka tu kukujulisha nitafika saa 8:35. Tuonane hivi karibuni.",
+      "decision_line": "Ondoka sasa kupitia Nairobi Expressway na utafika saa 8:34. Ukiondoka saa yako ya kawaida ya 7:50, ungefika saa 8:53.",
+      "conditions_note": "Limuru Road ni dakika 34 slower than normal kutokana na ajali, Kiambu Road ni dakika 10 slower than normal, na Nairobi Expressway ni dakika 6 slower than normal.",
+      "notice": "Mary, nakuja njiani, nitafika saa 8:34. Utaniona hivi karibuni, uko poa?",
       "source": "claude"
     }
   },
@@ -834,32 +834,32 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": false,
-        "eta": "8:35",
+        "eta": "8:34",
         "lateMin": 0,
         "lateMinRounded": 0,
-        "usualDeparture": "8:20",
-        "usualArrival": "8:55",
-        "selectedRoute": "James Gichuru Road",
-        "recommendedRoute": "James Gichuru Road",
+        "usualDeparture": "7:50",
+        "usualArrival": "8:53",
+        "selectedRoute": "Nairobi Expressway",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 34
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 50,
-            "trafficDelayMin": 29
+            "durationMin": 54,
+            "trafficDelayMin": 6
           },
           {
-            "label": "James Gichuru Road",
-            "durationMin": 30,
-            "trafficDelayMin": 3
-          },
-          {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
-            "trafficDelayMin": 9
+            "label": "Kiambu Road",
+            "durationMin": 58,
+            "trafficDelayMin": 10
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -869,9 +869,9 @@
       "language": "sheng"
     },
     "words": {
-      "decision_line": "Toka sasa hivi via James Gichuru Road, utafika 8:35. Kama ungetoka wakati wako wa kawaida, ungefika 8:55.",
-      "conditions_note": "Nairobi Expressway iko 29 min slower than normal kwa sababu ya accident, Waiyaki Way iko 9 min slower than normal, James Gichuru Road iko 3 min slower than normal.",
-      "notice": "Mary, mambo vizuri. Nakuja kufika kama 8:35, niko njiani sasa. Tuonane hivi punde.",
+      "decision_line": "Ondoka sasa hivi via Nairobi Expressway, utafika 8:34. Kama ungeondoka saa yako ya kawaida 7:50, ungefika 8:53.",
+      "conditions_note": "Limuru Road ni 34 min slower than normal kwa sababu ya accident, Kiambu Road ni 10 min slower than normal. Nairobi Expressway ni 6 min slower than normal.",
+      "notice": "Mary, hujambo. Nataka tu kukujulisha nitafika 8:34. Nakuja sasa hivi, tuonane hapo.",
       "source": "claude"
     }
   },
@@ -882,32 +882,32 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": true,
-        "eta": "9:14",
-        "lateMin": 14,
+        "eta": "9:13",
+        "lateMin": 13,
         "lateMinRounded": 15,
         "usualDeparture": "",
         "usualArrival": "",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "Waiyaki Way",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 33
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 49,
-            "trafficDelayMin": 29
+            "durationMin": 53,
+            "trafficDelayMin": 4
           },
           {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
+            "label": "Kiambu Road",
+            "durationMin": 56,
             "trafficDelayMin": 9
-          },
-          {
-            "label": "James Gichuru Road",
-            "durationMin": 31,
-            "trafficDelayMin": 3
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -917,9 +917,9 @@
       "language": "en"
     },
     "words": {
-      "decision_line": "You are on Nairobi Expressway with an accident. You will arrive at 9:14, which is 14 minutes past your 9:00 deadline. Please notify Mary now.",
-      "conditions_note": "Nairobi Expressway is 29 min slower than normal due to an accident. Waiyaki Way is 9 min slower. James Gichuru Road is 3 min slower.",
-      "notice": "Hi Mary, I apologize for the delay. Due to an accident on my route, I will arrive at 9:14, approximately 15 minutes late. I wanted to inform you as soon as possible.",
+      "decision_line": "You are on Limuru Road, arriving at 9:13. That is 13 minutes past your 9:00 deadline. Contact Mary now.",
+      "conditions_note": "Limuru Road is 33 min slower than normal due to an accident. Nairobi Expressway and Kiambu Road are also affected.",
+      "notice": "Mary, I am currently on Limuru Road and expect to arrive at 9:13, approximately 15 minutes late. I apologize for the delay and will update you if circumstances change.",
       "source": "claude"
     }
   },
@@ -930,32 +930,32 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": true,
-        "eta": "9:14",
-        "lateMin": 14,
+        "eta": "9:13",
+        "lateMin": 13,
         "lateMinRounded": 15,
         "usualDeparture": "",
         "usualArrival": "",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "Waiyaki Way",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 33
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 49,
-            "trafficDelayMin": 29
+            "durationMin": 53,
+            "trafficDelayMin": 4
           },
           {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
+            "label": "Kiambu Road",
+            "durationMin": 56,
             "trafficDelayMin": 9
-          },
-          {
-            "label": "James Gichuru Road",
-            "durationMin": 31,
-            "trafficDelayMin": 3
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -965,9 +965,9 @@
       "language": "sw"
     },
     "words": {
-      "decision_line": "Utafika saa 9:14, ambayo ni dakika 14 baada ya muda wako wa mwisho wa saa 9:00. Mjulishe Mary sasa, kabla hujachelewa.",
-      "conditions_note": "Nairobi Expressway ni dakika 29 polepole kuliko kawaida kutokana na ajali. Waiyaki Way ni dakika 9 polepole, na James Gichuru Road ni dakika 3 polepole kuliko kawaida.",
-      "notice": "Habari Mary, naomba kukujulisha kuwa nitachelewa kidogo kufika ofisini. Ninatarajia kuwasili saa 9:14, yaani nitachelewa kwa dakika 15 hivi. Samahani kwa usumbufu huu.",
+      "decision_line": "Utafika saa 9:13. Hilo ni dakika 13 baada ya muda wako wa mwisho wa saa 9:00. Mjulishe Mary sasa kabla ya kuchelewa.",
+      "conditions_note": "Limuru Road ni dakika 33 taratibu zaidi ya kawaida kutokana na ajali, Nairobi Expressway na Kiambu Road hazijaathirika sana.",
+      "notice": "Habari Mary, natumia Limuru Road na kutakuwa na ajali njiani. Nitachelewa kama dakika 15. Nitafika saa 9:13.",
       "source": "claude"
     }
   },
@@ -978,32 +978,32 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": true,
-        "eta": "9:14",
-        "lateMin": 14,
+        "eta": "9:13",
+        "lateMin": 13,
         "lateMinRounded": 15,
         "usualDeparture": "",
         "usualArrival": "",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "Waiyaki Way",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 33
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 49,
-            "trafficDelayMin": 29
+            "durationMin": 53,
+            "trafficDelayMin": 4
           },
           {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
+            "label": "Kiambu Road",
+            "durationMin": 56,
             "trafficDelayMin": 9
-          },
-          {
-            "label": "James Gichuru Road",
-            "durationMin": 31,
-            "trafficDelayMin": 3
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -1013,9 +1013,9 @@
       "language": "sheng"
     },
     "words": {
-      "decision_line": "Uko Nairobi Expressway, utafika 9:14. Hiyo ni 14 min baada ya deadline yako ya 9:00, so buzza Mary sasa kabla hujachelewa.",
-      "conditions_note": "Kuna accident Nairobi Expressway, iko 29 min slower than normal. Waiyaki Way ni 9 min slower, James Gichuru Road ni 3 min slower.",
-      "notice": "Mary, good morning. Kuna traffic mbaya leo kwa Expressway kutokana na accident, so nitafika around 9:14. Nitachelewa na kama dakika 15, pole for any inconvenience.",
+      "decision_line": "Uko Limuru Road, utafika 9:13. Hio ni 13 min baada ya deadline yako ya 9:00, so mjulishe Mary sasa kabla haujachelewa.",
+      "conditions_note": "Limuru Road iko 33 min slower than normal kwa sababu ya accident. Nairobi Expressway na Kiambu Road ziko sawa relatively.",
+      "notice": "Hi Mary, nataka kukujulisha nitachelewa kidogo asubuhi hii. Nitafika around 9:13, so nitakuwa late by about 15 min. Pole kwa inconvenience, tuonane hivi punde.",
       "source": "claude"
     }
   },
@@ -1026,32 +1026,32 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": true,
-        "eta": "9:14",
-        "lateMin": 14,
+        "eta": "9:13",
+        "lateMin": 13,
         "lateMinRounded": 15,
         "usualDeparture": "",
         "usualArrival": "",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "Waiyaki Way",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 33
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 49,
-            "trafficDelayMin": 29
+            "durationMin": 53,
+            "trafficDelayMin": 4
           },
           {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
+            "label": "Kiambu Road",
+            "durationMin": 56,
             "trafficDelayMin": 9
-          },
-          {
-            "label": "James Gichuru Road",
-            "durationMin": 31,
-            "trafficDelayMin": 3
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -1061,9 +1061,9 @@
       "language": "en"
     },
     "words": {
-      "decision_line": "You're on Nairobi Expressway with an accident causing delays. You'll arrive at 9:14, which is 14 minutes past your 9:00 deadline.",
-      "conditions_note": "Nairobi Expressway is 29 min slower than normal due to an accident. Waiyaki Way is 9 min slower, James Gichuru Road is 3 min slower.",
-      "notice": "Hi Mary, just wanted to give you a heads up—I'm running about 15 minutes late and should be there around 9:14. Thanks for your patience!",
+      "decision_line": "You are on Limuru Road and will arrive at 9:13, 13 minutes past your 9:00 deadline. Let Mary know now.",
+      "conditions_note": "Limuru Road is 33 min slower than normal due to an accident. Nairobi Expressway is 4 min slower. Kiambu Road is 9 min slower.",
+      "notice": "Hi Mary, I'm caught in traffic on Limuru Road and will be about 15 minutes late. I'll be there at 9:13.",
       "source": "claude"
     }
   },
@@ -1074,32 +1074,32 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": true,
-        "eta": "9:14",
-        "lateMin": 14,
+        "eta": "9:13",
+        "lateMin": 13,
         "lateMinRounded": 15,
         "usualDeparture": "",
         "usualArrival": "",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "Waiyaki Way",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 33
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 49,
-            "trafficDelayMin": 29
+            "durationMin": 53,
+            "trafficDelayMin": 4
           },
           {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
+            "label": "Kiambu Road",
+            "durationMin": 56,
             "trafficDelayMin": 9
-          },
-          {
-            "label": "James Gichuru Road",
-            "durationMin": 31,
-            "trafficDelayMin": 3
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -1109,9 +1109,9 @@
       "language": "sw"
     },
     "words": {
-      "decision_line": "Utafika saa 9:14, dakika 14 baada ya muda wako wa mwisho. Mjulishe Mary sasa kabla hujachelewa.",
-      "conditions_note": "Nairobi Expressway ni dakika 29 polepole kuliko kawaida kutokana na ajali, Waiyaki Way ni dakika 9 polepole, na James Gichuru Road ni dakika 3 polepole kuliko kawaida.",
-      "notice": "Mary, hujambo. Naomba unijue nitachelewa kama dakika 15. Nitafika saa 9:14, tuonane hapo.",
+      "decision_line": "Utafika 9:13 kupitia Limuru Road, dakika 13 baada ya deadline yako ya 9:00. Mjulishe Mary sasa kabla hujachelewa.",
+      "conditions_note": "Limuru Road ni dakika 33 slower than normal kutokana na ajali, Nairobi Expressway na Kiambu Road hazijaathiriwa sana.",
+      "notice": "Habari Mary, kuna ajali kidogo Limuru Road hivyo nitachelewa kidogo. Nategemea kufika saa 9:13. Nitachelewa kama dakika 15, samahani kwa hilo.",
       "source": "claude"
     }
   },
@@ -1122,32 +1122,32 @@
         "deadline": "9:00",
         "leaveBy": null,
         "onTheRoad": true,
-        "eta": "9:14",
-        "lateMin": 14,
+        "eta": "9:13",
+        "lateMin": 13,
         "lateMinRounded": 15,
         "usualDeparture": "",
         "usualArrival": "",
-        "selectedRoute": "Nairobi Expressway",
-        "recommendedRoute": "Waiyaki Way",
+        "selectedRoute": "Limuru Road",
+        "recommendedRoute": "Nairobi Expressway",
         "betterRoute": null,
         "routes": [
           {
+            "label": "Limuru Road",
+            "durationMin": 74,
+            "trafficDelayMin": 33
+          },
+          {
             "label": "Nairobi Expressway",
-            "durationMin": 49,
-            "trafficDelayMin": 29
+            "durationMin": 53,
+            "trafficDelayMin": 4
           },
           {
-            "label": "Waiyaki Way",
-            "durationMin": 30,
+            "label": "Kiambu Road",
+            "durationMin": 56,
             "trafficDelayMin": 9
-          },
-          {
-            "label": "James Gichuru Road",
-            "durationMin": 31,
-            "trafficDelayMin": 3
           }
         ],
-        "cause": "Accident on Nairobi Expressway"
+        "cause": "Accident on Limuru Road"
       },
       "recipient": {
         "name": "Mary",
@@ -1157,9 +1157,9 @@
       "language": "sheng"
     },
     "words": {
-      "decision_line": "Utafika 9:14 kwa Nairobi Expressway, hiyo ni dakika 14 baada ya deadline yako ya 9:00. Mjulishe Mary sasa kabla hujachelewa.",
-      "conditions_note": "Nairobi Expressway ni dakika 29 slower than normal kwa sababu ya accident. Waiyaki Way ni dakika 9 slower, James Gichuru Road ni dakika 3 slower.",
-      "notice": "Mary, mambo? Naona nita-late kidogo leo, around dakika 15. Nitafika around 9:14, sorry kwa hiyo delay.",
+      "decision_line": "Utafika 9:13 via Limuru Road, hiyo ni 13 min baada ya deadline yako ya 9:00. Piga Mary line sasa umjulishe kabla hujachelewa.",
+      "conditions_note": "Limuru Road ni 33 min slower than normal kwa sababu ya accident, Nairobi Expressway ni 4 min slower, Kiambu Road ni 9 min slower.",
+      "notice": "Mary, mambo? Kuna traffic mbaya leo njiani, sitafika kwa wakati. Nitafika around 9:13, so nitachelewa about 15 min. Utulie, niko njiani.",
       "source": "claude"
     }
   }
