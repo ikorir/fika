@@ -2,7 +2,7 @@ import type { Commute, Route, Sample, Simulation } from '@/contract';
 import { accident, midTrip } from '@/demo/presets';
 import { draftRequest } from '@/draft/request';
 import { evaluate } from '@/engine';
-import { heroText } from '@/today/words';
+import { conditionsNote, heroText } from '@/today/words';
 
 // A Monday morning in Nairobi. Deadline 9:00, buffer 10, extra 5: on time means arriving by 8:50.
 const commute: Commute = {
@@ -129,5 +129,40 @@ describe('the facts sent to the draft endpoint', () => {
     const friend = { ...commute, contact: { ...commute.contact, relationship: 'friend' } };
     const e = evaluate({ commute: friend, samples: [sample('8:30', [waiyaki(40)], 'now')], now: at('8:30') });
     expect(draftRequest(friend, e).tone).toBe('friend');
+  });
+});
+
+describe('rain', () => {
+  // On time at 7:30: leave by 7:45 via Ngong Road, arrive 8:41.
+  const routes = [waiyaki(70, 18), ngong(51)];
+  const evaluation = evaluate({ commute, samples: [sample('7:30', routes, 'now'), ...morning(routes)], now: at('7:30') });
+  const factsWith = (rain?: { at: string }) => draftRequest(commute, evaluation, undefined, undefined, rain).facts;
+
+  it('is sent as the time it starts, formatted like every other time on screen', () => {
+    expect(factsWith({ at: '2026-09-21T05:00:00.000Z' }).rain).toEqual({ at: '8:00' });
+  });
+
+  it('is left out entirely when none is forecast, so the facts are the ones saved drafts were written for', () => {
+    expect('rain' in factsWith()).toBe(false);
+  });
+
+  it('is left out when it starts only after they have arrived', () => {
+    expect('rain' in factsWith({ at: at('8:45').toISOString() })).toBe(false);
+  });
+
+  it('is left out when the forecast is an old one, as the last response kept on the phone can be', () => {
+    expect('rain' in factsWith({ at: '2026-09-20T05:00:00.000Z' })).toBe(false);
+  });
+
+  it('still counts once it has started', () => {
+    expect(factsWith({ at: at('7:00').toISOString() }).rain).toEqual({ at: '7:00' });
+  });
+
+  it("is in the app's own conditions note, and only when it is forecast", () => {
+    expect(conditionsNote(evaluation)).toBe('Traffic on Ngong Road is normal.');
+    expect(conditionsNote(evaluation, { at: at('8:00').toISOString() })).toBe(
+      'Traffic on Ngong Road is normal. Rain is forecast from 8:00, so allow extra time.',
+    );
+    expect(conditionsNote(evaluation, { at: at('8:45').toISOString() })).toBe('Traffic on Ngong Road is normal.');
   });
 });

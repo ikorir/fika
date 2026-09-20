@@ -20,7 +20,10 @@ export type Route = {
   polyline: string;
 };
 export type Sample = { departAt: string /* ISO */; kind: 'now' | 'usual' | 'step'; routes: Route[] };
-export type RoutesResponse = { fetchedAt: string; samples: Sample[] };
+/** When rain is likely to start, as an ISO instant. Only there when it is forecast around the drive. */
+export type Rain = { at: string };
+
+export type RoutesResponse = { fetchedAt: string; samples: Sample[]; rain?: Rain };
 
 // GET /api/places/autocomplete?q=…  →  PlaceSuggestions
 // GET /api/places/details?placeId=… →  Place

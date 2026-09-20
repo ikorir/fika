@@ -1,9 +1,12 @@
 // What the Today screen says, worded from an Evaluation. No commute decisions here: the engine makes them.
 // The decision line and conditions note are a fixed English template until Claude writes them (#7).
-import type { Commute, Evaluation, RouteView } from '@/contract';
+import type { Commute, Evaluation, Rain, RouteView } from '@/contract';
 import { formatTime, nairobiTimeOnDay } from '@/time';
 
 const MIN = 60_000;
+// A forecast says when rain starts, not when it stops. This long after the start it no longer says anything about
+// the weather now — which is what makes the last response kept on the phone, from another day, go quiet.
+const RAIN_FORECAST_GOOD_FOR_MS = 3 * 60 * MIN;
 
 /** "via Waiyaki Way" → "Waiyaki Way". */
 export const routeName = (route: RouteView) => route.label.replace(/^via /, '');
@@ -99,8 +102,24 @@ export function reminderBody(e: Evaluation): string {
   return `Leave by ${formatTime(e.leaveBy)} to arrive at ${formatTime(e.eta)}.`;
 }
 
-/** Which route is slower than normal, or, when late, that no route gets there on time. */
-export function conditionsNote(e: Evaluation): string {
+/**
+ * "8:00" when the forecast rain is about this drive: it starts before they arrive, and the forecast is not an old
+ * one. Null otherwise, and then nothing on screen or sent to Claude mentions rain.
+ */
+export function rainAt(e: Evaluation, rain?: Rain): string | null {
+  if (!rain) return null;
+  const start = Date.parse(rain.at);
+  const relevant = start < Date.parse(e.eta) && start + RAIN_FORECAST_GOOD_FOR_MS > Date.parse(e.now);
+  return relevant ? formatTime(rain.at) : null;
+}
+
+/** Which route is slower than normal, or, when late, that no route gets there on time. Then the rain, if any. */
+export function conditionsNote(e: Evaluation, rain?: Rain): string {
+  const at = rainAt(e, rain);
+  return `${trafficNote(e)}${at ? ` Rain is forecast from ${at}, so allow extra time.` : ''}`;
+}
+
+function trafficNote(e: Evaluation): string {
   if (e.state === 'late' && e.noRouteOnTime)
     return `No ${e.routes.length > 1 ? 'other ' : ''}route gets you there on time.`;
   const selected = selectedRoute(e);

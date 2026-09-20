@@ -1,6 +1,6 @@
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
-import type { Commute, Evaluation } from '@/contract';
+import type { Commute, Evaluation, Rain } from '@/contract';
 import type { Draft } from '@/draft/useDraft';
 import { usePulse } from '@/draft/usePulse';
 import { theme } from '@/theme';
@@ -15,12 +15,12 @@ const stateStyle: Record<Evaluation['state'], { label: string; color: string; ti
   late: { label: 'Late', color: color.late, tint: color.lateTint },
 };
 
-type Props = { commute: Commute; evaluation?: Evaluation; draft?: Draft };
+type Props = { commute: Commute; evaluation?: Evaluation; draft?: Draft; rain?: Rain };
 
 // Status pill, commute summary, leave-by / ETA, decision line and conditions note.
 // Without an evaluation (loading, or no route) only the summary shows. The decision line and conditions note are
 // Claude's when it has written them for these facts, and Fika's own template until then.
-export function Hero({ commute, evaluation, draft }: Props) {
+export function Hero({ commute, evaluation, draft, rain }: Props) {
   const opacity = usePulse(draft?.loading ?? false);
   const summary = (
     <Text style={styles.summary} numberOfLines={1}>
@@ -56,7 +56,7 @@ export function Hero({ commute, evaluation, draft }: Props) {
       {past && <Text style={[styles.past, { color: state.color }]}>{past}</Text>}
       <Animated.View style={[styles.words, { opacity }]}>
         <Text style={styles.decision}>{draft?.words?.decision_line ?? decisionLine(evaluation, commute)}</Text>
-        <Text style={styles.note}>{draft?.words?.conditions_note ?? conditionsNote(evaluation)}</Text>
+        <Text style={styles.note}>{draft?.words?.conditions_note ?? conditionsNote(evaluation, rain)}</Text>
       </Animated.View>
     </View>
   );

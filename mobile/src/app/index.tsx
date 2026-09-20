@@ -63,8 +63,8 @@ export default function TodayScreen() {
   // The screen's own words stay in English; the notice is written in the voice the commuter picked in its sheet,
   // which is one more call only while that voice differs from the contact's own.
   const { voice, setTone, setLanguage } = useVoice(commute.contact);
-  const draft = useDraft(commute, evaluation, demo.simulation, undefined, demo.saved);
-  const noticeDraft = useDraft(commute, evaluation, demo.simulation, voice, demo.saved);
+  const draft = useDraft(commute, evaluation, demo.simulation, undefined, demo.saved, data?.rain);
+  const noticeDraft = useDraft(commute, evaluation, demo.simulation, voice, demo.saved, data?.rain);
   const notice = useNotice(evaluation, commute.contact, noticeDraft.words?.notice, voice);
 
   // Keep the route on screen selected when the numbers change, so a slower route turns the screen at risk and
@@ -97,7 +97,7 @@ export default function TodayScreen() {
       />
       <SimulationBanner evaluation={evaluation} saved={demo.saved} />
       <ScrollView contentContainerStyle={styles.content}>
-        <Hero commute={commute} evaluation={evaluation} draft={draft} />
+        <Hero commute={commute} evaluation={evaluation} draft={draft} rain={data?.rain} />
 
         {/* Late, the notice takes the routes' place. The routes stay above it only while switching gets back on time. */}
         {evaluation && (!noticeCard || evaluation.betterRouteId) && (

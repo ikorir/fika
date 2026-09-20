@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { fetchDraft } from '@/api';
-import type { Commute, DraftRequest, DraftResponse, Evaluation, Simulation } from '@/contract';
+import type { Commute, DraftRequest, DraftResponse, Evaluation, Rain, Simulation } from '@/contract';
 import { savedDraft } from '@/demo/saved';
 import { draftRequest } from '@/draft/request';
 import type { Voice } from '@/notice/voice';
@@ -60,10 +60,11 @@ export function useDraft(
   simulation?: Simulation,
   voice?: Voice,
   saved = false,
+  rain?: Rain,
 ): Draft {
   // The facts, and the same facts written down as the key they are remembered under. One is the other, which is why
   // the effect can read the request back out of the key instead of closing over a value that has since moved on.
-  const request = evaluation ? draftRequest(commute, evaluation, simulation, voice) : null;
+  const request = evaluation ? draftRequest(commute, evaluation, simulation, voice, rain) : null;
   const key = request && JSON.stringify(request);
 
   const [written, setWritten] = useState<Written | null>(null);

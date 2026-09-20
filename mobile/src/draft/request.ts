@@ -1,11 +1,11 @@
 // What Fika asks Claude to put into words: the facts the engine already computed, as the strings the screen shows.
 // Nothing here works anything out. Every number is copied from the Evaluation, formatted the way the hero and the
 // locked chips format it, so what Claude writes can only ever say what the commuter is already looking at.
-import type { Commute, DraftRequest, Evaluation, Simulation } from '@/contract';
+import type { Commute, DraftRequest, Evaluation, Rain, Simulation } from '@/contract';
 import { noticeFacts } from '@/notice/template';
 import { defaultVoice, type Voice } from '@/notice/voice';
 import { formatClock, formatTime } from '@/time';
-import { routeName } from '@/today/words';
+import { rainAt, routeName } from '@/today/words';
 
 /**
  * The facts for one screen, to be written in one voice. The voice is the commuter's choice in the notice sheet;
@@ -16,6 +16,7 @@ export function draftRequest(
   e: Evaluation,
   simulation?: Simulation,
   voice: Voice = defaultVoice(commute.contact),
+  rain?: Rain,
 ): DraftRequest {
   const selected = e.routes.find((r) => r.selected);
   const recommended = e.routes.find((r) => r.recommended);
@@ -23,6 +24,7 @@ export function draftRequest(
   // Null once the departure the screen is about has arrived: Claude is then writing about leaving now, or about a
   // trip already under way, not about a time still ahead.
   const leaveBy = Date.parse(e.departAt) > Date.parse(e.now) ? formatTime(e.departAt) : null;
+  const rainStart = rainAt(e, rain);
 
   return {
     state: e.state,
@@ -50,6 +52,9 @@ export function draftRequest(
       // The only cause Fika ever has is the one Demo mode simulates. With live data there is none, so none is sent
       // and Claude has nothing to name.
       ...(simulation?.delay?.cause ? { cause: simulation.delay.cause } : {}),
+      // The forecast that came with the routes. Left out, not blank, when there is none: Claude then has no rain to
+      // mention, and the facts stay the ones the demo's saved words are filed under.
+      ...(rainStart ? { rain: { at: rainStart } } : {}),
     },
     recipient: { name: commute.contact.name, relationship: commute.contact.relationship },
     tone: voice.tone,
