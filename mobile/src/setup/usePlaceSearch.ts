@@ -34,10 +34,11 @@ export function usePlaceSearch(query: string) {
     };
   }, [q, tooShort]);
 
-  // Anything answered for an earlier query is not an answer to this one, so the list waits rather than misleads.
+  // The last answer stays on screen while the next one is in flight, so the list does not blink on every
+  // keystroke; the spinner says it is out of date. Clearing the field clears the list.
   const fresh = answered.to === q;
   return {
-    suggestions: fresh ? answered.suggestions : [],
+    suggestions: tooShort ? [] : answered.suggestions,
     searching: !tooShort && !fresh,
     error: fresh ? answered.error : null,
   };

@@ -53,10 +53,8 @@ export async function placeDetails(placeId: string, apiKey: string): Promise<Pla
   );
   const { latitude, longitude } = json.location ?? {};
   if (typeof latitude !== "number" || typeof longitude !== "number")
-    throw new Error("Google Places returned a place with no location.");
-  return {
-    placeId: json.id ?? placeId,
-    label: json.displayName?.text || json.formattedAddress || "",
-    location: { lat: latitude, lng: longitude },
-  };
+    throw new Error("That place has no location on Google.");
+  const label = json.displayName?.text || json.formattedAddress;
+  if (!label) throw new Error("That place has no name on Google.");
+  return { placeId: json.id ?? placeId, label, location: { lat: latitude, lng: longitude } };
 }

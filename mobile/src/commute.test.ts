@@ -97,3 +97,17 @@ describe('the extra minutes', () => {
     expect(extraMinLabel('ride_hail')).toBe('Pickup wait');
   });
 });
+
+describe('a commute that cannot be read back', () => {
+  it('falls back to the seeded one when the phone will not answer', async () => {
+    jest.spyOn(AsyncStorage, 'getItem').mockRejectedValueOnce(new Error('Storage unavailable'));
+
+    await expect(loadCommute()).resolves.toEqual(seedCommute);
+  });
+
+  it('treats a blank relationship as one that was never set', () => {
+    expect(withDefaults({ contact: { name: 'Mary', phone: '', relationship: '  ' } }).contact.relationship).toBe(
+      'manager',
+    );
+  });
+});

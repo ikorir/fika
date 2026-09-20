@@ -33,6 +33,8 @@ const clock = (v: unknown, fallback: string) => (typeof v === 'string' && /^\d\d
 const minutes = (v: unknown, fallback: number) =>
   typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.round(v) : fallback;
 const text = (v: unknown, fallback = '') => (typeof v === 'string' ? v : fallback);
+// A blank relationship would leave the late notice with no one to sound like, so it counts as never set.
+const word = (v: unknown, fallback: string) => (typeof v === 'string' && v.trim() ? v : fallback);
 
 /** A part-filled commute — or whatever an older build stored — with every missing field replaced by its default. */
 export function withDefaults(stored: unknown): Commute {
@@ -49,7 +51,7 @@ export function withDefaults(stored: unknown): Commute {
     contact: {
       name: text(contact.name),
       phone: text(contact.phone),
-      relationship: text(contact.relationship, emptyCommute.contact.relationship),
+      relationship: word(contact.relationship, emptyCommute.contact.relationship),
     },
   };
 }
@@ -85,11 +87,11 @@ export function commuteProblems(commute: Commute): CommuteProblems {
 
 /** The commute on this phone. The seeded one until the commuter saves theirs, so the demo never types an address. */
 export async function loadCommute(): Promise<Commute> {
-  const stored = await AsyncStorage.getItem(COMMUTE_KEY);
-  if (stored === null) return seedCommute;
   try {
-    return withDefaults(JSON.parse(stored));
+    const stored = await AsyncStorage.getItem(COMMUTE_KEY);
+    return stored === null ? seedCommute : withDefaults(JSON.parse(stored));
   } catch {
+    // Storage that will not answer, or nonsense in it: the app still has to open, on the commute it ships with.
     return seedCommute;
   }
 }

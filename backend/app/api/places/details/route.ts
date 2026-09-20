@@ -14,7 +14,13 @@ export async function GET(request: Request) {
   if (!apiKey) return fail("GOOGLE_MAPS_API_KEY is not set on the backend.", 500);
 
   try {
-    return NextResponse.json(Place.parse(await placeDetails(placeId, apiKey)));
+    // safeParse, not parse: a schema complaint is for the log, not for the commuter picking an address.
+    const place = Place.safeParse(await placeDetails(placeId, apiKey));
+    if (!place.success) {
+      console.error("GET /api/places/details", place.error);
+      return fail("Could not look up that place.", 503);
+    }
+    return NextResponse.json(place.data);
   } catch (e) {
     console.error("GET /api/places/details", e);
     return fail(e instanceof Error ? e.message : "Could not look up that place.", 503);

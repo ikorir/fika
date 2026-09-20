@@ -1,5 +1,5 @@
 // The sheet behind From and To: type an address, pick it from Google's suggestions, and the commute keeps the place.
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
@@ -17,10 +17,14 @@ export function AddressSheet({ visible, title, onPick, onClose }: Props) {
   const [query, setQuery] = useState('');
   const [picking, setPicking] = useState<string | null>(null); // the suggestion being looked up
   const [failed, setFailed] = useState<string | null>(null);
+  const lookup = useRef<AbortController | null>(null);
   const { suggestions, searching, error } = usePlaceSearch(query);
 
-  // Every visit starts on an empty field, so the last commute's search is never in the way.
+  // Every visit starts on an empty field, so the last commute's search is never in the way. A lookup still in
+  // flight is dropped: an address the commuter backed out of must not land in the commute afterwards.
   const clear = () => {
+    lookup.current?.abort();
+    lookup.current = null;
     setQuery('');
     setPicking(null);
     setFailed(null);
@@ -31,20 +35,23 @@ export function AddressSheet({ visible, title, onPick, onClose }: Props) {
   };
 
   const pick = async (placeId: string) => {
+    const controller = new AbortController();
+    lookup.current = controller;
     setPicking(placeId);
     setFailed(null);
     try {
-      const place = await fetchPlace(placeId);
+      const place = await fetchPlace(placeId, controller.signal);
+      if (controller.signal.aborted) return;
       clear();
       onPick(place);
     } catch (e) {
+      if (controller.signal.aborted) return;
       setFailed(e instanceof Error ? e.message : String(e));
       setPicking(null);
     }
   };
 
-  const problem = failed ?? error;
-  const nothing = query.trim().length >= 2 && !searching && !problem && suggestions.length === 0;
+  const nothing = query.trim().length >= 2 && !searching && !failed && !error && suggestions.length === 0;
 
   return (
     <Sheet visible={visible} title={title} onClose={dismiss}>
@@ -86,9 +93,12 @@ export function AddressSheet({ visible, title, onPick, onClose }: Props) {
         ))}
       </ScrollView>
 
-      {problem && <Text style={styles.problem}>Couldn’t search for addresses. {problem}</Text>}
+      {failed && <Text style={styles.problem}>Couldn’t open that address. {failed}</Text>}
+      {error && !failed && <Text style={styles.problem}>Couldn’t search for addresses. {error}</Text>}
       {nothing && <Text style={styles.note}>Nothing in Kenya matches that.</Text>}
-      {!problem && !nothing && suggestions.length === 0 && <Text style={styles.note}>Start typing an address.</Text>}
+      {!failed && !error && !nothing && suggestions.length === 0 && (
+        <Text style={styles.note}>Start typing an address.</Text>
+      )}
     </Sheet>
   );
 }

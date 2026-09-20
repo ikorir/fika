@@ -17,7 +17,12 @@ export async function GET(request: Request) {
   if (!apiKey) return fail("GOOGLE_MAPS_API_KEY is not set on the backend.", 500);
 
   try {
-    return NextResponse.json(PlaceSuggestions.parse({ suggestions: await autocomplete(q, apiKey) }));
+    const found = PlaceSuggestions.safeParse({ suggestions: await autocomplete(q, apiKey) });
+    if (!found.success) {
+      console.error("GET /api/places/autocomplete", found.error);
+      return fail("Could not search for places.", 503);
+    }
+    return NextResponse.json(found.data);
   } catch (e) {
     console.error("GET /api/places/autocomplete", e);
     // 503, not 502: Cloudflare in front of Coolify swaps an origin 502 body for its own page.

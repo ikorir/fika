@@ -17,12 +17,13 @@ import { useCommute } from '@/useCommute';
 
 const { color, type } = theme;
 
+const capitalise = (word: string) => (word ? word[0].toUpperCase() + word.slice(1) : word);
 const minutes = (values: number[]): Option<number>[] => values.map((value) => ({ value, label: `${value} min` }));
 const BUFFERS = minutes([0, 5, 10, 15, 20, 30]);
 const EXTRAS = minutes([0, 5, 10, 15, 20]);
 // Relationships that tell the notice how to sound: everything but a friend or a partner gets the professional tone.
 const RELATIONSHIPS: Option<string>[] = ['manager', 'colleague', 'client', 'lecturer', 'friend', 'partner'].map(
-  (value) => ({ value, label: value[0].toUpperCase() + value.slice(1) }),
+  (value) => ({ value, label: capitalise(value) }),
 );
 const MODES: { value: Commute['mode']; label: string }[] = [
   { value: 'drive', label: 'I drive' },
@@ -37,6 +38,7 @@ export default function SetupScreen() {
   const [draft, setDraft] = useState<Commute>(commute);
   const [open, setOpen] = useState<Open | null>(null);
   const [saving, setSaving] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
   // Nothing is flagged until the commuter has tried to save: a half-filled form is not a mistake yet.
   const [tried, setTried] = useState(false);
 
@@ -52,8 +54,15 @@ export default function SetupScreen() {
     setTried(true);
     if (Object.keys(problems).length > 0) return;
     setSaving(true);
-    await save(draft);
-    close();
+    setFailed(null);
+    try {
+      await save(draft);
+      close();
+    } catch (e) {
+      // The phone refused to store it. Say so and leave the screen as it is, so nothing typed is lost.
+      setFailed(e instanceof Error ? e.message : String(e));
+      setSaving(false);
+    }
   };
 
   return (
@@ -136,13 +145,16 @@ export default function SetupScreen() {
               <PickRow
                 icon="badge"
                 label="Relationship"
-                value={draft.contact.relationship[0].toUpperCase() + draft.contact.relationship.slice(1)}
+                value={capitalise(draft.contact.relationship)}
                 onPress={() => setOpen('relationship')}
               />
             </Card>
           </View>
 
-          <Text style={styles.footnote}>Saved on this phone only. No account needed.</Text>
+          <View style={styles.footer}>
+            {failed && <Text style={styles.failed}>Couldn’t save your commute. {failed}</Text>}
+            <Text style={styles.footnote}>Saved on this phone only. No account needed.</Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -244,5 +256,7 @@ const styles = StyleSheet.create({
   modeLabel: { ...type.segment, color: color.text },
   section: { gap: 8 },
   sectionTitle: { ...type.cardTitle, color: color.text, paddingHorizontal: 6 },
-  footnote: { ...type.meta, lineHeight: 18, color: color.textMuted, textAlign: 'center', marginTop: 'auto', paddingTop: 8 },
+  footer: { marginTop: 'auto', gap: 6, paddingTop: 8 },
+  failed: { ...type.meta, color: color.late, textAlign: 'center', paddingHorizontal: 6 },
+  footnote: { ...type.meta, lineHeight: 18, color: color.textMuted, textAlign: 'center' },
 });
