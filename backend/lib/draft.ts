@@ -43,7 +43,10 @@ WHAT YOU MAY SAY ABOUT WHY
 - A road is slower than normal only by its minutes_slower_than_normal; 0 means it is unaffected.
 - Give a reason for the delay only if the facts include "cause", and then only what "cause" says; work it into the
   sentence about that road rather than tacking it on. Otherwise no reason is known: never mention an accident,
-  roadworks, rain, weather, a matatu, a protest or a breakdown.
+  roadworks, a matatu, a protest or a breakdown.
+- Rain is forecast only if the facts include "rain_at", the time it is expected to start. Without it, never mention
+  rain or the weather. With it, say so in conditions_note and nowhere else, and never blame a road's delay on it:
+  the rain has not slowed anything yet.
 
 HOW IT READS
 Plain sentences for someone glancing at a phone before driving. No emoji, no markdown, no exclamation marks, and no
@@ -76,7 +79,9 @@ THE THREE FIELDS
 
 "conditions_note" — one sentence, under 20 words, on how today differs from normal. Name each slower road and its
 delay in the form "Waiyaki Way is 18 min slower than normal", and say which roads are unaffected. Use "min", not
-"minutes". If no road is slower than normal, say traffic is normal.
+"minutes". If no road is slower than normal, say traffic is normal. If rain_at is given, add a second short sentence,
+under 12 words: rain is forecast from rain_at, so allow extra time. Do not say how much extra: that is a number, and
+it is not yours.
 
 "notice" — the message the commuter sends to the person waiting for them, in the tone and language asked for.
 Two or three short sentences addressed to them by name. It must contain eta exactly as written. If
@@ -165,6 +170,7 @@ function knownNumbers({ facts }: DraftRequest) {
     facts.usualDeparture,
     facts.usualArrival,
     facts.betterRoute?.arriveAt,
+    facts.rain?.at,
   ];
   const minutes = [facts.lateMin, facts.lateMinRounded, ...facts.routes.flatMap((r) => [r.durationMin, r.trafficDelayMin])];
   return {
@@ -190,6 +196,17 @@ function statesOnlyKnownNumbers(words: DraftWords, req: DraftRequest): boolean {
   return true;
 }
 
+// Rain, in the three languages Claude writes: "rain", "raining", "rainy", and Swahili and Sheng's "mvua".
+const RAIN = /\brain(?:s|y|ing)?\b|\bmvua\b/i;
+
+/**
+ * Whether the words keep quiet about rain unless a forecast of it was among the facts. The weather is the one thing
+ * Claude could plausibly add from nowhere — it reads like small talk, not like a number — and a commuter told it
+ * will rain would believe it.
+ */
+const mentionsOnlyForecastRain = (words: DraftWords, { facts }: DraftRequest) =>
+  Boolean(facts.rain) || !RAIN.test(`${words.decision_line} ${words.conditions_note} ${words.notice}`);
+
 /**
  * The three pieces of writing for one screen. Claude writes them; if its answer is late, is not the JSON we asked
  * for, or leaves the ETA out of the notice, the commuter gets Fika's own words instead. This never throws: the
@@ -207,6 +224,7 @@ export async function draft(
     // The message a commuter sends must state the ETA on their screen, exactly. Anything else and it is wrong.
     if (!words.notice.includes(req.facts.eta)) throw new Error("Claude's notice does not state the ETA it was given.");
     if (!statesOnlyKnownNumbers(words, req)) throw new Error("Claude's words state a number the engine did not compute.");
+    if (!mentionsOnlyForecastRain(words, req)) throw new Error("Claude's words mention rain that was not forecast.");
     return { ...words, source: "claude" };
   } catch (e) {
     console.warn("POST /api/draft: using the template.", e instanceof Error ? e.message : e);

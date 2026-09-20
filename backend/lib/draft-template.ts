@@ -37,6 +37,8 @@ type Copy = {
   slower(p: { road: string; min: number }): string;
   unaffected(roads: string[]): string;
   normal(road: string | null): string;
+  /** A second sentence for the conditions note, only when rain is forecast. It gives no figure: none was computed. */
+  rain(at: string): string;
   and: string;
   notice(p: { name: string; minutes: number; eta: string; tone: Tone }): string;
 };
@@ -58,6 +60,7 @@ const en: Copy = {
   slower: ({ road, min }) => `${road} is ${min} min slower than normal`,
   unaffected: (roads) => `${list(roads, "and")} ${roads.length === 1 ? "is" : "are"} unaffected`,
   normal: (road) => `Traffic is normal${road ? ` on ${road}` : ""}.`,
+  rain: (at) => `Rain is forecast from ${at}, so allow extra time.`,
   and: "and",
   notice: ({ name, minutes, eta, tone }) =>
     tone === "friend"
@@ -82,6 +85,7 @@ const sw: Copy = {
   slower: ({ road, min }) => `${road} ina dakika ${min} zaidi ya kawaida`,
   unaffected: (roads) => `${list(roads, "na")} ${roads.length === 1 ? "haijaathirika" : "hazijaathirika"}`,
   normal: (road) => `Trafiki ni ya kawaida${road ? ` kwenye ${road}` : ""}.`,
+  rain: (at) => `Mvua inatarajiwa kuanzia ${at}, kwa hivyo jipe muda zaidi.`,
   and: "na",
   notice: ({ name, minutes, eta, tone }) =>
     tone === "friend"
@@ -107,6 +111,7 @@ const sheng: Copy = {
   slower: ({ road, min }) => `${road} iko na dakika ${min} extra kuliko kawaida`,
   unaffected: (roads) => `${list(roads, "na")} ${roads.length === 1 ? "iko" : "ziko"} sawa`,
   normal: (road) => `Traffic iko kawaida${road ? ` kwa ${road}` : ""}.`,
+  rain: (at) => `Mvua inakuja kuanzia ${at}, so jipe time extra.`,
   and: "na",
   notice: ({ name, minutes, eta, tone }) =>
     tone === "friend"
@@ -139,7 +144,7 @@ function decisionLine(req: DraftRequest, copy: Copy): string {
 }
 
 /** "Waiyaki Way is 18 min slower than normal; Ngong Road is unaffected." */
-function conditionsNote(facts: Facts, copy: Copy): string {
+function trafficNote(facts: Facts, copy: Copy): string {
   const routes = facts.routes.map((r) => ({ ...r, label: roadName(r.label) }));
   const slower = routes.filter((r) => r.trafficDelayMin > 0).sort((a, b) => b.trafficDelayMin - a.trafficDelayMin);
   const normal = routes.filter((r) => r.trafficDelayMin === 0).map((r) => r.label);
@@ -150,6 +155,10 @@ function conditionsNote(facts: Facts, copy: Copy): string {
   if (normal.length > 0) clauses.push(copy.unaffected(normal));
   return `${clauses.join("; ")}.`;
 }
+
+/** The traffic, and then the rain when it is forecast: "… Rain is forecast from 7:30, so allow extra time." */
+const conditionsNote = (facts: Facts, copy: Copy) =>
+  join(trafficNote(facts, copy), facts.rain ? copy.rain(facts.rain.at) : null);
 
 /**
  * The late notice, word for word the app's own template (mobile/src/notice/template.ts). It names no cause: the

@@ -72,7 +72,7 @@ export const DraftRequest = z.object({
       }),
     ),
     cause: z.string().optional(), // only for a simulated accident
-    rain: z.object({ at: z.string() }).optional(), // ticket 11
+    rain: z.object({ at: z.string().min(1) }).optional(), // only when rain is forecast around the drive: when it starts
   }),
   recipient: z.object({ name: z.string(), relationship: z.string() }),
   tone: z.enum(["manager", "friend"]),

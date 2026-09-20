@@ -256,3 +256,47 @@ describe("the language and tone asked for", () => {
     expect(response.source).toBe("claude");
   });
 });
+
+describe("rain", () => {
+  const rain = { at: "7:30" };
+  const rainyWords = { ...claudeWords, conditions_note: "Waiyaki Way is 18 min slower than normal. Rain is forecast from 7:30." };
+  const failing = answering("not json");
+
+  it("reaches Claude as a fact when it is forecast, with the time it starts", async () => {
+    const prompts: string[] = [];
+    await draft(lateRequest({ rain }), async (prompt) => (prompts.push(prompt.user), "not json"));
+    expect(prompts[0]).toContain('"rain_at": "7:30"');
+  });
+
+  it("lets Claude state the time the rain starts, which is one the forecast gave", async () => {
+    expect(await draft(lateRequest({ rain }), answering(JSON.stringify(rainyWords)))).toEqual({
+      ...rainyWords,
+      source: "claude",
+    });
+  });
+
+  it.each([
+    ["en", "Waiyaki Way is 18 min slower than normal; Ngong Road is unaffected. Rain is forecast from 7:30, so allow extra time."],
+    ["sw", "Waiyaki Way ina dakika 18 zaidi ya kawaida; Ngong Road haijaathirika. Mvua inatarajiwa kuanzia 7:30, kwa hivyo jipe muda zaidi."],
+    ["sheng", "Waiyaki Way iko na dakika 18 extra kuliko kawaida; Ngong Road iko sawa. Mvua inakuja kuanzia 7:30, so jipe time extra."],
+  ] as const)("is in the template's conditions note in %s", async (language, note) => {
+    expect((await draft({ ...lateRequest({ rain }), language }, failing)).conditions_note).toBe(note);
+  });
+
+  it("is not given to Claude or mentioned by the template when none is forecast", async () => {
+    const prompts: string[] = [];
+    const words = await draft(lateRequest(), async (prompt) => (prompts.push(prompt.user), "not json"));
+    expect(prompts[0]).not.toMatch(/rain/i);
+    expect(Object.values(words).join(" ")).not.toMatch(/rain/i);
+  });
+
+  it("sends Claude's words back when they mention rain that was never forecast", async () => {
+    const invented = { ...claudeWords, conditions_note: "Waiyaki Way is 18 min slower than normal because of the rain." };
+    expect((await draft(lateRequest(), answering(JSON.stringify(invented)))).source).toBe("template");
+  });
+
+  it.each(["mvua inanyesha", "kuna Mvua leo"])("catches it in Swahili and Sheng too: %s", async (phrase) => {
+    const invented = { ...claudeWords, notice: `Habari Mary, ${phrase}. Nitafika 9:15.` };
+    expect((await draft({ ...lateRequest(), language: "sw" }, answering(JSON.stringify(invented)))).source).toBe("template");
+  });
+});
