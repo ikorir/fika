@@ -43,7 +43,11 @@ export const Sample = z.object({
 });
 export type Sample = z.infer<typeof Sample>;
 
-export const RoutesResponse = z.object({ fetchedAt: isoInstant, samples: z.array(Sample) });
+export const RoutesResponse = z.object({
+  fetchedAt: isoInstant,
+  samples: z.array(Sample),
+  rain: z.object({ at: isoInstant }).optional(), // only when rain is likely around the drive: when it starts
+});
 export type RoutesResponse = z.infer<typeof RoutesResponse>;
 
 export type ApiError = { error: string };

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { type ApiError, RoutesRequest, RoutesResponse } from "@/lib/contract";
 import { fetchSamples } from "@/lib/route-samples";
 
+import { rainForecast } from "@/lib/weather";
 const fail = (error: string, status: number) => NextResponse.json<ApiError>({ error }, { status });
 
 // Each check costs about 6 Google calls, so a commute's response is reused for a few minutes.
@@ -23,16 +24,20 @@ function cachedRoutes(req: RoutesRequest, apiKey: string): Promise<RoutesRespons
   if (hit) return hit.response;
 
   const fetchedAt = new Date(now);
-  const response = fetchSamples(req, apiKey, fetchedAt).then(({ samples, complete }) => {
-    if (!complete) cache.delete(key); // missing samples are fetched again next time
-    return RoutesResponse.parse({ fetchedAt: fetchedAt.toISOString(), samples });
-  });
+  // The forecast rides along with the routes and never fails them: no forecast is simply no rain.
+  const response = Promise.all([fetchSamples(req, apiKey, fetchedAt), rainForecast(req, fetchedAt)]).then(
+    ([{ samples, complete }, rain]) => {
+      if (!complete) cache.delete(key); // missing samples are fetched again next time
+      return RoutesResponse.parse({ fetchedAt: fetchedAt.toISOString(), samples, ...(rain ? { rain } : {}) });
+    },
+  );
   cache.set(key, { expires: now + CACHE_MS, response });
   response.catch(() => cache.delete(key)); // a failure is not cached
   return response;
 }
 
-// POST /api/routes: RoutesRequest → RoutesResponse, about 6 departure samples. Responses cached per commute.
+// POST /api/routes: RoutesRequest → RoutesResponse, about 6 departure samples and whether rain is forecast around
+// the drive. Responses cached per commute.
 export async function POST(request: Request) {
   const parsed = RoutesRequest.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail(`Invalid request. ${z.prettifyError(parsed.error)}`, 400);

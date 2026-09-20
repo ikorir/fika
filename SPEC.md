@@ -162,6 +162,12 @@ Tickets 02, 07 and 08 run in parallel, and so do 03, 04 and 09, so the shapes be
 - Routes differ between samples. A route's `id` is a slug of its main road ("via Waiyaki Way" → `waiyaki-way`), and that is how the app matches a route across samples.
 
 ### Backend endpoints
+### Rain forecast (backend only)
+
+- Open-Meteo, free and keyless: `GET https://api.open-meteo.com/v1/forecast` with `hourly=precipitation_probability`, `timeformat=unixtime`, `forecast_days=2`, for the origin. Fetched inside `/api/routes`, alongside the Google calls, with a 3 second limit.
+- Rain is reported when an hour between 30 min before the usual departure (or now, once that is later) and the deadline has a chance of 50% or more. Open-Meteo stamps each hour's chance with the time the hour ends, so `rain.at` is the start of the first such hour.
+- Any failure is silent: `rain` is left out, the routes are unaffected, and nothing mentions rain. The draft endpoint sends Claude's words back for the template if they mention rain without a `rain` fact.
+
 
 ```ts
 type LatLng = { lat: number; lng: number };
@@ -171,7 +177,11 @@ type Place = { placeId: string; label: string; location: LatLng };
 type RoutesRequest = { origin: LatLng; destination: LatLng; arriveBy: string /* ISO */; usualDeparture: string /* ISO */ };
 type Route = { id: string; label: string; durationSec: number; staticDurationSec: number; distanceM: number; polyline: string };
 type Sample = { departAt: string /* ISO */; kind: "now" | "usual" | "step"; routes: Route[] };
-type RoutesResponse = { fetchedAt: string; samples: Sample[] };   // about 6 samples, up to 3 routes each
+type RoutesResponse = {
+  fetchedAt: string;
+  samples: Sample[];             // about 6 samples, up to 3 routes each
+  rain?: { at: string };         // ISO instant rain is likely to start; only when it is forecast around the drive
+};
 
 // GET /api/places/autocomplete?q=…  →  { suggestions: { placeId: string; label: string }[] }
 // GET /api/places/details?placeId=… →  Place
@@ -190,7 +200,7 @@ type DraftRequest = {
     betterRoute: { label: string; arriveAt: string } | null;   // the route that would restore on time, and when it gets there
     routes: { label: string; durationMin: number; trafficDelayMin: number }[];
     cause?: string;              // only for a simulated accident
-    rain?: { at: string };       // ticket 11
+    rain?: { at: string };       // display time, from RoutesResponse.rain; absent means no rain is mentioned
   };
   recipient: { name: string; relationship: string };
   tone: "manager" | "friend";
