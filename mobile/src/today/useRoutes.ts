@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { fetchRoutes } from '@/api';
 import type { Commute, RoutesResponse } from '@/contract';
@@ -15,7 +15,11 @@ export function useRoutes(commute: Commute) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(async () => {
+  // Waking the app and tapping a reminder can both ask at once, and each fetch is six billed Google calls, so a
+  // second ask joins the one already in flight instead of starting another.
+  const inFlight = useRef<Promise<void> | null>(null);
+
+  const fetchNow = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -35,12 +39,23 @@ export function useRoutes(commute: Commute) {
     }
   }, [commute]);
 
+  const refresh = useCallback(() => {
+    if (inFlight.current) return inFlight.current;
+    const fetching = fetchNow().finally(() => {
+      inFlight.current = null;
+    });
+    inFlight.current = fetching;
+    return fetching;
+  }, [fetchNow]);
+
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  // The phone's copy, for a first fetch that fails. It never replaces a response that has already arrived.
+  // An edited commute: what is on screen belongs to the old one, so it goes, and the phone's copy takes its place
+  // only if it was fetched for this commute. It never replaces a response that has already arrived.
   useEffect(() => {
+    setData(null);
     let live = true;
     loadLastRoutes(commute).then((last) => {
       if (live && last) setData((shown) => shown ?? last);

@@ -33,12 +33,15 @@ const confirm = (title: string, message: string) =>
   });
 
 /**
- * Whether Fika may notify. The phone's own permission dialog carries no reason, so Fika says what the reminders
- * are for first — once per run of the app, and never once the phone has stopped offering the question.
+ * Whether Fika may notify. Unasked, on the first run, the phone's own dialog carries no reason, so Fika says what
+ * the reminders are for first — once per run of the app. Tapping "Remind me at 7:55" is the reason itself, so that
+ * goes straight to the phone's question however the first one was answered.
  */
-async function allowedToNotify(): Promise<boolean> {
+async function allowedToNotify(asked: boolean): Promise<boolean> {
   if (await notificationsAllowed()) return true;
-  if (askedThisSession || !(await canAskForNotifications())) return false;
+  if (!(await canAskForNotifications())) return false;
+  if (asked) return askForNotifications();
+  if (askedThisSession) return false;
   askedThisSession = true;
   const yes = await confirm(
     'Remind you before you leave?',
@@ -52,7 +55,7 @@ export function useDailyReminder(usualDeparture: string) {
   useEffect(() => {
     let live = true;
     (async () => {
-      if ((await allowedToNotify()) && live) await scheduleDailyReminder(usualDeparture, new Date());
+      if ((await allowedToNotify(false)) && live) await scheduleDailyReminder(usualDeparture, new Date());
     })();
     return () => {
       live = false;
@@ -87,48 +90,69 @@ export function useRefreshOnWake(refresh: () => void) {
 export type Reminder = { at: string | null; set: boolean; toggle: () => void };
 
 export function useOneOffReminder(at: string | null, body: string): Reminder {
-  // `id` is null for a reminder that was shown straight away, which there is nothing to cancel.
-  const [scheduled, setScheduled] = useState<{ at: string; id: string | null } | null>(null);
+  const [set, setSet] = useState(false);
+  // Refs, not state: what is armed on the phone has to be right even between renders, or an identifier is lost and
+  // the notification behind it can never be cancelled.
+  const wanted = useRef(false);
+  const armed = useRef<string | null>(null);
+  const words = useRef(body);
+  useEffect(() => {
+    words.current = body;
+  }, [body]);
+
+  // One job at a time, so two taps or a moved leave-by can never leave two reminders armed.
+  const queue = useRef<Promise<void>>(Promise.resolve());
+  const run = (job: () => Promise<void>) => {
+    queue.current = queue.current.then(job).catch(() => {});
+    return queue.current;
+  };
+
+  const disarm = () =>
+    run(async () => {
+      if (armed.current) await cancelReminder(armed.current);
+      armed.current = null;
+    });
+
+  const arm = (when: Date) =>
+    run(async () => {
+      if (armed.current) await cancelReminder(armed.current);
+      armed.current = await scheduleOneOffReminder(when, words.current);
+    });
 
   const toggle = useCallback(async () => {
-    if (scheduled) {
-      if (scheduled.id) await cancelReminder(scheduled.id);
-      setScheduled(null);
+    if (wanted.current) {
+      wanted.current = false;
+      setSet(false);
+      disarm();
       return;
     }
     if (!at) return;
-    if (!(await allowedToNotify())) {
+    if (!(await allowedToNotify(true))) {
       Alert.alert('Reminders are off', 'Turn on notifications for Fika in your phone’s settings to be reminded.');
       return;
     }
+    wanted.current = true;
+    setSet(true);
     // In Demo mode the app clock can be ahead of the phone's, so the time asked for may already have gone by.
     const when = oneOffReminderAt(at, new Date());
-    if (!when) {
-      await showReminderNow(body);
-      setScheduled({ at, id: null });
-      return;
-    }
-    setScheduled({ at, id: await scheduleOneOffReminder(when, body) });
-  }, [at, body, scheduled]);
+    if (when) arm(when);
+    else run(() => showReminderNow(words.current));
+  }, [at]);
 
   // Traffic moves leave-by, so a reminder already asked for moves with it, and goes when there is no leave-by left.
   useEffect(() => {
-    if (!scheduled || scheduled.at === at) return;
-    let live = true;
-    (async () => {
-      if (scheduled.id) await cancelReminder(scheduled.id);
-      const when = at === null ? null : oneOffReminderAt(at, new Date());
-      if (!live) return;
-      if (at === null || when === null) return setScheduled(null);
-      const id = await scheduleOneOffReminder(when, body);
-      if (live) setScheduled({ at, id });
-    })();
-    return () => {
-      live = false;
-    };
-  }, [at, body, scheduled]);
+    if (!wanted.current) return;
+    const when = at === null ? null : oneOffReminderAt(at, new Date());
+    if (when === null) {
+      wanted.current = false;
+      setSet(false);
+      disarm();
+      return;
+    }
+    arm(when);
+  }, [at]);
 
-  return { at, set: scheduled !== null, toggle };
+  return { at, set, toggle };
 }
 
 /**

@@ -27,12 +27,14 @@ describe('dailyReminderAt', () => {
 });
 
 describe('dailyTrigger', () => {
-  it('is that instant on the phone’s own clock, so the daily trigger fires at the Nairobi time', () => {
+  // Setting the phone's own clock to the hour and minute it gives has to land on the Nairobi instant. Away from
+  // Nairobi that catches a trigger left on Nairobi's wall clock; on a machine set to Nairobi nothing can.
+  it('names that instant on the phone’s own clock', () => {
     const fires = at('2026-09-21T07:45:00+03:00');
-    expect(dailyTrigger('08:00', at('2026-09-21T04:00:00+03:00'))).toEqual({
-      hour: fires.getHours(),
-      minute: fires.getMinutes(),
-    });
+    const { hour, minute } = dailyTrigger('08:00', at('2026-09-21T04:00:00+03:00'));
+    const onThePhone = new Date(fires);
+    onThePhone.setHours(hour, minute, 0, 0);
+    expect(onThePhone.toISOString()).toBe(fires.toISOString());
   });
 });
 

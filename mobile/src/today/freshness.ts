@@ -31,15 +31,16 @@ function dayName(fetched: Date): string {
 export function updatedLabel(fetchedAt: string, now: Date): { text: string; stale: boolean } {
   const fetched = new Date(fetchedAt);
   const time = formatTime(fetched);
-  const today = nairobiDay(now);
 
-  if (nairobiDay(fetched) !== today) {
+  // Age first: numbers fetched at 23:58 and read at 00:01 are three minutes old, not "yesterday".
+  const min = Math.floor((now.getTime() - fetched.getTime()) / MIN);
+  if (min < STALE_AFTER_MIN) return { text: `Updated ${time}`, stale: false };
+
+  if (nairobiDay(fetched) !== nairobiDay(now)) {
     const yesterday = nairobiDay(new Date(now.getTime() - DAY_MS));
     const day = nairobiDay(fetched) === yesterday ? 'yesterday' : dayName(fetched);
     return { text: `Updated ${day} ${time}`, stale: true };
   }
 
-  const min = Math.floor((now.getTime() - fetched.getTime()) / MIN);
-  if (min < STALE_AFTER_MIN) return { text: `Updated ${time}`, stale: false };
   return { text: `Updated ${time} · ${howOld(min)} old`, stale: true };
 }

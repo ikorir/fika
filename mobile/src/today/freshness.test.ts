@@ -26,6 +26,13 @@ describe('updatedLabel', () => {
     );
   });
 
+  it('is still fresh over midnight', () => {
+    expect(updatedLabel('2026-09-20T23:58:00+03:00', at('2026-09-21T00:01:00+03:00'))).toEqual({
+      text: 'Updated 23:58',
+      stale: false,
+    });
+  });
+
   it('names the day once the numbers are from another one', () => {
     expect(updatedLabel('2026-09-20T07:40:00+03:00', at('2026-09-21T07:44:00+03:00'))).toEqual({
       text: 'Updated yesterday 7:40',
