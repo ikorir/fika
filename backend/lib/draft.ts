@@ -87,7 +87,8 @@ it is not yours.
 Two or three short sentences addressed to them by name. It must contain eta exactly as written. If
 minutes_late_for_the_message is given, say they will be about that many minutes late — that is the figure to promise
 someone, rounded up so it can be kept. If it is not given, they are not late yet, so say only when they now expect to
-arrive. Promise nothing the facts do not state.`;
+arrive. Promise nothing the facts do not state. Never mention rain or the weather here, even when rain_at is given:
+a forecast is not why they are late.`;
 
 /** The facts to give Claude, with anything absent left out rather than sent as a blank. */
 function promptFacts(req: DraftRequest) {
@@ -200,12 +201,13 @@ function statesOnlyKnownNumbers(words: DraftWords, req: DraftRequest): boolean {
 const RAIN = /\brain(?:s|y|ing)?\b|\bmvua\b/i;
 
 /**
- * Whether the words keep quiet about rain unless a forecast of it was among the facts. The weather is the one thing
- * Claude could plausibly add from nowhere — it reads like small talk, not like a number — and a commuter told it
- * will rain would believe it.
+ * Whether the words keep rain where it belongs: in the conditions note, and only when a forecast of it was among the
+ * facts. The weather is the one thing Claude could plausibly add from nowhere — it reads like small talk, not like a
+ * number — and a commuter told it will rain would believe it. In the notice even a real forecast is wrong: there it
+ * reads as the reason for being late, and rain that has not fallen yet has delayed nobody.
  */
 const mentionsOnlyForecastRain = (words: DraftWords, { facts }: DraftRequest) =>
-  Boolean(facts.rain) || !RAIN.test(`${words.decision_line} ${words.conditions_note} ${words.notice}`);
+  !RAIN.test(`${words.decision_line} ${words.notice}`) && (Boolean(facts.rain) || !RAIN.test(words.conditions_note));
 
 /**
  * The three pieces of writing for one screen. Claude writes them; if its answer is late, is not the JSON we asked
@@ -224,7 +226,7 @@ export async function draft(
     // The message a commuter sends must state the ETA on their screen, exactly. Anything else and it is wrong.
     if (!words.notice.includes(req.facts.eta)) throw new Error("Claude's notice does not state the ETA it was given.");
     if (!statesOnlyKnownNumbers(words, req)) throw new Error("Claude's words state a number the engine did not compute.");
-    if (!mentionsOnlyForecastRain(words, req)) throw new Error("Claude's words mention rain that was not forecast.");
+    if (!mentionsOnlyForecastRain(words, req)) throw new Error("Claude's words mention rain that was not forecast, or outside the conditions note.");
     return { ...words, source: "claude" };
   } catch (e) {
     console.warn("POST /api/draft: using the template.", e instanceof Error ? e.message : e);

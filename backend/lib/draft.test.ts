@@ -295,6 +295,11 @@ describe("rain", () => {
     expect((await draft(lateRequest(), answering(JSON.stringify(invented)))).source).toBe("template");
   });
 
+  it("keeps a forecast out of the notice, where it would read as the reason for being late", async () => {
+    const blaming = { ...rainyWords, notice: "Hi Mary, it is raining, so I will be about 15 minutes late. My ETA is 9:15." };
+    expect((await draft(lateRequest({ rain }), answering(JSON.stringify(blaming)))).source).toBe("template");
+  });
+
   it.each(["mvua inanyesha", "kuna Mvua leo"])("catches it in Swahili and Sheng too: %s", async (phrase) => {
     const invented = { ...claudeWords, notice: `Habari Mary, ${phrase}. Nitafika 9:15.` };
     expect((await draft({ ...lateRequest(), language: "sw" }, answering(JSON.stringify(invented)))).source).toBe("template");
