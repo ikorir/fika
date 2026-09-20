@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -22,6 +23,11 @@ type Props = {
   onDemo: () => void;
   demoOn: boolean;
 };
+
+// Android draws Google Maps, and its SDK throws "API key not found" the moment a map view is created in a build
+// made without GOOGLE_MAPS_ANDROID_KEY (see app.config.js). A missing map is a gap; that exception is the whole app
+// gone at launch. iOS draws Apple Maps and needs no key.
+const MAP_AVAILABLE = Platform.OS !== 'android' || !!Constants.expoConfig?.android?.config?.googleMaps?.apiKey;
 
 const coord = (p: LatLng) => ({ latitude: p.lat, longitude: p.lng });
 
@@ -52,6 +58,17 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
       animated: true,
     });
   }, [ready, height, lines, insets.top]);
+
+  if (!MAP_AVAILABLE) {
+    return (
+      <View style={styles.map}>
+        <Text style={styles.noMap}>Map unavailable: this build has no Google Maps key.</Text>
+        <View style={[styles.controls, { top: insets.top + 6 }]}>
+          <HeaderControls onRefresh={onRefresh} onDemo={onDemo} demoOn={demoOn} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.map} onLayout={(e) => setHeight(e.nativeEvent.layout.height)}>
@@ -245,6 +262,7 @@ function MapFade() {
 
 const styles = StyleSheet.create({
   map: { height: 250, backgroundColor: color.mapBg },
+  noMap: { ...theme.type.meta, color: color.textMuted, textAlign: 'center', marginTop: 150, paddingHorizontal: 32 },
   controls: { position: 'absolute', left: theme.space.screen, right: theme.space.screen },
   fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: FADE },
   origin: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#000000', borderWidth: 3, borderColor: color.text },
