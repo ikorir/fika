@@ -1,0 +1,146 @@
+{
+  "on_time:manager:en": {
+    "decision_line": "Leave by 8:20 via Nairobi Expressway to arrive at 8:49, well ahead of your 9:00 deadline.",
+    "conditions_note": "Nairobi Expressway is 4 min slower than normal; Waiyaki Way is 9 min slower; James Gichuru Road is 3 min slower.",
+    "notice": "Hi Mary, I am on track to arrive at 8:49 this morning, which gives me time before the 9:00 deadline. Thank you.",
+    "source": "claude"
+  },
+  "on_time:manager:sw": {
+    "decision_line": "Ondoka saa 8:20 kupitia Nairobi Expressway na utafika saa 8:49. Kuondoka kwa muda wako wa kawaida wa saa 8:20 pia kungekufikisha saa 8:49.",
+    "conditions_note": "Nairobi Expressway ni dakika 4 polepole kuliko kawaida, Waiyaki Way ni dakika 9 polepole kuliko kawaida, na James Gichuru Road ni dakika 3 polepole kuliko kawaida.",
+    "notice": "Habari Mary, ninatarajia kuwasili saa 8:49 kupitia Nairobi Expressway. Nitakujulisha endapo kutakuwa na mabadiliko yoyote. Asante.",
+    "source": "claude"
+  },
+  "on_time:manager:sheng": {
+    "decision_line": "Ondoka by 8:20 upitie Nairobi Expressway, utafika 8:49. Kama utaondoka saa yako ya kawaida ya 8:20, utafika 8:49 tu, so uko sawa.",
+    "conditions_note": "Nairobi Expressway ni 4 min slower than normal, Waiyaki Way ni 9 min slower than normal, na James Gichuru Road ni 3 min slower than normal.",
+    "notice": "Hi Mary, nikikuupdate tu, nitafika around 8:49. Niko njiani na safari inaenda sawa. Nitakupa update ingine kama kuna mabadiliko.",
+    "source": "claude"
+  },
+  "on_time:friend:en": {
+    "decision_line": "Leave by 8:20 via Nairobi Expressway to arrive at 8:49, well ahead of your 9:00 deadline.",
+    "conditions_note": "Nairobi Expressway is 4 min slower than normal. Waiyaki Way is 9 min slower, James Gichuru Road is 3 min slower.",
+    "notice": "Hi Mary, I'm on track to be with you by 8:49. See you then!",
+    "source": "claude"
+  },
+  "on_time:friend:sw": {
+    "decision_line": "Ondoka saa 8:20 kupitia Nairobi Expressway na utafika saa 8:49. Kuondoka saa yako ya kawaida ya 8:20 kutakufikisha saa 8:49 pia.",
+    "conditions_note": "Nairobi Expressway ni dakika 4 pole zaidi kuliko kawaida, Waiyaki Way ni dakika 9 pole zaidi, na James Gichuru Road ni dakika 3 pole zaidi.",
+    "notice": "Habari Mary, safari inaendelea vizuri leo. Nitafika saa 8:49. Tuonane hivi karibuni!",
+    "source": "claude"
+  },
+  "on_time:friend:sheng": {
+    "decision_line": "Ondoka by 8:20 upitie Nairobi Expressway, utafika 8:49. Ukiondoka kwa saa yako ya kawaida 8:20, bado utafika 8:49.",
+    "conditions_note": "Nairobi Expressway ni 4 min slower than normal, Waiyaki Way ni 9 min slower than normal, James Gichuru Road ni 3 min slower than normal.",
+    "notice": "Mary, mambo vipi. Nataka tu kukujulisha nitafika around 8:49. Uendelee poa, tutaonana kesho hapo.",
+    "source": "claude"
+  },
+  "at_risk:manager:en": {
+    "decision_line": "Leave now. You will arrive at 8:55 via Nairobi Expressway, within your buffer. James Gichuru Road gets you there at 8:35 if you switch now.",
+    "conditions_note": "Nairobi Expressway is 29 min slower than normal due to an accident. James Gichuru Road is 3 min slower than normal and Waiyaki Way is 9 min slower than normal.",
+    "notice": "Hi Mary, I'm leaving now and expect to arrive at 8:55. I wanted to let you know in case you need to adjust anything on your end. Thank you for your patience.",
+    "source": "claude"
+  },
+  "at_risk:manager:sw": {
+    "decision_line": "Ondoka sasa hivi kupitia Nairobi Expressway, utafika 8:55. Hii iko ndani ya muda wako, lakini ukitaka uwe salama zaidi, James Gichuru Road inafika 8:35.",
+    "conditions_note": "Nairobi Expressway iko na msongamano wa dakika 29 zaidi ya kawaida kutokana na ajali. James Gichuru Road iko na dakika 3 zaidi, na Waiyaki Way iko na dakika 9 zaidi.",
+    "notice": "Habari Mary, naandika kukujulisha kuhusu safari yangu ya leo. Ninatarajia kuwasili saa 8:55. Nitakuwa njiani, tutaonana hivi karibuni.",
+    "source": "claude"
+  },
+  "at_risk:manager:sheng": {
+    "decision_line": "Ondoka sasa hivi ukitumia Nairobi Expressway, utafika 8:55. Ukiweza, chukua James Gichuru Road badala yake, hiyo inafika 8:35.",
+    "conditions_note": "Nairobi Expressway ni 29 min slower than normal kwa sababu ya accident, James Gichuru Road ni 3 min slower than normal, na Waiyaki Way ni 9 min slower than normal.",
+    "notice": "Hi Mary, nataka tu kukujulisha nitafika kazini saa 8:55. Traffic iko heavy leo kwa hiyo naenda haraka niwezavyo. Nitakuupdate kama kuna mabadiliko.",
+    "source": "claude"
+  },
+  "at_risk:friend:en": {
+    "decision_line": "Leave now. You'll arrive at 8:55 via Nairobi Expressway, inside your buffer. James Gichuru Road gets you there at 8:35 if you switch now.",
+    "conditions_note": "Nairobi Expressway is 29 min slower than normal due to an accident. James Gichuru Road is 3 min slower than normal, Waiyaki Way 9 min slower.",
+    "notice": "Hi Mary, just heading out now. I'm expecting to arrive around 8:55, so should be with you just before the deadline. Thanks for your patience.",
+    "source": "claude"
+  },
+  "at_risk:friend:sw": {
+    "decision_line": "Ondoka sasa hivi na uende kupitia Nairobi Expressway, utafika saa 8:55. Ukipenda kufika mapema zaidi, tumia James Gichuru Road, utafika 8:35.",
+    "conditions_note": "Nairobi Expressway ni dakika 29 min slower than normal kutokana na ajali, James Gichuru Road ni 3 min slower, na Waiyaki Way ni 9 min slower.",
+    "notice": "Habari Mary, kuna msongamano leo njiani. Nategemea kufika saa 8:55, itakuwa karibu sawa na saa ya kawaida. Tuonane hivi karibuni.",
+    "source": "claude"
+  },
+  "at_risk:friend:sheng": {
+    "decision_line": "Ondoka sasa hivi via Nairobi Expressway, utafika 8:55. Kama kuna nafasi, James Gichuru Road inafika 8:35, ni safer option.",
+    "conditions_note": "Nairobi Expressway ni 29 min slower than normal kwa sababu ya accident, James Gichuru Road ni 3 min slower, Waiyaki Way ni 9 min slower.",
+    "notice": "Mary, mambo? Naenda kufika around 8:55 leo, traffic iko noma kidogo Expressway kuna accident. Nitakuupdate nikikaribia, chill.",
+    "source": "claude"
+  },
+  "switched:manager:en": {
+    "decision_line": "Leave now via James Gichuru Road and arrive at 8:35. Leaving at your usual 8:20 would get you at 8:55.",
+    "conditions_note": "James Gichuru Road is 3 min slower than normal. Nairobi Expressway is 29 min slower than normal. Waiyaki Way is 9 min slower than normal.",
+    "notice": "Hi Mary, I am leaving now and expect to arrive at 8:35. Thank you for your patience.",
+    "source": "claude"
+  },
+  "switched:manager:sw": {
+    "decision_line": "Ondoka sasa kupitia James Gichuru Road na utafika saa 8:35. Ukiondoka muda wako wa kawaida wa saa 8:20, ungefika saa 8:55.",
+    "conditions_note": "Nairobi Expressway ni dakika 29 polepole kuliko kawaida kutokana na ajali, Waiyaki Way ni dakika 9 polepole, na James Gichuru Road ni dakika 3 polepole.",
+    "notice": "Habari Mary, ninatarajia kuwasili saa 8:35. Nimeondoka safarini na safari inaendelea vizuri. Nitakujulisha endapo kutakuwa na mabadiliko yoyote.",
+    "source": "claude"
+  },
+  "switched:manager:sheng": {
+    "decision_line": "Toka sasa via James Gichuru Road, utafika 8:35. Kama ungetoka saa yako ya kawaida 8:20, ungefika 8:55.",
+    "conditions_note": "Nairobi Expressway iko 29 min slower than normal kwa sababu ya accident, Waiyaki Way iko 9 min slower than normal, James Gichuru Road iko 3 min slower than normal.",
+    "notice": "Hi Mary, nataka kukujulisha niko njiani na nitafika 8:35. Nimeamua kutumia James Gichuru Road kuepuka msongamano. Nitakuupdate kama kuna mabadiliko yoyote.",
+    "source": "claude"
+  },
+  "switched:friend:en": {
+    "decision_line": "Leave now via James Gichuru Road and you will arrive at 8:35. If you left at your usual 8:20, you would get there at 8:55.",
+    "conditions_note": "James Gichuru Road is 3 min slower than normal. Waiyaki Way is 9 min slower than normal. Nairobi Expressway is 29 min slower than normal due to an accident.",
+    "notice": "Hi Mary, I'm heading out now and should be with you by 8:35. See you soon!",
+    "source": "claude"
+  },
+  "switched:friend:sw": {
+    "decision_line": "Ondoka sasa hivi kupitia James Gichuru Road na utafika saa 8:35. Ukiondoka kwa muda wako wa kawaida wa saa 8:20, ungefika saa 8:55.",
+    "conditions_note": "Nairobi Expressway ni dakika 29 polepole kuliko kawaida kutokana na ajali, Waiyaki Way ni dakika 9 polepole kuliko kawaida, na James Gichuru Road ni dakika 3 polepole kuliko kawaida.",
+    "notice": "Mary, hujambo. Nataka tu kukujulisha nitafika saa 8:35. Tuonane hivi karibuni.",
+    "source": "claude"
+  },
+  "switched:friend:sheng": {
+    "decision_line": "Toka sasa hivi via James Gichuru Road, utafika 8:35. Kama ungetoka wakati wako wa kawaida, ungefika 8:55.",
+    "conditions_note": "Nairobi Expressway iko 29 min slower than normal kwa sababu ya accident, Waiyaki Way iko 9 min slower than normal, James Gichuru Road iko 3 min slower than normal.",
+    "notice": "Mary, mambo vizuri. Nakuja kufika kama 8:35, niko njiani sasa. Tuonane hivi punde.",
+    "source": "claude"
+  },
+  "late:manager:en": {
+    "decision_line": "You are on Nairobi Expressway with an accident. You will arrive at 9:14, which is 14 minutes past your 9:00 deadline. Please notify Mary now.",
+    "conditions_note": "Nairobi Expressway is 29 min slower than normal due to an accident. Waiyaki Way is 9 min slower. James Gichuru Road is 3 min slower.",
+    "notice": "Hi Mary, I apologize for the delay. Due to an accident on my route, I will arrive at 9:14, approximately 15 minutes late. I wanted to inform you as soon as possible.",
+    "source": "claude"
+  },
+  "late:manager:sw": {
+    "decision_line": "Utafika saa 9:14, ambayo ni dakika 14 baada ya muda wako wa mwisho wa saa 9:00. Mjulishe Mary sasa, kabla hujachelewa.",
+    "conditions_note": "Nairobi Expressway ni dakika 29 polepole kuliko kawaida kutokana na ajali. Waiyaki Way ni dakika 9 polepole, na James Gichuru Road ni dakika 3 polepole kuliko kawaida.",
+    "notice": "Habari Mary, naomba kukujulisha kuwa nitachelewa kidogo kufika ofisini. Ninatarajia kuwasili saa 9:14, yaani nitachelewa kwa dakika 15 hivi. Samahani kwa usumbufu huu.",
+    "source": "claude"
+  },
+  "late:manager:sheng": {
+    "decision_line": "Uko Nairobi Expressway, utafika 9:14. Hiyo ni 14 min baada ya deadline yako ya 9:00, so buzza Mary sasa kabla hujachelewa.",
+    "conditions_note": "Kuna accident Nairobi Expressway, iko 29 min slower than normal. Waiyaki Way ni 9 min slower, James Gichuru Road ni 3 min slower.",
+    "notice": "Mary, good morning. Kuna traffic mbaya leo kwa Expressway kutokana na accident, so nitafika around 9:14. Nitachelewa na kama dakika 15, pole for any inconvenience.",
+    "source": "claude"
+  },
+  "late:friend:en": {
+    "decision_line": "You're on Nairobi Expressway with an accident causing delays. You'll arrive at 9:14, which is 14 minutes past your 9:00 deadline.",
+    "conditions_note": "Nairobi Expressway is 29 min slower than normal due to an accident. Waiyaki Way is 9 min slower, James Gichuru Road is 3 min slower.",
+    "notice": "Hi Mary, just wanted to give you a heads up—I'm running about 15 minutes late and should be there around 9:14. Thanks for your patience!",
+    "source": "claude"
+  },
+  "late:friend:sw": {
+    "decision_line": "Utafika saa 9:14, dakika 14 baada ya muda wako wa mwisho. Mjulishe Mary sasa kabla hujachelewa.",
+    "conditions_note": "Nairobi Expressway ni dakika 29 polepole kuliko kawaida kutokana na ajali, Waiyaki Way ni dakika 9 polepole, na James Gichuru Road ni dakika 3 polepole kuliko kawaida.",
+    "notice": "Mary, hujambo. Naomba unijue nitachelewa kama dakika 15. Nitafika saa 9:14, tuonane hapo.",
+    "source": "claude"
+  },
+  "late:friend:sheng": {
+    "decision_line": "Utafika 9:14 kwa Nairobi Expressway, hiyo ni dakika 14 baada ya deadline yako ya 9:00. Mjulishe Mary sasa kabla hujachelewa.",
+    "conditions_note": "Nairobi Expressway ni dakika 29 slower than normal kwa sababu ya accident. Waiyaki Way ni dakika 9 slower, James Gichuru Road ni dakika 3 slower.",
+    "notice": "Mary, mambo? Naona nita-late kidogo leo, around dakika 15. Nitafika around 9:14, sorry kwa hiyo delay.",
+    "source": "claude"
+  }
+}
