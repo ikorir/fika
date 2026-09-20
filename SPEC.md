@@ -92,7 +92,7 @@ For the live demo, a clearly labelled **Demo mode** layers a simulated delay on 
 ## Implementation Decisions
 
 ### Shape
-- Two deployables: an **Expo app** (run in Expo Go) and a **Next.js backend** on the team's Coolify server (Docker image built from the repository). No database, no accounts, no auth. The backend exists to keep the Google and Anthropic keys off the device.
+- Two deployables: an **Expo app** (run in Expo Go) and a **Next.js backend** on the team's Coolify server (Docker image built from the repository). No database, no accounts, no sign-in. The backend exists to keep the Google and Anthropic keys off the device, and a shared key keeps strangers who find its URL from spending them.
 - The backend is a **thin proxy**. All commute decisions live in one pure module in the app, the **commute engine**. This keeps decision logic in one place and lets Demo mode run offline.
 - Backend is deployed in the first hour; the app always talks to the deployed URL, never to a laptop on venue wifi.
 
@@ -150,8 +150,9 @@ Tickets 02, 07 and 08 run in parallel, and so do 03, 04 and 09, so the shapes be
 
 - One repository, two projects side by side: the Expo app and the Next.js backend. No workspace tooling. Each side keeps its own copy of the contract types; the backend validates what it returns with zod.
 - App: latest Expo SDK with Expo Router and TypeScript, run in Expo Go. `react-native-maps`, `expo-notifications`, AsyncStorage, `Linking` and the share API from React Native, `@mapbox/polyline` to decode route lines, `@expo-google-fonts/figtree`. Tests: `jest-expo`.
-- Backend: Next.js App Router route handlers deployed on Coolify, TypeScript, zod, the official Anthropic SDK. Tests: vitest. Secrets only in the Coolify application's environment variables: `GOOGLE_MAPS_API_KEY`, `ANTHROPIC_API_KEY`.
-- The app reads the backend URL from one public environment variable.
+- Backend: Next.js App Router route handlers deployed on Coolify, TypeScript, zod, the official Anthropic SDK. Tests: vitest. Secrets only in the Coolify application's environment variables: `GOOGLE_MAPS_API_KEY`, `ANTHROPIC_API_KEY`, `FIKA_API_KEY`.
+- The app reads the backend URL and the shared key from two public environment variables.
+- **Shared key, not auth.** Every `/api` call carries `Authorization: Bearer <FIKA_API_KEY>`; without it the endpoint answers 401 before reading the body. The app's copy is compiled into its bundle, so anyone holding the app can extract it: this keeps the open internet off the billed keys, nothing more. A backend with no `FIKA_API_KEY` set stays open and warns in the log, so a deploy that lands before the variable does cannot lock the app out. `GET /` stays open for the deployment's liveness check.
 - Time: every instant on the wire is ISO 8601 with offset. The commute's times of day are `"HH:mm"` in Africa/Nairobi. Only the app formats times for display, and those display strings are what it sends to the draft endpoint.
 
 ### Google calls (backend only)
@@ -209,7 +210,7 @@ type DraftRequest = {
 type DraftResponse = { decision_line: string; conditions_note: string; notice: string; source: "claude" | "template" };
 ```
 
-Errors are `{ error: string }` with a 4xx or 5xx status. The draft endpoint never errors for a Claude failure; it answers with `source: "template"`. Model by language: English `claude-haiku-4-5-20251001`, about 6 seconds; Swahili and Sheng `claude-sonnet-5` with thinking off, about 10 seconds — Haiku invents Swahili words and reverses who is waiting for whom in Sheng, and Swahili and Sheng are only ever asked for the notice, which the commuter reads in Fika's own words while it is written.
+Errors are `{ error: string }` with a 4xx or 5xx status; a missing or wrong shared key is 401 `Unauthorized.`. The draft endpoint never errors for a Claude failure; it answers with `source: "template"`. Model by language: English `claude-haiku-4-5-20251001`, about 6 seconds; Swahili and Sheng `claude-sonnet-5` with thinking off, about 10 seconds — Haiku invents Swahili words and reverses who is waiting for whom in Sheng, and Swahili and Sheng are only ever asked for the notice, which the commuter reads in Fika's own words while it is written.
 
 ### Stored commute (AsyncStorage, one key)
 

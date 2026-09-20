@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { refuse } from "@/lib/auth";
 import { claudeWriter } from "@/lib/claude";
 import { type ApiError, DraftRequest } from "@/lib/contract";
 import { draft, type DraftWriter } from "@/lib/draft";
@@ -15,6 +16,9 @@ const noKey: DraftWriter = async () => {
 // POST /api/draft: DraftRequest → DraftResponse. One Claude call, or Fika's own words. Never errors for a Claude
 // failure: `source` says which of the two answered.
 export async function POST(request: Request) {
+  const denied = refuse(request);
+  if (denied) return denied;
+
   const parsed = DraftRequest.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail(`Invalid request. ${z.prettifyError(parsed.error)}`, 400);
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { refuse } from "@/lib/auth";
 import { type ApiError, RoutesRequest, RoutesResponse } from "@/lib/contract";
 import { fetchSamples } from "@/lib/route-samples";
 import { rainForecast } from "@/lib/weather";
@@ -39,6 +40,9 @@ function cachedRoutes(req: RoutesRequest, apiKey: string): Promise<RoutesRespons
 // POST /api/routes: RoutesRequest → RoutesResponse, about 6 departure samples and whether rain is forecast around
 // the drive. Responses cached per commute.
 export async function POST(request: Request) {
+  const denied = refuse(request);
+  if (denied) return denied;
+
   const parsed = RoutesRequest.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail(`Invalid request. ${z.prettifyError(parsed.error)}`, 400);
 
