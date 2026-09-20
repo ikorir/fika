@@ -12,6 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { theme } from '@/theme';
+import { CommuteProvider, useSavedCommute } from '@/useCommute';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,7 +24,8 @@ export default function RootLayout() {
     Figtree_700Bold,
     Figtree_800ExtraBold,
   });
-  const ready = loaded || !!error;
+  const store = useSavedCommute(); // null until the saved commute has been read off the phone
+  const ready = (loaded || !!error) && store !== null;
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
@@ -31,9 +33,9 @@ export default function RootLayout() {
 
   if (!ready) return null;
   return (
-    <>
+    <CommuteProvider store={store}>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.color.bg } }} />
-    </>
+    </CommuteProvider>
   );
 }

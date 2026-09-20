@@ -23,7 +23,7 @@ import { useCommute } from '@/useCommute';
 const { color, type } = theme;
 
 export default function TodayScreen() {
-  const commute = useCommute();
+  const { commute } = useCommute();
   const { data, error, loading, refresh } = useRoutes(commute);
   const [selectedId, setSelectedId] = useState<string>();
   const now = useNow(data);
