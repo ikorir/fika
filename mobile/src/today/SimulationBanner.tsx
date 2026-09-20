@@ -4,12 +4,14 @@ import Svg, { Path } from 'react-native-svg';
 import type { Evaluation } from '@/contract';
 import { theme } from '@/theme';
 
-// White strip under the map: "SIMULATED TRAFFIC · WAIYAKI WAY +25 MIN". Shown by the engine's simulated flag and
-// nothing else, and it has no way to be dismissed.
-export function SimulationBanner({ evaluation }: { evaluation?: Evaluation }) {
-  if (!evaluation?.simulated) return null;
+// White strip under the map: "SIMULATED TRAFFIC · WAIYAKI WAY +25 MIN · SAVED ROUTES". Shown by the engine's
+// simulated flag and by the demo running on saved routes, and it has no way to be dismissed.
+export function SimulationBanner({ evaluation, saved }: { evaluation?: Evaluation; saved?: boolean }) {
+  if (!evaluation?.simulated && !saved) return null;
+  // Saved routes are real Google numbers, simply not this morning's, and the judges are owed that too.
+  const parts = ['Simulated traffic', evaluation?.simulationLabel, saved && 'Saved routes'].filter(Boolean);
   // "+25 MIN" never breaks across lines.
-  const text = `Simulated traffic · ${evaluation.simulationLabel}`.toUpperCase().replace(/(\d) MIN\b/g, '$1\u00a0MIN');
+  const text = parts.join(' · ').toUpperCase().replace(/(\d) MIN\b/g, '$1\u00a0MIN');
   return (
     <View style={styles.banner} accessibilityRole="text">
       <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={theme.color.onSimBanner} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">

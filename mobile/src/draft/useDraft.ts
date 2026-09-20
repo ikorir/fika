@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { fetchDraft } from '@/api';
 import type { Commute, DraftRequest, DraftResponse, Evaluation, Simulation } from '@/contract';
+import { savedDraft } from '@/demo/saved';
 import { draftRequest } from '@/draft/request';
 import type { Voice } from '@/notice/voice';
 
@@ -49,8 +50,17 @@ type Written = { key: string; words: DraftResponse };
  * template, which states the same numbers in the same language. A draft is never shown against facts it was not
  * written for, so the words can never go stale, and a backend that cannot be reached simply leaves the app with
  * its own.
+ *
+ * `saved` is Demo mode running on the bundled response: the words for those screens were written before the demo
+ * and are already on the phone, so nothing is asked for and nothing can hang on venue wifi.
  */
-export function useDraft(commute: Commute, evaluation?: Evaluation, simulation?: Simulation, voice?: Voice): Draft {
+export function useDraft(
+  commute: Commute,
+  evaluation?: Evaluation,
+  simulation?: Simulation,
+  voice?: Voice,
+  saved = false,
+): Draft {
   // The facts, and the same facts written down as the key they are remembered under. One is the other, which is why
   // the effect can read the request back out of the key instead of closing over a value that has since moved on.
   const key = evaluation ? JSON.stringify(draftRequest(commute, evaluation, simulation, voice)) : null;
@@ -60,6 +70,15 @@ export function useDraft(commute: Commute, evaluation?: Evaluation, simulation?:
 
   useEffect(() => {
     if (key === null) return;
+
+    // Running on saved routes: the words were written before the demo, so nothing is asked for and nothing can
+    // hang on venue wifi. With none saved for this screen the app uses its own, as it does with no backend.
+    if (saved) {
+      const words = savedDraft(JSON.parse(key) as DraftRequest);
+      if (words) setWritten({ key, words });
+      return;
+    }
+
     const known = remembered.get(key);
     if (known) {
       setWritten({ key, words: known });
@@ -79,10 +98,11 @@ export function useDraft(commute: Commute, evaluation?: Evaluation, simulation?:
     return () => {
       live = false; // The facts have moved on; these words would be about a screen that is gone.
     };
-  }, [key]);
+  }, [key, saved]);
 
   // Only Claude's words are offered. When the backend answered with its own template the app prefers its own,
   // which knows the commute — the destination by name, that no other route gets there on time.
   const claude = written?.key === key && written.words.source === 'claude' ? written.words : null;
-  return { words: key === null ? null : claude, loading: key !== null && pending === key };
+  // Nothing is ever waited for on saved routes, so nothing on that screen can be left spinning.
+  return { words: key === null ? null : claude, loading: !saved && key !== null && pending === key };
 }

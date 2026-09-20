@@ -20,11 +20,12 @@ type Props = {
   samples: Sample[];
   evaluation?: Evaluation; // what the screen shows now: live while Demo mode is off
   onRestart: () => void; // the screen goes back to the route it first shows
+  onSaved: (on: boolean) => void; // swap the data source between the bundled response and a live fetch
 };
 
 // Bottom sheet: the Demo mode switch, the two scenarios, the app clock and "Reset to start".
 // The scenarios work on the route the screen shows, so the accident hits the route the presenter is looking at.
-export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation, onRestart }: Props) {
+export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation, onRestart, onSaved }: Props) {
   const insets = useSafeAreaInsets();
   const simulation = demo.simulation ?? {};
   const shown = evaluation?.routes.find((r) => r.selected);
@@ -99,8 +100,8 @@ export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation
             </View>
           </View>
 
-          <View style={[styles.card, disabled && styles.disabled]}>
-            <View style={styles.clockRow}>
+          <View style={styles.card}>
+            <View style={[styles.clockRow, disabled && styles.disabled]}>
               <Icon size={22} stroke={color.textMuted} width={1.8}>
                 <Circle cx={12} cy={12} r={8.5} />
                 <Path d="M12 7.5V12l3 2" />
@@ -129,6 +130,25 @@ export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation
                   <Path d="M6 12h12M12 6v12" />
                 </Icon>
               </Pressable>
+            </View>
+            <View style={styles.divider} />
+            {/* Never disabled: with no network there is nothing else on this sheet that can get the demo going. */}
+            <View style={styles.savedRow}>
+              <Icon size={22} stroke={color.textMuted} width={1.8}>
+                <Path d="M12 15V4M8 11l4 4 4-4M5 19h14" />
+              </Icon>
+              <View style={styles.scenarioText}>
+                <Text style={styles.savedLabel}>Use saved routes</Text>
+                <Text style={styles.scenarioDetail}>works with no internet</Text>
+              </View>
+              <Switch
+                accessibilityLabel="Use saved routes"
+                value={demo.saved}
+                onValueChange={onSaved}
+                trackColor={{ false: color.switchOff, true: color.accent }}
+                ios_backgroundColor={color.switchOff}
+                thumbColor={color.text}
+              />
             </View>
           </View>
 
@@ -229,7 +249,9 @@ const styles = StyleSheet.create({
   scenarioDetail: { ...type.meta, color: color.textMuted },
   value: { ...type.cardTitle },
   clockRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 60, paddingLeft: 16, paddingRight: 10 },
+  savedRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 60, paddingHorizontal: 16 },
   clockLabel: { ...type.body, color: color.text, flex: 1 },
+  savedLabel: { ...type.body, color: color.text },
   step: {
     width: theme.size.roundButton,
     height: theme.size.roundButton,

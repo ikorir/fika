@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import type { Sample } from '@/contract';
 import { DemoSheet } from '@/demo/DemoSheet';
+import { savedRoutes } from '@/demo/saved';
 import { useDemo } from '@/demo/useDemo';
 import { useDraft } from '@/draft/useDraft';
 import { evaluate } from '@/engine';
@@ -25,10 +27,10 @@ const { color, type } = theme;
 
 export default function TodayScreen() {
   const { commute } = useCommute();
-  const { data, error, loading, refresh } = useRoutes(commute);
+  const demo = useDemo();
+  const { data, error, loading, refresh } = useRoutes(commute, demo.saved);
   const [selectedId, setSelectedId] = useState<string>();
   const now = useNow(data);
-  const demo = useDemo();
   const [demoOpen, setDemoOpen] = useState(false);
 
   // The screen renders the engine's Evaluation and makes no commute decisions of its own.
@@ -38,6 +40,15 @@ export default function TodayScreen() {
       ? evaluate({ commute, samples: data.samples, now, selectedRouteId: selectedId, simulation: demo.simulation })
       : undefined;
   const routes = evaluation?.routes ?? [];
+
+  // Swapping the data source changes every number, so Demo mode starts again from the new ones. It is given the
+  // evaluation of the source being switched to, with nothing simulated yet, which is where its clock starts.
+  const baseline = (from: Sample[] | undefined) =>
+    from?.some((s) => s.routes.length > 0) ? evaluate({ commute, samples: from, now }) : undefined;
+  const onSavedRoutes = (on: boolean) => {
+    demo.runOnSaved(on, baseline(on ? savedRoutes.samples : data?.samples));
+    setSelectedId(undefined);
+  };
 
   // Reminders: the daily one the commuter never has to think about, and the one-off one behind "Remind me at 7:55".
   // Fresh numbers whenever the app comes forward or a reminder is tapped; no polling in between.
@@ -51,8 +62,8 @@ export default function TodayScreen() {
   // The screen's own words stay in English; the notice is written in the voice the commuter picked in its sheet,
   // which is one more call only while that voice differs from the contact's own.
   const { voice, setTone, setLanguage } = useVoice(commute.contact);
-  const draft = useDraft(commute, evaluation, demo.simulation);
-  const noticeDraft = useDraft(commute, evaluation, demo.simulation, voice);
+  const draft = useDraft(commute, evaluation, demo.simulation, undefined, demo.saved);
+  const noticeDraft = useDraft(commute, evaluation, demo.simulation, voice, demo.saved);
   const notice = useNotice(evaluation, commute.contact, noticeDraft.words?.notice, voice);
 
   // Keep the route on screen selected when the numbers change, so a slower route turns the screen at risk and
@@ -83,7 +94,7 @@ export default function TodayScreen() {
         onDemo={() => setDemoOpen(true)}
         demoOn={demo.on}
       />
-      <SimulationBanner evaluation={evaluation} />
+      <SimulationBanner evaluation={evaluation} saved={demo.saved} />
       <ScrollView contentContainerStyle={styles.content}>
         <Hero commute={commute} evaluation={evaluation} draft={draft} />
 
@@ -140,6 +151,7 @@ export default function TodayScreen() {
         samples={data?.samples ?? []}
         evaluation={evaluation}
         onRestart={() => setSelectedId(undefined)}
+        onSaved={onSavedRoutes}
       />
     </View>
   );
