@@ -7,34 +7,34 @@ import { accident, midTrip, startingPoint } from '@/demo/presets';
 import drafts from '@/demo/saved-drafts.json';
 import routes from '@/demo/saved-routes.json';
 import { evaluate } from '@/engine';
+import { seedCommute } from '@/seed';
+
+/**
+ * The commute the saved response was fetched for. The two go together: the routes run from its origin to its
+ * destination, the arc holds against its deadline, and the saved words name its contact. While saved routes are on
+ * the screen shows this commute, whatever the phone has stored, and the stored one is left alone.
+ */
+export const savedCommute = seedCommute;
 
 /** The saved response "Use saved routes" puts in place of a live fetch. Real Google numbers, simply not current. */
 export const savedRoutes = routes as RoutesResponse;
 
-const savedDrafts = drafts as Record<string, DraftResponse>;
-
 /** The steps of the five-minute script the words are saved for. */
-export const SCENARIOS = ['on_time', 'at_risk', 'switched', 'late'] as const;
-export type Scenario = (typeof SCENARIOS)[number];
+export type Scenario = 'on_time' | 'at_risk' | 'switched' | 'late';
+
+// Each draft is filed under the whole request it was written for, which is how useDraft keys Claude's live answers
+// too. Words are about facts: a saved line that says "arrive at 8:49 via Nairobi Expressway" is wrong the moment
+// the presenter picks another road, so anything off the script finds nothing here.
+const savedDrafts = new Map(
+  (drafts as { request: DraftRequest; words: DraftResponse }[]).map((d) => [JSON.stringify(d.request), d.words]),
+);
 
 /**
- * Which step of the script a set of facts belongs to. The state says almost all of it; the one thing it does not
- * is the difference between the opening screen and the same "on time" after the presenter has switched away from
- * the accident, where the words have another road to name and a delay to explain.
+ * Claude's words for exactly these facts, written ahead of the demo and bundled. Undefined for any other facts —
+ * another road, another clock, another contact — and then the app uses its own template, exactly as it does when
+ * the backend is unreachable.
  */
-export function scenarioOf(req: DraftRequest): Scenario {
-  if (req.state !== 'on_time') return req.state;
-  return req.facts.cause ? 'switched' : 'on_time';
-}
-
-/** How a draft is filed: the step of the script, and the voice it was written in. */
-export const savedKey = (req: DraftRequest) => `${scenarioOf(req)}:${req.tone}:${req.language}`;
-
-/**
- * Claude's words for this screen, written ahead of the demo and bundled. Undefined when nothing was saved for
- * these facts, and then the app falls back to its own template exactly as it does when the backend is unreachable.
- */
-export const savedDraft = (req: DraftRequest): DraftResponse | undefined => savedDrafts[savedKey(req)];
+export const savedDraft = (req: DraftRequest): DraftResponse | undefined => savedDrafts.get(JSON.stringify(req));
 
 /** One screen of the script: what the engine makes of it, and the simulation that got there. */
 export type Step = { scenario: Scenario; evaluation: Evaluation; simulation: Simulation; selectedRouteId: string };

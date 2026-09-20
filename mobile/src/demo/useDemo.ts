@@ -28,12 +28,13 @@ export function useDemo() {
       setDemo(null);
     },
     /**
-     * Swap the data source. Every number changes underneath, so the demo starts again from the new ones — and it
-     * starts, if it was not running: saved routes are real but not current, and only the banner Demo mode puts on
-     * screen says so. `live` is the evaluation of the source being switched to, with nothing simulated.
+     * Run the demo on the bundled response. Every number changes underneath, so the demo starts again from the new
+     * ones — and it starts, if it was not running: saved routes are real but not current, and only the banner Demo
+     * mode puts on screen says so. `live` is the evaluation of the saved routes, with nothing simulated. There is
+     * no way back to live data with Demo mode still on; turning it off is the way back.
      */
-    runOnSaved(on: boolean, live: Evaluation | undefined) {
-      setSaved(on);
+    runOnSaved(live: Evaluation) {
+      setSaved(true);
       startFrom(live);
     },
     reset: () => setDemo((d) => d && { ...d, simulation: d.startingPoint }),

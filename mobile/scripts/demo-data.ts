@@ -14,17 +14,16 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import type { DraftRequest, DraftResponse, RoutesResponse } from '@/contract';
-import { savedKey, scriptSteps } from '@/demo/saved';
+import { savedCommute, scriptSteps } from '@/demo/saved';
 import { draftRequest } from '@/draft/request';
 import { LANGUAGES, TONES, type Voice } from '@/notice/voice';
-import { seedCommute } from '@/seed';
 import { nairobiTimeOnDay } from '@/time';
 
 const API_URL = process.env.API_URL ?? 'http://localhost:3000';
 const API_KEY = process.env.API_KEY ?? '';
 const DIR = join(__dirname, '..', 'src', 'demo');
 
-const commute = seedCommute;
+const commute = savedCommute;
 const voices: Voice[] = TONES.flatMap((t) => LANGUAGES.map((l) => ({ tone: t.value, language: l.value })));
 
 async function post<T>(path: string, body: unknown): Promise<T> {
@@ -70,18 +69,20 @@ async function claudeWords(req: DraftRequest, tries = 8): Promise<DraftResponse>
     const words = await post<DraftResponse>('/api/draft', req);
     if (words.source === 'claude') return words;
   }
-  throw new Error(`${savedKey(req)}: the backend answered with its own template ${tries} times.`);
+  const which = `${req.state}, ${req.tone}, ${req.language}`;
+  throw new Error(`${which}: the backend answered with its own template ${tries} times.`);
 }
 
-/** Claude's words for every step of the script, in every tone and language. Six at a time, one step at a time. */
-async function fetchDrafts(routes: RoutesResponse): Promise<Record<string, DraftResponse>> {
-  const saved: Record<string, DraftResponse> = {};
+/**
+ * Claude's words for every step of the script, in every tone and language, each kept with the request it answers:
+ * the app only offers saved words for exactly the facts they were written for. Six at a time, one step at a time.
+ */
+async function fetchDrafts(routes: RoutesResponse): Promise<{ request: DraftRequest; words: DraftResponse }[]> {
+  const saved: { request: DraftRequest; words: DraftResponse }[] = [];
   for (const step of scriptSteps(commute, routes.samples)) {
     const requests = voices.map((voice) => draftRequest(commute, step.evaluation, step.simulation, voice));
     const words = await Promise.all(requests.map((req) => claudeWords(req)));
-    requests.forEach((req, i) => {
-      saved[savedKey(req)] = words[i];
-    });
+    requests.forEach((request, i) => saved.push({ request, words: words[i] }));
     console.log(`${step.scenario}: ${requests.length} drafts`);
   }
   return saved;

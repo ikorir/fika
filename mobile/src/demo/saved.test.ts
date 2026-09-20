@@ -1,10 +1,10 @@
-import { savedDraft, savedKey, savedRoutes, type Step, scriptSteps } from '@/demo/saved';
+import { savedCommute, savedDraft, savedRoutes, type Step, scriptSteps } from '@/demo/saved';
 import { draftRequest } from '@/draft/request';
+import { evaluate } from '@/engine';
 import { LANGUAGES, TONES, type Voice } from '@/notice/voice';
-import { seedCommute } from '@/seed';
 import { formatTime } from '@/time';
 
-const commute = seedCommute;
+const commute = savedCommute;
 const time = (iso: string | null) => (iso ? formatTime(iso) : iso);
 
 // Any clock: the bundled samples carry their own morning, so the demo runs the same on any day.
@@ -37,7 +37,10 @@ describe('the bundled routes response', () => {
 describe('the saved drafts', () => {
   it('cover every step of the script, in every tone and language', () => {
     const missing = script().flatMap((s) =>
-      voices.map((voice) => request(s, voice)).filter((req) => !savedDraft(req)).map(savedKey),
+      voices
+        .map((voice) => request(s, voice))
+        .filter((req) => !savedDraft(req))
+        .map((req) => `${s.scenario}:${req.tone}:${req.language}`),
     );
 
     expect(missing).toEqual([]);
@@ -55,5 +58,19 @@ describe('the saved drafts', () => {
     const line = (s: Step) => savedDraft(request(s))!.decision_line;
 
     expect(line(step('switched'))).not.toBe(line(step('on_time')));
+  });
+
+  it('are only offered for the facts they were written for, so going off script gets Fika\'s own words', () => {
+    const onTime = step('on_time');
+    const offScript = evaluate({
+      commute,
+      samples: savedRoutes.samples,
+      now: anyDay,
+      selectedRouteId: 'waiyaki-way',
+      simulation: onTime.simulation,
+    });
+
+    expect(savedDraft(draftRequest(commute, offScript, onTime.simulation))).toBeUndefined();
+    expect(savedDraft(request(onTime))).toBeDefined();
   });
 });

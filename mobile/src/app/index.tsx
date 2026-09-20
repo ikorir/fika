@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import type { Sample } from '@/contract';
 import { DemoSheet } from '@/demo/DemoSheet';
-import { savedRoutes } from '@/demo/saved';
+import { savedCommute, savedRoutes } from '@/demo/saved';
 import { useDemo } from '@/demo/useDemo';
 import { useDraft } from '@/draft/useDraft';
 import { evaluate } from '@/engine';
@@ -26,9 +25,12 @@ import { useCommute } from '@/useCommute';
 const { color, type } = theme;
 
 export default function TodayScreen() {
-  const { commute } = useCommute();
+  const { commute: own } = useCommute();
   const demo = useDemo();
-  const { data, error, loading, refresh } = useRoutes(commute, demo.saved);
+  // Saved routes come with the commute they were fetched for. The commuter's own stays on the phone, untouched,
+  // and is still the one routes are fetched and the daily reminder is set for.
+  const commute = demo.saved ? savedCommute : own;
+  const { data, error, loading, refresh } = useRoutes(own, demo.saved);
   const [selectedId, setSelectedId] = useState<string>();
   const now = useNow(data);
   const [demoOpen, setDemoOpen] = useState(false);
@@ -41,19 +43,18 @@ export default function TodayScreen() {
       : undefined;
   const routes = evaluation?.routes ?? [];
 
-  // Swapping the data source changes every number, so Demo mode starts again from the new ones. It is given the
-  // evaluation of the source being switched to, with nothing simulated yet, which is where its clock starts.
-  const baseline = (from: Sample[] | undefined) =>
-    from?.some((s) => s.routes.length > 0) ? evaluate({ commute, samples: from, now }) : undefined;
+  // Onto the saved routes, Demo mode starts again from their numbers. Off them, Demo mode goes off too and the
+  // screen is live: the live numbers may not be in yet, and a demo clock set for one day's routes is wrong on another's.
   const onSavedRoutes = (on: boolean) => {
-    demo.runOnSaved(on, baseline(on ? savedRoutes.samples : data?.samples));
+    if (on) demo.runOnSaved(evaluate({ commute: savedCommute, samples: savedRoutes.samples, now }));
+    else demo.turnOff();
     setSelectedId(undefined);
   };
 
   // Reminders: the daily one the commuter never has to think about, and the one-off one behind "Remind me at 7:55".
   // Fresh numbers whenever the app comes forward or a reminder is tapped; no polling in between.
   const body = evaluation ? reminderBody(evaluation) : '';
-  useDailyReminder(commute.usualDeparture);
+  useDailyReminder(own.usualDeparture);
   useRefreshOnWake(refresh);
   const reminder = useOneOffReminder(evaluation?.remindAt ?? null, body);
   useDemoReminderCue(evaluation, demo.on, body);

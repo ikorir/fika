@@ -63,21 +63,14 @@ export function useDraft(
 ): Draft {
   // The facts, and the same facts written down as the key they are remembered under. One is the other, which is why
   // the effect can read the request back out of the key instead of closing over a value that has since moved on.
-  const key = evaluation ? JSON.stringify(draftRequest(commute, evaluation, simulation, voice)) : null;
+  const request = evaluation ? draftRequest(commute, evaluation, simulation, voice) : null;
+  const key = request && JSON.stringify(request);
 
   const [written, setWritten] = useState<Written | null>(null);
   const [pending, setPending] = useState<string | null>(null);
 
   useEffect(() => {
-    if (key === null) return;
-
-    // Running on saved routes: the words were written before the demo, so nothing is asked for and nothing can
-    // hang on venue wifi. With none saved for this screen the app uses its own, as it does with no backend.
-    if (saved) {
-      const words = savedDraft(JSON.parse(key) as DraftRequest);
-      if (words) setWritten({ key, words });
-      return;
-    }
+    if (key === null || saved) return;
 
     const known = remembered.get(key);
     if (known) {
@@ -100,9 +93,13 @@ export function useDraft(
     };
   }, [key, saved]);
 
+  // Running on saved routes: the words were written before the demo and are read straight off the phone, in the
+  // same render as the facts, so nothing is asked for, nothing can hang on venue wifi, and no screen shows Fika's
+  // own words for a frame first. With none saved for these facts the app uses its own, as it does with no backend.
+  if (saved) return { words: (request && savedDraft(request)) ?? null, loading: false };
+
   // Only Claude's words are offered. When the backend answered with its own template the app prefers its own,
   // which knows the commute — the destination by name, that no other route gets there on time.
   const claude = written?.key === key && written.words.source === 'claude' ? written.words : null;
-  // Nothing is ever waited for on saved routes, so nothing on that screen can be left spinning.
-  return { words: key === null ? null : claude, loading: !saved && key !== null && pending === key };
+  return { words: key === null ? null : claude, loading: key !== null && pending === key };
 }
