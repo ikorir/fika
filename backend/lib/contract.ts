@@ -7,6 +7,16 @@ const isoInstant = z.iso.datetime({ offset: true });
 export const LatLng = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) });
 export type LatLng = z.infer<typeof LatLng>;
 
+export const Place = z.object({ placeId: z.string().min(1), label: z.string().min(1), location: LatLng });
+export type Place = z.infer<typeof Place>;
+
+// GET /api/places/autocomplete?q=… → PlaceSuggestions;  GET /api/places/details?placeId=… → Place
+export const PlaceSuggestion = z.object({ placeId: z.string().min(1), label: z.string().min(1) });
+export type PlaceSuggestion = z.infer<typeof PlaceSuggestion>;
+
+export const PlaceSuggestions = z.object({ suggestions: z.array(PlaceSuggestion) });
+export type PlaceSuggestions = z.infer<typeof PlaceSuggestions>;
+
 // POST /api/routes
 export const RoutesRequest = z.object({
   origin: LatLng,
