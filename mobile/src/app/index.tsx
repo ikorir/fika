@@ -112,6 +112,7 @@ export default function TodayScreen() {
       <ActionArea
         commute={commute}
         updatedAt={data?.fetchedAt}
+        now={now}
         evaluation={evaluation}
         reminder={reminder}
         onSelectRoute={setSelectedId}

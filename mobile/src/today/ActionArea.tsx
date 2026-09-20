@@ -5,23 +5,26 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Commute, Evaluation } from '@/contract';
 import type { Reminder } from '@/reminders/useReminders';
 import { theme } from '@/theme';
-import { formatTime } from '@/time';
 import { directionsUrl } from '@/today/directions';
+import { updatedLabel } from '@/today/freshness';
 import { decodePath, pointAlong } from '@/today/path';
 import { PrimaryAction } from '@/today/PrimaryAction';
 
-// The primary action, then "Updated h:mm" and "Open in Google Maps".
+// The primary action, then how old the numbers are and "Open in Google Maps".
 type Props = {
   commute: Commute;
   updatedAt?: string;
+  now: Date;
   evaluation?: Evaluation;
   reminder: Reminder;
   onSelectRoute: (routeId: string) => void;
   onReviewNotice: () => void;
 };
 
-export function ActionArea({ commute, updatedAt, evaluation, reminder, onSelectRoute, onReviewNotice }: Props) {
+export function ActionArea({ commute, updatedAt, now, evaluation, reminder, onSelectRoute, onReviewNotice }: Props) {
   const insets = useSafeAreaInsets();
+  // The real clock, not Demo mode's: how old the numbers are is about when they were fetched.
+  const updated = updatedAt ? updatedLabel(updatedAt, now) : null;
   const selected = evaluation?.routes.find((r) => r.selected);
   const url = useMemo(() => {
     const path = selected ? decodePath(selected.polyline) : [];
@@ -37,7 +40,7 @@ export function ActionArea({ commute, updatedAt, evaluation, reminder, onSelectR
         onReviewNotice={onReviewNotice}
       />
       <View style={styles.footer}>
-        {updatedAt ? <Text style={styles.updated}>Updated {formatTime(updatedAt)}</Text> : <View />}
+        {updated ? <Text style={[styles.updated, updated.stale && styles.stale]}>{updated.text}</Text> : <View />}
         <Pressable accessibilityRole="link" onPress={() => openDirections(url)} hitSlop={10}>
           <Text style={styles.link}>Open in Google Maps</Text>
         </Pressable>
@@ -65,5 +68,6 @@ const styles = StyleSheet.create({
     minHeight: 24,
   },
   updated: { ...theme.type.meta, color: theme.color.textMuted },
+  stale: { color: theme.color.atRisk },
   link: { ...theme.type.metaStrong, fontSize: 14, color: theme.color.accent },
 });
