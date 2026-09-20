@@ -52,9 +52,9 @@ describe("rainForecast", () => {
     expect(await rainForecast(req, now, fetcher)).toBeNull();
   });
 
-  it("ignores rain before anyone would leave and after the deadline", async () => {
-    // Rain until 7:00 is over by now; rain from 9:00 starts once they have arrived.
-    const { fetcher } = forecasting({ 7: 95, 8: 0, 9: 0, 10: 95 });
+  it("ignores rain before anyone would leave and well after the deadline", async () => {
+    // Rain until 7:00 is over by now; rain from 10:00 starts after even a late commuter has arrived.
+    const { fetcher } = forecasting({ 7: 95, 8: 0, 9: 0, 10: 0, 11: 95 });
     expect(await rainForecast(req, now, fetcher)).toBeNull();
   });
 
@@ -64,9 +64,15 @@ describe("rainForecast", () => {
     expect(await rainForecast(req, early, fetcher)).toBeNull();
   });
 
-  it("counts the hour already under way", async () => {
+  it("counts the hour already under way, as rain from now rather than from a time gone by", async () => {
+    const late = new Date("2026-09-21T07:50:00+03:00");
     const { fetcher } = forecasting({ 8: 70, 9: 0 });
-    expect(await rainForecast(req, now, fetcher)).toEqual({ at: "2026-09-21T04:00:00.000Z" });
+    expect(await rainForecast(req, late, fetcher)).toEqual({ at: "2026-09-21T04:50:00.000Z" });
+  });
+
+  it("looks an hour past the deadline, for the commuter who is running late; the app knows their ETA", async () => {
+    const { fetcher } = forecasting({ 8: 0, 9: 0, 10: 95, 11: 95 });
+    expect(await rainForecast(req, now, fetcher)).toEqual({ at: "2026-09-21T06:00:00.000Z" });
   });
 
   it("skips an hour Open-Meteo has no figure for", async () => {

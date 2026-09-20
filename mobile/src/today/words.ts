@@ -116,7 +116,10 @@ export function rainAt(e: Evaluation, rain?: Rain): string | null {
 /** Which route is slower than normal, or, when late, that no route gets there on time. Then the rain, if any. */
 export function conditionsNote(e: Evaluation, rain?: Rain): string {
   const at = rainAt(e, rain);
-  return `${trafficNote(e)}${at ? ` Rain is forecast from ${at}, so allow extra time.` : ''}`;
+  if (!at) return trafficNote(e);
+  // Once it is time to go, or they have gone, there is no extra time left to allow: the note only says it is coming.
+  const ahead = !leavingNow(e) && !onTheRoad(e);
+  return `${trafficNote(e)} Rain is forecast from ${at}${ahead ? ', so allow extra time' : ''}.`;
 }
 
 function trafficNote(e: Evaluation): string {

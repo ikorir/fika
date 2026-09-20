@@ -161,13 +161,13 @@ Tickets 02, 07 and 08 run in parallel, and so do 03, 04 and 09, so the shapes be
 - A route is named by its main road: the road its steps spend the most distance on, with abbreviations expanded ("Waiyaki Wy/A104" → "Waiyaki Way"). Google lists a stretch's aliases together ("Kisumu- Nairobi Rd/Waiyaki Wy/A104"); a tie between them goes to the name that runs furthest across the whole response. When two routes in the same response share a main road, the one with more distance on it keeps the name (the faster one on a tie), so Google's route order does not matter, and the other takes its next-longest road that is not another name for the same stretch. It falls back to the names in `description`, which alone is not enough: Google fills it with road numbers ("A104") and it varies between calls for the same route.
 - Routes differ between samples. A route's `id` is a slug of its main road ("via Waiyaki Way" → `waiyaki-way`), and that is how the app matches a route across samples.
 
-### Backend endpoints
 ### Rain forecast (backend only)
 
-- Open-Meteo, free and keyless: `GET https://api.open-meteo.com/v1/forecast` with `hourly=precipitation_probability`, `timeformat=unixtime`, `forecast_days=2`, for the origin. Fetched inside `/api/routes`, alongside the Google calls, with a 3 second limit.
-- Rain is reported when an hour between 30 min before the usual departure (or now, once that is later) and the deadline has a chance of 50% or more. Open-Meteo stamps each hour's chance with the time the hour ends, so `rain.at` is the start of the first such hour.
-- Any failure is silent: `rain` is left out, the routes are unaffected, and nothing mentions rain. The draft endpoint sends Claude's words back for the template if they mention rain without a `rain` fact.
+- Open-Meteo, free and keyless: `GET https://api.open-meteo.com/v1/forecast` with `hourly=precipitation_probability`, `timeformat=unixtime`, `forecast_days=2`, for the origin. Fetched inside `/api/routes`, alongside the Google calls, with a 2 second limit.
+- Rain is reported when an hour between 30 min before the usual departure (or now, once that is later) and an hour past the deadline has a chance of 50% or more. Open-Meteo stamps each hour's chance with the time the hour ends, so `rain.at` is the start of the first such hour, or now when that hour is already under way. The backend does not know the ETA; the app drops rain that starts after the arrival, and rain from a response more than 3 hours old.
+- Any failure is silent: `rain` is left out, the routes are unaffected, and nothing mentions rain. Rain belongs to the conditions note alone, and "so allow extra time" is said only while a departure is still ahead. The draft endpoint sends Claude's words back for the template if they mention rain or the weather without a `rain` fact, or in the decision line or the notice.
 
+### Backend endpoints
 
 ```ts
 type LatLng = { lat: number; lng: number };

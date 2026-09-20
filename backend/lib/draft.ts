@@ -80,8 +80,9 @@ THE THREE FIELDS
 "conditions_note" — one sentence, under 20 words, on how today differs from normal. Name each slower road and its
 delay in the form "Waiyaki Way is 18 min slower than normal", and say which roads are unaffected. Use "min", not
 "minutes". If no road is slower than normal, say traffic is normal. If rain_at is given, add a second short sentence,
-under 12 words: rain is forecast from rain_at, so allow extra time. Do not say how much extra: that is a number, and
-it is not yours.
+under 12 words: rain is forecast from rain_at. When leave_by is given, add "so allow extra time" — never how much:
+that is a number, and it is not yours. With leave_now or already_driving there is no time left to allow, so say
+only that rain is forecast.
 
 "notice" — the message the commuter sends to the person waiting for them, in the tone and language asked for.
 Two or three short sentences addressed to them by name. It must contain eta exactly as written. If
@@ -197,8 +198,18 @@ function statesOnlyKnownNumbers(words: DraftWords, req: DraftRequest): boolean {
   return true;
 }
 
-// Rain, in the three languages Claude writes: "rain", "raining", "rainy", and Swahili and Sheng's "mvua".
-const RAIN = /\brain(?:s|y|ing)?\b|\bmvua\b/i;
+// The weather, in the three languages Claude writes: rain by its English names, and Swahili and Sheng's "mvua" and
+// "-nyesha" ("inanyesha", "kunanyesha": it is raining).
+const RAIN = /\brain(?:s|y|ing|ed|fall)?\b|\bshowers?\b|\bstorms?\b|\bweather\b|\bmvua\b|nyesha/i;
+
+/** The text with every name the facts gave taken out, so a contact called Rain is not mistaken for the weather. */
+function withoutNames(text: string, { facts, recipient }: DraftRequest): string {
+  const names = [recipient.name, facts.cause, ...facts.routes.map((r) => r.label), facts.selectedRoute, facts.betterRoute?.label];
+  return names
+    .flatMap((n) => (n?.trim() ? [n.trim(), n.trim().replace(/^via /, "")] : []))
+    .sort((a, b) => b.length - a.length) // "Rain Tree Road" before "Rain"
+    .reduce((rest, name) => rest.replaceAll(name, " "), text);
+}
 
 /**
  * Whether the words keep rain where it belongs: in the conditions note, and only when a forecast of it was among the
@@ -206,8 +217,10 @@ const RAIN = /\brain(?:s|y|ing)?\b|\bmvua\b/i;
  * number — and a commuter told it will rain would believe it. In the notice even a real forecast is wrong: there it
  * reads as the reason for being late, and rain that has not fallen yet has delayed nobody.
  */
-const mentionsOnlyForecastRain = (words: DraftWords, { facts }: DraftRequest) =>
-  !RAIN.test(`${words.decision_line} ${words.notice}`) && (Boolean(facts.rain) || !RAIN.test(words.conditions_note));
+function mentionsOnlyForecastRain(words: DraftWords, req: DraftRequest): boolean {
+  const rainy = (text: string) => RAIN.test(withoutNames(text, req));
+  return !rainy(`${words.decision_line} ${words.notice}`) && (Boolean(req.facts.rain) || !rainy(words.conditions_note));
+}
 
 /**
  * The three pieces of writing for one screen. Claude writes them; if its answer is late, is not the JSON we asked

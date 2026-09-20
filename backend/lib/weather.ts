@@ -11,8 +11,12 @@ const HOUR = 60 * MIN;
 const LIKELY_PERCENT = 50;
 // Nobody leaves much earlier than their usual time, so rain that is over before then is not about this drive.
 const BEFORE_USUAL_MIN = 30;
-// The routes are being fetched alongside and take a few seconds themselves; the forecast must not hold them up.
-const TIMEOUT_MS = 3_000;
+// The routes are fetched alongside and take a couple of seconds themselves, so a forecast that answers — as it does
+// in well under a second — costs nothing. One that hangs holds the routes up by no more than this.
+const TIMEOUT_MS = 2_000;
+// The backend does not know the ETA, so it looks this far past the deadline for the commuter who is running late.
+// The app, which does, drops rain that starts after they arrive.
+const AFTER_DEADLINE_MIN = 60;
 
 const Forecast = z
   .object({
@@ -27,8 +31,9 @@ type Fetcher = (url: string | URL, init?: RequestInit) => Promise<Response>;
 
 /**
  * When rain is likely to start during the drive, or null when it is not — or when the forecast could not be had.
- * The drive is from about the usual departure (or now, once that is later) to the deadline. Open-Meteo reports each
- * hour's chance against the time the hour ENDS, so rain "at" is the start of the first likely hour. Never throws.
+ * The drive is from about the usual departure (or now, once that is later) to an hour past the deadline. Open-Meteo
+ * reports each hour's chance against the time the hour ENDS, so rain "at" is the start of the first likely hour —
+ * or now, when that hour is already under way. Never throws.
  */
 export async function rainForecast(
   req: RoutesRequest,
@@ -36,7 +41,7 @@ export async function rainForecast(
   fetcher: Fetcher = fetch,
 ): Promise<{ at: string } | null> {
   const from = Math.max(now.getTime(), Date.parse(req.usualDeparture) - BEFORE_USUAL_MIN * MIN);
-  const to = Math.max(Date.parse(req.arriveBy), from + HOUR);
+  const to = Math.max(Date.parse(req.arriveBy) + AFTER_DEADLINE_MIN * MIN, from + HOUR);
 
   const url = new URL("https://api.open-meteo.com/v1/forecast");
   url.search = new URLSearchParams({
@@ -55,7 +60,7 @@ export async function rainForecast(
       const [start, end] = [seconds * 1000 - HOUR, seconds * 1000];
       const chance = hourly.precipitation_probability[i];
       if (end > from && start < to && chance !== null && chance >= LIKELY_PERCENT)
-        return { at: new Date(start).toISOString() };
+        return { at: new Date(Math.max(start, now.getTime())).toISOString() };
     }
     return null;
   } catch (e) {

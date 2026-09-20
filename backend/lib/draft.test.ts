@@ -280,7 +280,14 @@ describe("rain", () => {
     ["sw", "Waiyaki Way ina dakika 18 zaidi ya kawaida; Ngong Road haijaathirika. Mvua inatarajiwa kuanzia 7:30, kwa hivyo jipe muda zaidi."],
     ["sheng", "Waiyaki Way iko na dakika 18 extra kuliko kawaida; Ngong Road iko sawa. Mvua inakuja kuanzia 7:30, so jipe time extra."],
   ] as const)("is in the template's conditions note in %s", async (language, note) => {
-    expect((await draft({ ...lateRequest({ rain }), language }, failing)).conditions_note).toBe(note);
+    expect((await draft({ ...lateRequest({ rain, leaveBy: "7:05" }), language }, failing)).conditions_note).toBe(note);
+  });
+
+  it("only tells a commuter to allow extra time while there is still a departure ahead of them", async () => {
+    const ahead = await draft(lateRequest({ rain, leaveBy: "7:05" }), failing);
+    const driving = await draft(lateRequest({ rain, onTheRoad: true }), failing);
+    expect(ahead.conditions_note).toMatch(/Rain is forecast from 7:30, so allow extra time\.$/);
+    expect(driving.conditions_note).toMatch(/Rain is forecast from 7:30\.$/);
   });
 
   it("is not given to Claude or mentioned by the template when none is forecast", async () => {
@@ -298,6 +305,25 @@ describe("rain", () => {
   it("keeps a forecast out of the notice, where it would read as the reason for being late", async () => {
     const blaming = { ...rainyWords, notice: "Hi Mary, it is raining, so I will be about 15 minutes late. My ETA is 9:15." };
     expect((await draft(lateRequest({ rain }), answering(JSON.stringify(blaming)))).source).toBe("template");
+  });
+
+  it.each(["a storm is coming", "the weather is bad", "heavy rainfall", "showers on the way"])(
+    "catches the weather by its other names: %s",
+    async (phrase) => {
+      const invented = { ...claudeWords, conditions_note: `Waiyaki Way is 18 min slower than normal, ${phrase}.` };
+      expect((await draft(lateRequest(), answering(JSON.stringify(invented)))).source).toBe("template");
+    },
+  );
+
+  it("does not mistake a name for the weather: a contact called Rain, a road called Rain Tree Road", async () => {
+    const routes = [{ label: "Rain Tree Road", durationMin: 70, trafficDelayMin: 18 }];
+    const req = { ...lateRequest({ routes, selectedRoute: "Rain Tree Road" }), recipient: { name: "Rain", relationship: "friend" } };
+    const words = {
+      decision_line: "You will arrive at 9:15 via Rain Tree Road, 15 min past your deadline. Let Rain know now.",
+      conditions_note: "Rain Tree Road is 18 min slower than normal.",
+      notice: "Hi Rain, I will be about 15 minutes late. My ETA is 9:15.",
+    };
+    expect((await draft(req, answering(JSON.stringify(words)))).source).toBe("claude");
   });
 
   it.each(["mvua inanyesha", "kuna Mvua leo"])("catches it in Swahili and Sheng too: %s", async (phrase) => {

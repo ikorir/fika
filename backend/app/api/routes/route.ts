@@ -3,8 +3,8 @@ import { z } from "zod";
 
 import { type ApiError, RoutesRequest, RoutesResponse } from "@/lib/contract";
 import { fetchSamples } from "@/lib/route-samples";
-
 import { rainForecast } from "@/lib/weather";
+
 const fail = (error: string, status: number) => NextResponse.json<ApiError>({ error }, { status });
 
 // Each check costs about 6 Google calls, so a commute's response is reused for a few minutes.

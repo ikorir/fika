@@ -37,8 +37,11 @@ type Copy = {
   slower(p: { road: string; min: number }): string;
   unaffected(roads: string[]): string;
   normal(road: string | null): string;
-  /** A second sentence for the conditions note, only when rain is forecast. It gives no figure: none was computed. */
-  rain(at: string): string;
+  /**
+   * A second sentence for the conditions note, only when rain is forecast. It gives no figure: none was computed.
+   * `ahead` is a departure still to come; without one there is no extra time left to allow, so it only says so.
+   */
+  rain(p: { at: string; ahead: boolean }): string;
   and: string;
   notice(p: { name: string; minutes: number; eta: string; tone: Tone }): string;
 };
@@ -60,7 +63,7 @@ const en: Copy = {
   slower: ({ road, min }) => `${road} is ${min} min slower than normal`,
   unaffected: (roads) => `${list(roads, "and")} ${roads.length === 1 ? "is" : "are"} unaffected`,
   normal: (road) => `Traffic is normal${road ? ` on ${road}` : ""}.`,
-  rain: (at) => `Rain is forecast from ${at}, so allow extra time.`,
+  rain: ({ at, ahead }) => `Rain is forecast from ${at}${ahead ? ", so allow extra time" : ""}.`,
   and: "and",
   notice: ({ name, minutes, eta, tone }) =>
     tone === "friend"
@@ -85,7 +88,7 @@ const sw: Copy = {
   slower: ({ road, min }) => `${road} ina dakika ${min} zaidi ya kawaida`,
   unaffected: (roads) => `${list(roads, "na")} ${roads.length === 1 ? "haijaathirika" : "hazijaathirika"}`,
   normal: (road) => `Trafiki ni ya kawaida${road ? ` kwenye ${road}` : ""}.`,
-  rain: (at) => `Mvua inatarajiwa kuanzia ${at}, kwa hivyo jipe muda zaidi.`,
+  rain: ({ at, ahead }) => `Mvua inatarajiwa kuanzia ${at}${ahead ? ", kwa hivyo jipe muda zaidi" : ""}.`,
   and: "na",
   notice: ({ name, minutes, eta, tone }) =>
     tone === "friend"
@@ -111,7 +114,7 @@ const sheng: Copy = {
   slower: ({ road, min }) => `${road} iko na dakika ${min} extra kuliko kawaida`,
   unaffected: (roads) => `${list(roads, "na")} ${roads.length === 1 ? "iko" : "ziko"} sawa`,
   normal: (road) => `Traffic iko kawaida${road ? ` kwa ${road}` : ""}.`,
-  rain: (at) => `Mvua inakuja kuanzia ${at}, so jipe time extra.`,
+  rain: ({ at, ahead }) => `Mvua inakuja kuanzia ${at}${ahead ? ", so jipe time extra" : ""}.`,
   and: "na",
   notice: ({ name, minutes, eta, tone }) =>
     tone === "friend"
@@ -158,7 +161,10 @@ function trafficNote(facts: Facts, copy: Copy): string {
 
 /** The traffic, and then the rain when it is forecast: "… Rain is forecast from 7:30, so allow extra time." */
 const conditionsNote = (facts: Facts, copy: Copy) =>
-  join(trafficNote(facts, copy), facts.rain ? copy.rain(facts.rain.at) : null);
+  join(
+    trafficNote(facts, copy),
+    facts.rain ? copy.rain({ at: facts.rain.at, ahead: !facts.onTheRoad && facts.leaveBy !== null }) : null,
+  );
 
 /**
  * The late notice, word for word the app's own template (mobile/src/notice/template.ts). It names no cause: the

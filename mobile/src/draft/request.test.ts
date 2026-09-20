@@ -165,4 +165,10 @@ describe('rain', () => {
     );
     expect(conditionsNote(evaluation, { at: at('8:45').toISOString() })).toBe('Traffic on Ngong Road is normal.');
   });
+
+  it('does not tell a commuter with no departure left ahead of them to allow extra time', () => {
+    // 8:10: leaving now on Ngong Road arrives 9:06, late.
+    const leavingNow = evaluate({ commute, samples: [sample('8:10', routes, 'now'), ...morning(routes)], now: at('8:10') });
+    expect(conditionsNote(leavingNow, { at: at('8:30').toISOString() })).toMatch(/Rain is forecast from 8:30\.$/);
+  });
 });
