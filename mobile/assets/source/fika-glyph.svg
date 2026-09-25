@@ -1,0 +1,9 @@
+<!-- Fika's glyph: a clock whose hand runs out of it as a road. One white stroke, round caps, on a 100 grid, centred.
+     Rasterised into mobile/assets/images and mobile/assets/expo.icon; drawn in code on the welcome screen. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <g fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M51.21 75.54A30 30 0 1 1 74.19 56.26"/>
+    <path d="M46 46V30"/>
+    <path d="M46 46C54 50 60 56 64 64S66 80 84 84"/>
+  </g>
+</svg>

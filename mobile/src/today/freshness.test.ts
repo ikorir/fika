@@ -1,4 +1,4 @@
-import { updatedLabel } from '@/today/freshness';
+import { STALE_AFTER_MIN, updatedLabel } from '@/today/freshness';
 
 const at = (iso: string) => new Date(iso);
 
@@ -41,5 +41,20 @@ describe('updatedLabel', () => {
     expect(updatedLabel('2026-09-18T07:40:00+03:00', at('2026-09-21T07:44:00+03:00')).text).toBe(
       'Updated 18 Sep 7:40',
     );
+  });
+
+  it('turns stale at exactly STALE_AFTER_MIN, not a minute before', () => {
+    const fetchedAt = '2026-09-21T07:40:00+03:00';
+    const after = (min: number) => updatedLabel(fetchedAt, new Date(Date.parse(fetchedAt) + min * 60_000));
+    expect(STALE_AFTER_MIN).toBe(10);
+    expect(after(STALE_AFTER_MIN - 1)).toEqual({ text: 'Updated 7:40', stale: false });
+    expect(after(STALE_AFTER_MIN)).toEqual({ text: 'Updated 7:40 · 10 min old', stale: true });
+    expect(after(STALE_AFTER_MIN + 1)).toEqual({ text: 'Updated 7:40 · 11 min old', stale: true });
+  });
+
+  it('counts only whole minutes, so the last seconds before the boundary are still fresh', () => {
+    const fetchedAt = '2026-09-21T07:40:00+03:00';
+    const justBefore = new Date(Date.parse(fetchedAt) + STALE_AFTER_MIN * 60_000 - 1);
+    expect(updatedLabel(fetchedAt, justBefore).stale).toBe(false);
   });
 });

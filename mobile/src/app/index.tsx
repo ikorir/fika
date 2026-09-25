@@ -1,5 +1,6 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { DemoSheet } from '@/demo/DemoSheet';
@@ -21,12 +22,17 @@ import { SimulationBanner } from '@/today/SimulationBanner';
 import { useNow } from '@/today/useNow';
 import { useRoutes } from '@/today/useRoutes';
 import { departureCaption, reminderBody } from '@/today/words';
+import { EmptyState } from '@/ui/EmptyState';
 import { useStateHaptic } from '@/ui/haptics';
 import { useMotion } from '@/ui/motion';
 import { Press } from '@/ui/Press';
 import { useCommute } from '@/useCommute';
 
 const { color, type } = theme;
+
+// Stroke icons for the two empty states: a route between two points, and a circled exclamation mark.
+const routeIcon = 'M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15M3 19a3 3 0 1 0 6 0 3 3 0 1 0-6 0M15 5a3 3 0 1 0 6 0 3 3 0 1 0-6 0';
+const alertIcon = 'M12 8v4M12 16h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0';
 
 export default function TodayScreen() {
   const { commute: own } = useCommute();
@@ -110,8 +116,21 @@ export default function TodayScreen() {
         demoOn={demo.on}
       />
       <SimulationBanner evaluation={evaluation} saved={demo.saved} />
-      {/* Moves with the banner above it as that comes and goes, instead of jumping by its height. */}
-      <Animated.ScrollView layout={layout} contentContainerStyle={styles.content}>
+      {/* Moves with the banner above it as that comes and goes, instead of jumping by its height. Pulling it down
+          fetches again; the spinner shows while fresh numbers are on their way over ones already on screen. */}
+      <Animated.ScrollView
+        layout={layout}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading && !!data}
+            onRefresh={refresh}
+            tintColor={color.accent}
+            colors={[color.accent]}
+            progressBackgroundColor={color.surface}
+          />
+        }
+      >
         <Hero commute={commute} evaluation={evaluation} draft={draft} rain={data?.rain} loading={firstLoad} />
 
         {/* Late, the notice takes the routes' place. The routes stay above it only while switching gets back on time. */}
@@ -123,20 +142,39 @@ export default function TodayScreen() {
           />
         )}
         {noticeCard}
-        {data && !hasRoute && <Text style={styles.message}>No driving route found for this commute.</Text>}
+        {data && !hasRoute && (
+          <View style={styles.inset}>
+            <EmptyState
+              icon={routeIcon}
+              title="No driving route"
+              body={`Fika found no way to drive from ${commute.origin.label} to ${commute.destination.label}.`}
+              action={{ label: 'Edit commute', onPress: () => router.push('/setup') }}
+            />
+          </View>
+        )}
 
         {firstLoad && <RouteListSkeleton />}
 
-        {/* A failed fetch keeps the last numbers on screen above this, and says so. */}
-        {shownError && (
+        {/* A failed fetch keeps the last numbers on screen above this, and says so. With nothing to keep, the error
+            takes the routes' place. */}
+        {shownError && data && (
           <Animated.View entering={enter} exiting={exit} style={styles.errorBox}>
             <Text style={styles.message}>
-              {data ? 'Couldn’t refresh — these are the numbers Fika last got. ' : 'Couldn’t get routes. '}
-              {shownError}
+              Couldn’t refresh — these are the numbers Fika last got. {shownError}
             </Text>
             <Press accessibilityRole="button" onPress={refresh} disabled={loading} style={styles.retry}>
               <Text style={styles.retryLabel}>{loading ? 'Trying…' : 'Try again'}</Text>
             </Press>
+          </Animated.View>
+        )}
+        {shownError && !data && (
+          <Animated.View entering={enter} exiting={exit} style={styles.inset}>
+            <EmptyState
+              icon={alertIcon}
+              title="Couldn’t get routes"
+              body={shownError}
+              action={{ label: loading ? 'Trying…' : 'Try again', onPress: refresh }}
+            />
           </Animated.View>
         )}
       </Animated.ScrollView>
@@ -178,6 +216,7 @@ const styles = StyleSheet.create({
   content: { paddingTop: 2, paddingBottom: 16, gap: theme.space.gap },
   message: { ...type.note, color: color.textMuted, paddingHorizontal: theme.space.heroInset },
   errorBox: { gap: 12 },
+  inset: { marginHorizontal: theme.space.screen },
   retry: {
     marginHorizontal: theme.space.screen,
     height: theme.size.buttonSecondary,

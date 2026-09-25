@@ -54,17 +54,19 @@
       "slug": "first-impression",
       "parts": 4,
       "blocked_by": "01",
-      "status": "in-progress",
+      "status": "complete",
       "attempts": 1,
-      "evidence": [],
+      "evidence": [
+        "attempt1: jest 413/413, typecheck 0, 7/7 app.json assets; rebuilt dev client; device: new splash glyph and home icon, pull-to-refresh with green freshness dot (iOS 26 iPhone), welcome on fresh install (iOS 26 iPad), sample commute -> Today, relaunch skips welcome"
+      ],
       "commit": null
     },
     "06": {
       "slug": "commute-v2-mornings",
       "parts": 3,
       "blocked_by": "03",
-      "status": "not-started",
-      "attempts": 0,
+      "status": "in-progress",
+      "attempts": 1,
       "evidence": [],
       "commit": null
     },

@@ -12,6 +12,7 @@ Source of truth for how the app looks: the "Fika app design" canvas, https://cla
 | Late notice sheet | `Notice.dc.html` | Bottom sheet: tone switch, language chips, To row, editable message, locked chips, WhatsApp / SMS / Share | 04, 05, 06 |
 | Commute setup | `Setup.dc.html` | From, To, Arrive by, Usual departure, Buffer, Parking time, I drive / Ride-hail, contact name, phone, relationship | 08 |
 | Demo mode sheet | `Demo.dc.html` | Scenarios, app clock back/forward 5 minutes, "Use saved routes", Reset to start | 03, 10 |
+| Welcome | not on the canvas yet | First run only, on a phone with no commute stored: the glyph in accent (fades and rises in), "Know when to leave.", one line on what Fika does, "Set up my commute" (primary button), "Try it with a sample commute" (accent text button). Either choice ends it for good | v2 05 |
 
 ## Tokens
 
@@ -23,6 +24,7 @@ Source of truth for how the app looks: the "Fika app design" canvas, https://cla
 - Type: Figtree (400–800). Hero time 64px / 800 / −0.03em. Decision line 16px / 500. Conditions note 14px secondary. Route name 16px / 600, route meta 13px secondary. Primary button label 17px / 700.
 - Shape: primary button 56px high, fully rounded; secondary buttons 50px; cards radius 22; sheet top radius 32; chips 28px high; touch targets at least 44px.
 - Icons: simple stroke icons, no emoji.
+- App icon: accent `#F28C38` ground with one white stroke glyph, a clock whose hand runs out of it as a road (source `mobile/assets/source/fika-glyph.svg`). The splash is the same glyph in white on black.
 
 ## Behaviour the design adds to the spec
 
@@ -33,6 +35,7 @@ Source of truth for how the app looks: the "Fika app design" canvas, https://cla
 - The map shows an ETA bubble on each route and an incident marker on the delayed route while a simulated accident is active. Unselected routes dim further in the late state.
 - The map moves rather than jumps: it eases to fit every route when they change and to fit a route when it is selected, and after "Switch to …" the camera tilts to 45° on the way and settles flat. The selected route sits on a soft accent glow, the map fades into the black at its foot, ETA bubbles have a tail pointing at their road, the origin and destination pins have a soft halo, and the incident marker pulses while an accident is simulated. The header controls float on a blur (iOS; a flat fill on Android). With reduce motion the camera moves at once and the pulse holds still.
 - The banner says what is simulated: "SIMULATED TRAFFIC · WAIYAKI WAY +25 MIN", "SIMULATED TRAFFIC · CLOCK SET TO 8:40".
+- Nothing to show is a card, not a line of muted text: a stroke icon, a title, one line of reason and one action. "No driving route" names the two places and offers "Edit commute". "Couldn’t get routes" gives the error and "Try again"; with numbers already on screen, the "these are the numbers Fika last got" line stays instead. A reminder asked for while the phone will not let Fika notify shows "Reminders are off" with "Open settings" in place of the reminder button.
 - The late state shows the notice preview on the main screen; the full editor is a bottom sheet over it.
 - ETA and lateness appear as locked chips next to the message, labelled "from your route, not AI", with the line "Fika opens a prefilled message. Nothing goes out until you press send."
 - Demo mode sheet has an app clock with 5-minute steps and a "Use saved routes — works with no internet" switch.

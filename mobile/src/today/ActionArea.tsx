@@ -25,7 +25,8 @@ type Props = {
 
 export function ActionArea({ commute, updatedAt, now, evaluation, reminder, onSelectRoute, onReviewNotice }: Props) {
   const insets = useSafeAreaInsets();
-  // The real clock, not Demo mode's: how old the numbers are is about when they were fetched.
+  // The real clock, not Demo mode's: how old the numbers are is about when they were fetched. The screen's clock
+  // ticks every 30 seconds, so the label ages while the app sits open without anything being fetched.
   const updated = updatedAt ? updatedLabel(updatedAt, now) : null;
   const selected = evaluation?.routes.find((r) => r.selected);
   const url = useMemo(() => {
@@ -43,9 +44,13 @@ export function ActionArea({ commute, updatedAt, now, evaluation, reminder, onSe
       />
       <View style={styles.footer}>
         {updated ? (
-          <Text style={[styles.updated, updated.stale && styles.stale]} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
-            {updated.text}
-          </Text>
+          <View style={styles.freshness}>
+            {/* Green while the numbers are fresh, amber once they are stale. */}
+            <View testID="freshness-dot" style={[styles.dot, updated.stale && styles.staleDot]} />
+            <Text style={[styles.updated, updated.stale && styles.stale]} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+              {updated.text}
+            </Text>
+          </View>
         ) : (
           <View />
         )}
@@ -81,6 +86,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     minHeight: 24,
   },
+  freshness: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.color.onTime },
+  staleDot: { backgroundColor: theme.color.atRisk },
   updated: { ...theme.type.meta, color: theme.color.textMuted, flexShrink: 1 },
   stale: { color: theme.color.atRisk },
   linkPress: { marginLeft: 'auto', flexShrink: 1 },

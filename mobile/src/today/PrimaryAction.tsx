@@ -1,4 +1,4 @@
-import { StyleSheet, Text } from 'react-native';
+import { Linking, StyleSheet, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import type { Evaluation } from '@/contract';
@@ -7,6 +7,7 @@ import type { Reminder } from '@/reminders/useReminders';
 import { theme } from '@/theme';
 import { formatTime } from '@/time';
 import { betterRoute, routeName } from '@/today/words';
+import { EmptyState } from '@/ui/EmptyState';
 import { Press } from '@/ui/Press';
 import { LARGE_TEXT_CAP } from '@/ui/useFontScale';
 
@@ -21,6 +22,7 @@ type Props = {
 
 const bellPath = 'M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0';
 const tickPath = 'M20 6 9 17l-5-5';
+const bellOffPath = `${bellPath}M4 4l16 16`;
 
 // The state's one primary action. On time: "Remind me at 7:55", which the commuter can tap again to drop. At risk:
 // "Switch to <route>" when another route restores on time. Late: the same switch while there is still one to make
@@ -37,6 +39,16 @@ export function PrimaryAction({ evaluation, reminder, onSelectRoute, onReviewNot
   // Nothing to remind about once the leave-by has gone: the screen already says to leave now.
   if (evaluation?.state !== 'on_time' || !reminder.at) return null;
   const at = formatTime(reminder.at);
+  // Asked for, but the phone will not let Fika notify and will not ask again: only its settings can change that.
+  if (reminder.blocked)
+    return (
+      <EmptyState
+        icon={bellOffPath}
+        title="Reminders are off"
+        body={`Turn on notifications for Fika in Settings to be reminded at ${at}.`}
+        action={{ label: 'Open settings', onPress: openSettings }}
+      />
+    );
   return (
     <Action
       icon={reminder.set ? tickPath : bellPath}
@@ -45,6 +57,14 @@ export function PrimaryAction({ evaluation, reminder, onSelectRoute, onReviewNot
       onPress={reminder.toggle}
     />
   );
+}
+
+async function openSettings() {
+  try {
+    await Linking.openSettings();
+  } catch (e) {
+    console.warn('Could not open Settings', e);
+  }
 }
 
 function Action({ icon, label, selected, onPress }: { icon: string; label: string; selected?: boolean; onPress: () => void }) {

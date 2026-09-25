@@ -95,4 +95,11 @@ describe('NoticeSheet', () => {
     );
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('lets a tap land on the first try while the keyboard is up, in every scrolling part of the sheet', async () => {
+    await renderSheet();
+    const scrolls = screen.container.queryAll((n) => n.type === 'RCTScrollView');
+    expect(scrolls.length).toBeGreaterThan(0);
+    for (const scroll of scrolls) expect(scroll.props.keyboardShouldPersistTaps).toBe('handled');
+  });
 });

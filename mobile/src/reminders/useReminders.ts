@@ -87,11 +87,16 @@ export function useRefreshOnWake(refresh: () => void) {
   }, []);
 }
 
-/** The one-off reminder behind "Remind me at 7:55": `set` once it is scheduled, and `toggle` to set or drop it. */
-export type Reminder = { at: string | null; set: boolean; toggle: () => void };
+/**
+ * The one-off reminder behind "Remind me at 7:55": `set` once it is scheduled, and `toggle` to set or drop it.
+ * `blocked` once the commuter asked for one and the phone will not let Fika notify, nor let it ask again: only the
+ * phone's settings can turn notifications back on.
+ */
+export type Reminder = { at: string | null; set: boolean; blocked?: boolean; toggle: () => void };
 
 export function useOneOffReminder(at: string | null, body: string): Reminder {
   const [set, setSet] = useState(false);
+  const [blocked, setBlocked] = useState(false);
   // Refs, not state: what is armed on the phone has to be right even between renders, or an identifier is lost and
   // the notification behind it can never be cancelled.
   const wanted = useRef(false);
@@ -129,9 +134,10 @@ export function useOneOffReminder(at: string | null, body: string): Reminder {
     }
     if (!at) return;
     if (!(await allowedToNotify(true))) {
-      Alert.alert('Reminders are off', 'Turn on notifications for Fika in your phone’s settings to be reminded.');
+      setBlocked(true);
       return;
     }
+    setBlocked(false);
     wanted.current = true;
     setSet(true);
     reminderSet();
@@ -154,7 +160,16 @@ export function useOneOffReminder(at: string | null, body: string): Reminder {
     arm(when);
   }, [at]);
 
-  return { at, set, toggle };
+  // Back from the phone's settings with notifications on, "Remind me at 7:55" is there to tap again.
+  useEffect(() => {
+    if (!blocked) return;
+    const woke = AppState.addEventListener('change', async (state) => {
+      if (state === 'active' && (await notificationsAllowed())) setBlocked(false);
+    });
+    return () => woke.remove();
+  }, [blocked]);
+
+  return { at, set, blocked, toggle };
 }
 
 /**
