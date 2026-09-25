@@ -1,0 +1,88 @@
+{
+  "batch": "fika-v2",
+  "authorized": "2026-09-25",
+  "allowance_per_ticket": 3,
+  "tickets": {
+    "01": {
+      "slug": "motion-foundations",
+      "parts": 3,
+      "blocked_by": "none",
+      "status": "not-started",
+      "attempts": 0,
+      "evidence": [],
+      "commit": null
+    },
+    "02": {
+      "slug": "today-motion",
+      "parts": 4,
+      "blocked_by": "01",
+      "status": "not-started",
+      "attempts": 0,
+      "evidence": [],
+      "commit": null
+    },
+    "03": {
+      "slug": "bottom-sheets",
+      "parts": 2,
+      "blocked_by": "01",
+      "status": "not-started",
+      "attempts": 0,
+      "evidence": [],
+      "commit": null
+    },
+    "04": {
+      "slug": "map-polish",
+      "parts": 3,
+      "blocked_by": "01",
+      "status": "not-started",
+      "attempts": 0,
+      "evidence": [],
+      "commit": null
+    },
+    "05": {
+      "slug": "first-impression",
+      "parts": 4,
+      "blocked_by": "01",
+      "status": "not-started",
+      "attempts": 0,
+      "evidence": [],
+      "commit": null
+    },
+    "06": {
+      "slug": "commute-v2-mornings",
+      "parts": 3,
+      "blocked_by": "03",
+      "status": "not-started",
+      "attempts": 0,
+      "evidence": [],
+      "commit": null
+    },
+    "07": {
+      "slug": "show-the-maths",
+      "parts": 4,
+      "blocked_by": "02, 03",
+      "status": "not-started",
+      "attempts": 0,
+      "evidence": [],
+      "commit": null
+    },
+    "08": {
+      "slug": "beyond-one-trip",
+      "parts": 3,
+      "blocked_by": "06",
+      "status": "not-started",
+      "attempts": 0,
+      "evidence": [],
+      "commit": null
+    },
+    "09": {
+      "slug": "notice-and-history",
+      "parts": 3,
+      "blocked_by": "03, 06",
+      "status": "not-started",
+      "attempts": 0,
+      "evidence": [],
+      "commit": null
+    }
+  }
+}

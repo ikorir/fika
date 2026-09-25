@@ -92,7 +92,7 @@ For the live demo, a clearly labelled **Demo mode** layers a simulated delay on 
 ## Implementation Decisions
 
 ### Shape
-- Two deployables: an **Expo app** (run in Expo Go) and a **Next.js backend** on the team's Coolify server (Docker image built from the repository). No database, no accounts, no sign-in. The backend exists to keep the Google and Anthropic keys off the device, and a shared key keeps strangers who find its URL from spending them.
+- Two deployables: an **Expo app** (an Expo dev client build since commit 1abd278) and a **Next.js backend** on the team's Coolify server (Docker image built from the repository). No database, no accounts, no sign-in. The backend exists to keep the Google and Anthropic keys off the device, and a shared key keeps strangers who find its URL from spending them.
 - The backend is a **thin proxy**. All commute decisions live in one pure module in the app, the **commute engine**. This keeps decision logic in one place and lets Demo mode run offline.
 - Backend is deployed in the first hour; the app always talks to the deployed URL, never to a laptop on venue wifi.
 
@@ -149,7 +149,7 @@ Tickets 02, 07 and 08 run in parallel, and so do 03, 04 and 09, so the shapes be
 ### Stack
 
 - One repository, two projects side by side: the Expo app and the Next.js backend. No workspace tooling. Each side keeps its own copy of the contract types; the backend validates what it returns with zod.
-- App: latest Expo SDK with Expo Router and TypeScript, run in Expo Go. `react-native-maps`, `expo-notifications`, AsyncStorage, `Linking` and the share API from React Native, `@mapbox/polyline` to decode route lines, `@expo-google-fonts/figtree`. Tests: `jest-expo`.
+- App: latest Expo SDK with Expo Router and TypeScript, run in an Expo dev client (`expo run:ios`, `expo run:android`). `react-native-maps`, `expo-notifications`, AsyncStorage, `Linking` and the share API from React Native, `@mapbox/polyline` to decode route lines, `@expo-google-fonts/figtree`. Tests: `jest-expo`.
 - Backend: Next.js App Router route handlers deployed on Coolify, TypeScript, zod, the official Anthropic SDK. Tests: vitest. Secrets only in the Coolify application's environment variables: `GOOGLE_MAPS_API_KEY`, `ANTHROPIC_API_KEY`, `FIKA_API_KEY`.
 - The app reads the backend URL and the shared key from two public environment variables.
 - **Shared key, not auth.** Every `/api` call carries `Authorization: Bearer <FIKA_API_KEY>`; without it the endpoint answers 401 before reading the body. The app's copy is compiled into its bundle, so anyone holding the app can extract it: this keeps the open internet off the billed keys, nothing more. A backend with no `FIKA_API_KEY` set stays open and warns in the log, so a deploy that lands before the variable does cannot lock the app out. `GET /` stays open for the deployment's liveness check.
@@ -176,7 +176,8 @@ type Place = { placeId: string; label: string; location: LatLng };
 
 // POST /api/routes
 type RoutesRequest = { origin: LatLng; destination: LatLng; arriveBy: string /* ISO */; usualDeparture: string /* ISO */ };
-type Route = { id: string; label: string; durationSec: number; staticDurationSec: number; distanceM: number; polyline: string };
+type Route = { id: string; label: string; durationSec: number; staticDurationSec: number; distanceM: number; polyline: string;
+  toll?: { fromKes: number; toKes: number } };   // v2: only on a route that uses a toll road; the fare depends on entry and exit
 type Sample = { departAt: string /* ISO */; kind: "now" | "usual" | "step"; routes: Route[] };
 type RoutesResponse = {
   fetchedAt: string;
@@ -266,13 +267,24 @@ The screen renders an `Evaluation` and nothing else; it holds no commute logic o
 ## Out of Scope
 
 - Matatu, bus, walking, or cycling; any mode other than driving and ride-hail.
-- Turn-by-turn navigation, live GPS tracking, background location, background polling.
+- Turn-by-turn navigation, live GPS tracking, background location, background polling. (v2: one opportunistic background fetch before the morning reminder is in scope, behind a flag; see "v2 amendments".)
 - Automatic sending of any message; direct posting into WhatsApp groups.
-- Accounts, sync across devices, server-side storage, multiple saved commutes.
-- Push (remote) notifications; development or store builds (Expo Go only).
-- Calendar integration, learning from past trips, variability-based buffers.
+- Accounts, sync across devices, server-side storage, multiple saved commutes. (v2: the return trip of the one commute and a second contact are in scope.)
+- Push (remote) notifications; store builds.
+- Writing to the calendar, learning from past trips, variability-based buffers. (v2: reading today's first calendar event as an arrive-by suggestion is in scope, behind a flag; a weekly recap counts past mornings but does not learn from them.)
 - Cities outside Kenya (nothing prevents them; they are not tested).
 - Ride-hail price or booking integration.
+
+## v2 amendments
+
+Approved by the user on 2026-09-25 for the v2 batch (`.scratch/fika-v2/`). Architecture and decisions: `PLAN.md`.
+
+- **Stored commute v2.** Adds `version: 2`, `quietWeekends: boolean` (default true), `arriveByByDay?: Partial<Record<"mon"|"tue"|"wed"|"thu"|"fri"|"sat"|"sun", "HH:mm">>`, `returnTrip?: { homeBy: "HH:mm" }`, and `contacts: Contact[]` (one or two; `contacts[0]` mirrors `contact`, which stays for older readers). `Contact = { name; phone; relationship; tone: "manager"|"friend"; language: "en"|"sw"|"sheng" }`. A v1 commute reads as v2 with defaults; nothing is lost.
+- **Effective commute.** A pure function builds the commute the engine sees for a date: the day's arrive-by, the direction (to work, or home with origin and destination swapped and `homeBy` as the deadline), and a one-day arrive-by override from the calendar. Routes are fetched for the effective commute.
+- **Morning reminders.** The repeating daily notification becomes one-off notifications for the next seven commute days, skipping weekends when quiet and Kenyan public holidays, rescheduled on every app open. Behind a flag, an opportunistic background task may refresh today's reminder body with real numbers; the OS decides when it runs, and without it the reminder says what it says today.
+- **Toll.** `Route.toll` is set by the backend for routes on the Nairobi Expressway, from a table in `backend/lib/tolls.ts`. The app shows the range, never a single invented fare.
+- **Local history.** `fika.history` keeps up to 60 rows: one per live morning evaluation (never a simulated one) and one per notice sent. It feeds a weekly recap card. Nothing leaves the phone.
+- **Calendar.** Read-only, asked for only when the commuter turns it on in setup. Today's first timed event before noon is offered as "Arrive by <start> for <title>?"; accepting overrides today's arrive-by only.
 
 ## Further Notes
 

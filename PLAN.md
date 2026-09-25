@@ -4,7 +4,9 @@ Companion to `SPEC.md` (the contract) and `PITCH.md` (the demo). This file is th
 making Fika feel like a senior team built it, plus the features that earn a "wow" on stage. Nothing here changes the
 contract in `SPEC.md` unless the section says so; those changes go to `SPEC.md` and issue #2 first, then here.
 
-Numbering: **P1–P11** are the polish items, **W1–W12** the new features. Tickets are named after them.
+Numbering: **P1–P11** are the polish items, **W1–W12** the new features. The batch runs from local tickets
+`.scratch/fika-v2/issues/01–09` under `CLAUDE.local.md` coordinated execution; the table under "Work breakdown"
+maps each ticket number to its item. Where this file and a ticket differ, the ticket's "Decisions" section wins.
 
 ## Goals
 
@@ -40,8 +42,10 @@ mobile/src
   engine/
     window.ts         departureWindow(evaluation, samples): WindowBlock[]         (W1)
     explain.ts        explain(evaluation, commute): Explanation                  (W2)
-    toll.ts           tollFor(route): { kes: number } | null                     (W3)
-    holidays.ts       isPublicHoliday(date), nextCommuteDay(date, quiet)         (W6, P11)
+    holidays.ts       isPublicHoliday(date)                                      (W6)
+    effective.ts      effectiveCommute(commute, { date, direction, override })   (P11, W5, W7)
+    days.ts           commuteDays(commute, from, count): Date[]                  (P11, W6)
+    recap.ts          recap(rows, weekOf): Recap                                 (W8)
   store/              versioned AsyncStorage readers/writers (new)
     commute.ts        moved from src/commute.ts; adds returnTrip, quietWeekends, arriveByByDay, contacts[]
     history.ts        one row per morning evaluation and per notice sent          (W8)
@@ -100,8 +104,8 @@ type HistoryRow =
 
 Written from the Today screen once per calendar day on the first evaluation, and from `notice/send.ts` on each send.
 
-**Route** (backend contract, additive): `toll?: { kes: number }`. The app shows it when present. Spec change: one
-optional field on `Route` in `SPEC.md`.
+**Route** (backend contract, additive): `toll?: { fromKes: number; toKes: number }`. The fare depends on entry and
+exit, which Fika does not know, so it is a range. The app shows it when present. Spec: done, see "v2 amendments".
 
 **Flags** (`app.json` `extra.flags` for defaults, `fika.flags` for local overrides):
 `liveActivity`, `backgroundReminder`, `calendar`, `recap`, `secondContact`.
@@ -113,8 +117,8 @@ optional field on `Route` in `SPEC.md`.
   `deltaKind(arriveAt, deadline, bufferMin)` so both share it.
 - `explain(evaluation, commute): Explanation` — `{ deadline, buffer, samples: [{departAt, arriveAt, verdict}], chosen, reason }`
   where `reason` is one of a fixed set of enum keys the screen turns into words. No prose in the engine.
-- `tollFor(route)` — matches `label` against the Expressway and returns the fixed toll; the backend does the same
-  server side so the app only needs it for saved routes.
+- Tolls live only in the backend (`backend/lib/tolls.ts`). The saved-routes fixture gets the `toll` field on its
+  Expressway route by hand, so the app has no toll table of its own.
 - `isPublicHoliday(date)` — a static table for the current year; `nextCommuteDay(date, quietWeekends)` used by the
   daily reminder scheduler.
 - Return trip: no engine change. The screen builds `{ ...commute, origin: destination, destination: origin, arriveBy: homeBy }`
@@ -157,7 +161,8 @@ optional field on `Route` in `SPEC.md`.
 | Send on WhatsApp / SMS / Share | impact medium | `notice/send.ts` |
 | Sheet dismissed by drag | selection | `ui/Sheet` |
 
-Nothing fires while reduce motion is on or when the app is in Demo mode's clock steps (they would buzz on every tap).
+Haptics do not depend on reduce motion (that setting is about movement, not touch). The state-change haptics fire for
+simulated changes too, which is the point on stage; the Demo mode clock steps themselves do not buzz.
 
 ### Live Activity (P11, iOS, flagged)
 
@@ -187,10 +192,70 @@ Nothing fires while reduce motion is on or when the app is in Demo mode's clock 
   and sheets.
 - Every ticket keeps `npm test` and `npm run typecheck` green in `mobile/` and `backend/`.
 
+## Decisions
+
+Resolved once, before the batch, so no ticket has to guess. Tickets cite these by number.
+
+- **D1 Motion primitives.** Reanimated 4 only; `Animated` from `react-native` is retired by ticket 02. Jest runs
+  Reanimated through its own test setup in `jest.setup.js`. Render tests use `@testing-library/react-native`.
+- **D2 One native install.** Ticket 01 installs every v2 native dependency at once (`expo-haptics`, `expo-blur`,
+  `expo-linear-gradient`, `@gorhom/bottom-sheet`, `react-native-view-shot`, `expo-sharing`, `expo-calendar`,
+  `expo-background-task`) with `npx expo install`, so the dev client is rebuilt once. Config plugins and permission
+  strings arrive with the ticket that uses each module.
+- **D3 No bare Pressable.** After ticket 01, `Pressable` from `react-native` is imported only by `src/ui/Press.tsx`.
+- **D4 Sheets.** `src/ui/Sheet.tsx` keeps the props of today's `setup/Sheet.tsx` (`visible`, `title`, `onClose`,
+  children) and drives `BottomSheetModal` underneath. No sheet is ever nested in an RN `Modal`.
+- **D5 Effective commute.** `engine/effective.ts` builds the commute the engine and `useRoutes` see for a date: the
+  day's arrive-by (`arriveByByDay`), the direction (home swaps origin and destination and uses `homeBy`), and a
+  one-day calendar override. The Today screen calls it once; nothing else reads `arriveBy` directly. Demo mode's
+  saved commute bypasses it.
+- **D6 Morning reminders.** The repeating daily trigger is replaced by one-off notifications for the next seven
+  commute days from `engine/days.ts`, rescheduled on every app open (cancel Fika's pending morning reminders, then
+  schedule). Quiet weekends and holidays are filters in `commuteDays`. Ticket 06 part C may rewrite today's body.
+- **D7 Flags.** `src/flags.ts` (ticket 06) reads defaults from `app.json` `extra.flags` and local overrides from
+  `fika.flags`. Defaults: `recap`, `secondContact`, `calendar`, `backgroundReminder` on; `liveActivity` off.
+- **D8 Departure window.** One block per distinct sampled departure, sorted by time: the best arrival over that
+  sample's routes, coloured with the engine's early/tight/late rule (extracted as `deltaKind()` and shared). The
+  block for `evaluation.departAt` is raised. Tapping a block shows its departure, arrival and route inline; it
+  does not change the evaluation.
+- **D9 ETA card.** Drawn in React Native with the selected route's decoded polyline in SVG, not map tiles, so the
+  capture is deterministic offline. Shared as an image with `react-native-view-shot`: iOS through RN `Share` with
+  the image and the notice text, Android through `expo-sharing` with the image only.
+- **D10 Two recipients.** The notice sheet gains a "To" switch between the contacts. Each keeps its own tone and
+  language. A recipient's chip shows "Sent" after its send button is pressed. No chained auto-opening of chats.
+- **D11 Countdown ring.** A 28 px ring beside the hero's "in N min" line, shown only in the on-time state inside the
+  last 15 minutes before leave-by, draining with the app clock. At zero the primary action pulses once.
+- **D12 Ride-hail.** For `mode: "ride_hail"` the footer link becomes "Open in Uber" using Uber's universal link with
+  the destination coordinates and label. No Bolt link: it has no documented deep link.
+- **D13 Recap.** Shown on the Today screen under the routes in the on-time state when last week has at least one
+  live morning row. With Demo mode's saved routes on, a seeded fixture recap shows instead. Only live, unsimulated
+  evaluations are written, once per calendar day.
+- **D14 Device checks.** Implementers have no simulator tools. They run Jest and typecheck and write the manual check
+  steps into their evidence file; the coordinator runs those steps on the iOS simulator with argent before accepting.
+
 ## Work breakdown
 
-Each row is one GitHub issue in the existing ticket format (Blocked by, Testing, Commits, Handoff notes). Hours are
-focused hours with Claude Code.
+Each ticket is one local file under `.scratch/fika-v2/issues/` and bundles several items as parts. Nine tickets, in
+dependency order:
+
+| # | Ticket | Items | Blocked by |
+| --- | --- | --- | --- |
+| 01 | Motion foundations, haptics and large text | A1–A3 (P1, P2, P9) | — |
+| 02 | The Today screen in motion | B1–B4 (P3, P5, P7) | 01 |
+| 03 | One bottom sheet everywhere | C1–C2 (P4) | 01 |
+| 04 | Map polish | D1–D3 (P6) | 01 |
+| 05 | First impression and honest states | E1–E3, F1 (P8, P10, P11 welcome) | 01 |
+| 06 | Commute v2 and smarter mornings | F2, W6, W12 | 03 |
+| 07 | Show the maths | W1, W2, W3, W11 | 02, 03 |
+| 08 | Beyond one trip: return, calendar, ride-hail | W5, W7, W10 | 06 |
+| 09 | Notice card, two recipients and history | W4, W9, W8 | 03, 06 |
+
+**Not in the batch:** F3 Live Activity needs a signed widget extension and a physical iPhone, so it stays a human
+follow-up after ticket 06 (the flag `liveActivity` exists, default off).
+
+The phase tables below keep the per-item scope and hours; the ticket files hold the acceptance criteria.
+
+Hours are focused hours with Claude Code.
 
 ### Phase A — foundations (P1, P2, P9) · 3 h
 
