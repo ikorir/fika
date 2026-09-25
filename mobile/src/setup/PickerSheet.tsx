@@ -2,9 +2,9 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { Sheet } from '@/setup/Sheet';
 import { theme } from '@/theme';
 import { Press } from '@/ui/Press';
+import { Sheet } from '@/ui/Sheet';
 
 const { color, type } = theme;
 

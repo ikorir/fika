@@ -6,10 +6,13 @@ import {
   Figtree_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/figtree';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { theme } from '@/theme';
 import { CommuteProvider, useSavedCommute } from '@/useCommute';
@@ -32,10 +35,19 @@ export default function RootLayout() {
   }, [ready]);
 
   if (!ready) return null;
+  // Every bottom sheet is presented through the provider, above the screens (D4): never inside an RN Modal.
   return (
-    <CommuteProvider store={store}>
-      <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.color.bg } }} />
-    </CommuteProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <BottomSheetModalProvider>
+        <CommuteProvider store={store}>
+          <StatusBar style="light" />
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.color.bg } }} />
+        </CommuteProvider>
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: theme.color.bg },
+});

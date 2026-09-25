@@ -31,17 +31,19 @@
       "slug": "bottom-sheets",
       "parts": 2,
       "blocked_by": "01",
-      "status": "in-progress",
+      "status": "complete",
       "attempts": 1,
-      "evidence": [],
+      "evidence": [
+        "attempt1 (resumed after rate limit): jest 331/331, typecheck 0, no RN Modal; device iOS 26: demo sheet drag-close + backdrop close, notice sheet keyboard lifts sheet with send visible, drag-close with keyboard, address sheet search focus; header prop accepted"
+      ],
       "commit": null
     },
     "04": {
       "slug": "map-polish",
       "parts": 3,
       "blocked_by": "01",
-      "status": "not-started",
-      "attempts": 0,
+      "status": "in-progress",
+      "attempts": 1,
       "evidence": [],
       "commit": null
     },

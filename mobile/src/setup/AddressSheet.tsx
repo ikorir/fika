@@ -1,14 +1,14 @@
 // The sheet behind From and To: type an address, pick it from Google's suggestions, and the commute keeps the place.
 import { useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import { fetchPlace } from '@/api';
 import type { Place } from '@/contract';
-import { Sheet } from '@/setup/Sheet';
 import { usePlaceSearch } from '@/setup/usePlaceSearch';
 import { theme } from '@/theme';
 import { Press } from '@/ui/Press';
+import { Sheet, SheetTextInput } from '@/ui/Sheet';
 
 const { color, type } = theme;
 
@@ -61,7 +61,7 @@ export function AddressSheet({ visible, title, onPick, onClose }: Props) {
           <Circle cx={11} cy={11} r={7} />
           <Path d="m16.5 16.5 4.5 4.5" />
         </Svg>
-        <TextInput
+        <SheetTextInput
           accessibilityLabel={`Search for ${title}`}
           autoFocus
           autoCorrect={false}

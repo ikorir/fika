@@ -1,5 +1,4 @@
-import { Modal, StyleSheet, Switch, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, Switch, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import type { Commute, Evaluation, Sample } from '@/contract';
@@ -9,6 +8,7 @@ import { theme } from '@/theme';
 import { formatTime } from '@/time';
 import { routeName } from '@/today/words';
 import { Press } from '@/ui/Press';
+import { Sheet } from '@/ui/Sheet';
 
 const { color, type } = theme;
 const CLOCK_STEP_MIN = 5;
@@ -27,7 +27,6 @@ type Props = {
 // Bottom sheet: the Demo mode switch, the two scenarios, the app clock and "Reset to start".
 // The scenarios work on the route the screen shows, so the accident hits the route the presenter is looking at.
 export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation, onRestart, onSaved }: Props) {
-  const insets = useSafeAreaInsets();
   const simulation = demo.simulation ?? {};
   const shown = evaluation?.routes.find((r) => r.selected);
   const trip = shown && midTrip(commute, samples, shown.id, simulation.delay);
@@ -53,119 +52,114 @@ export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation
     demo.change((s) => ({ ...s, clock: minutesLater(s.clock ?? evaluation.now, min) }));
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <Press style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close Demo mode" />
-        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 34) }]}>
-          <View style={styles.header}>
-            <Press accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} style={styles.close}>
-              <Icon size={20} stroke={color.text} width={2}>
-                <Path d="M6 6l12 12M18 6 6 18" />
-              </Icon>
-            </Press>
-            <Text style={styles.title} accessibilityRole="header">
-              Demo mode
-            </Text>
-            <Switch
-              accessibilityLabel="Demo mode"
-              value={demo.on}
-              onValueChange={toggleDemo}
-              trackColor={{ false: color.switchOff, true: color.accent }}
-              ios_backgroundColor={color.switchOff}
-              thumbColor={color.text}
-            />
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Scenarios</Text>
-            <View style={[styles.card, disabled && styles.disabled]}>
-              <Scenario
-                title={simulation.delay?.cause ?? `Accident on ${shown ? routeName(shown) : 'your route'}`}
-                detail={`adds ${ACCIDENT_MIN} min to that route`}
-                value={`+${ACCIDENT_MIN} min`}
-                valueColor={color.atRisk}
-                checked={!!simulation.delay}
-                disabled={disabled}
-                onPress={toggleAccident}
-              />
-              <View style={styles.divider} />
-              <Scenario
-                title="Advance clock to mid-trip"
-                detail="shows the late state and the notice"
-                value={trip ? formatTime(trip.clock) : ''}
-                valueColor={color.textMuted}
-                checked={!!simulation.midTrip}
-                disabled={disabled}
-                onPress={toggleMidTrip}
-              />
-            </View>
-          </View>
-
-          <View style={styles.card}>
-            <View style={[styles.clockRow, disabled && styles.disabled]}>
-              <Icon size={22} stroke={color.textMuted} width={1.8}>
-                <Circle cx={12} cy={12} r={8.5} />
-                <Path d="M12 7.5V12l3 2" />
-              </Icon>
-              <Text style={styles.clockLabel}>App clock</Text>
-              <Press
-                accessibilityRole="button"
-                accessibilityLabel={`Back ${CLOCK_STEP_MIN} minutes`}
-                disabled={disabled}
-                onPress={() => stepClock(-CLOCK_STEP_MIN)}
-                style={styles.step}
-              >
-                <Icon size={18} stroke={color.text} width={2.2}>
-                  <Path d="M6 12h12" />
-                </Icon>
-              </Press>
-              <Text style={styles.clock}>{evaluation ? formatTime(evaluation.now) : '–'}</Text>
-              <Press
-                accessibilityRole="button"
-                accessibilityLabel={`Forward ${CLOCK_STEP_MIN} minutes`}
-                disabled={disabled}
-                onPress={() => stepClock(CLOCK_STEP_MIN)}
-                style={styles.step}
-              >
-                <Icon size={18} stroke={color.text} width={2.2}>
-                  <Path d="M6 12h12M12 6v12" />
-                </Icon>
-              </Press>
-            </View>
-            <View style={styles.divider} />
-            {/* Never disabled: with no network there is nothing else on this sheet that can get the demo going. */}
-            <View style={styles.savedRow}>
-              <Icon size={22} stroke={color.textMuted} width={1.8}>
-                <Path d="M12 15V4M8 11l4 4 4-4M5 19h14" />
-              </Icon>
-              <View style={styles.scenarioText}>
-                <Text style={styles.savedLabel}>Use saved routes</Text>
-                <Text style={styles.scenarioDetail}>works with no internet</Text>
-              </View>
-              <Switch
-                accessibilityLabel="Use saved routes"
-                value={demo.saved}
-                onValueChange={onSaved}
-                trackColor={{ false: color.switchOff, true: color.accent }}
-                ios_backgroundColor={color.switchOff}
-                thumbColor={color.text}
-              />
-            </View>
-          </View>
-
-          <Text style={styles.footnote}>A white SIMULATED TRAFFIC banner stays on screen while any of these are on.</Text>
-
-          <Press
-            accessibilityRole="button"
-            disabled={!demo.on}
-            onPress={reset}
-            style={[styles.reset, !demo.on && styles.disabled]}
-          >
-            <Text style={styles.resetLabel}>Reset to start</Text>
-          </Press>
+    <Sheet
+      visible={visible}
+      title="Demo mode"
+      onClose={onClose}
+      header={
+        <>
+          <Text style={styles.title} accessibilityRole="header">
+            Demo mode
+          </Text>
+          <Switch
+            accessibilityLabel="Demo mode"
+            value={demo.on}
+            onValueChange={toggleDemo}
+            trackColor={{ false: color.switchOff, true: color.accent }}
+            ios_backgroundColor={color.switchOff}
+            thumbColor={color.text}
+          />
+        </>
+      }
+    >
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Scenarios</Text>
+        <View style={[styles.card, disabled && styles.disabled]}>
+          <Scenario
+            title={simulation.delay?.cause ?? `Accident on ${shown ? routeName(shown) : 'your route'}`}
+            detail={`adds ${ACCIDENT_MIN} min to that route`}
+            value={`+${ACCIDENT_MIN} min`}
+            valueColor={color.atRisk}
+            checked={!!simulation.delay}
+            disabled={disabled}
+            onPress={toggleAccident}
+          />
+          <View style={styles.divider} />
+          <Scenario
+            title="Advance clock to mid-trip"
+            detail="shows the late state and the notice"
+            value={trip ? formatTime(trip.clock) : ''}
+            valueColor={color.textMuted}
+            checked={!!simulation.midTrip}
+            disabled={disabled}
+            onPress={toggleMidTrip}
+          />
         </View>
       </View>
-    </Modal>
+
+      <View style={styles.card}>
+        <View style={[styles.clockRow, disabled && styles.disabled]}>
+          <Icon size={22} stroke={color.textMuted} width={1.8}>
+            <Circle cx={12} cy={12} r={8.5} />
+            <Path d="M12 7.5V12l3 2" />
+          </Icon>
+          <Text style={styles.clockLabel}>App clock</Text>
+          <Press
+            accessibilityRole="button"
+            accessibilityLabel={`Back ${CLOCK_STEP_MIN} minutes`}
+            disabled={disabled}
+            onPress={() => stepClock(-CLOCK_STEP_MIN)}
+            style={styles.step}
+          >
+            <Icon size={18} stroke={color.text} width={2.2}>
+              <Path d="M6 12h12" />
+            </Icon>
+          </Press>
+          <Text style={styles.clock}>{evaluation ? formatTime(evaluation.now) : '–'}</Text>
+          <Press
+            accessibilityRole="button"
+            accessibilityLabel={`Forward ${CLOCK_STEP_MIN} minutes`}
+            disabled={disabled}
+            onPress={() => stepClock(CLOCK_STEP_MIN)}
+            style={styles.step}
+          >
+            <Icon size={18} stroke={color.text} width={2.2}>
+              <Path d="M6 12h12M12 6v12" />
+            </Icon>
+          </Press>
+        </View>
+        <View style={styles.divider} />
+        {/* Never disabled: with no network there is nothing else on this sheet that can get the demo going. */}
+        <View style={styles.savedRow}>
+          <Icon size={22} stroke={color.textMuted} width={1.8}>
+            <Path d="M12 15V4M8 11l4 4 4-4M5 19h14" />
+          </Icon>
+          <View style={styles.scenarioText}>
+            <Text style={styles.savedLabel}>Use saved routes</Text>
+            <Text style={styles.scenarioDetail}>works with no internet</Text>
+          </View>
+          <Switch
+            accessibilityLabel="Use saved routes"
+            value={demo.saved}
+            onValueChange={onSaved}
+            trackColor={{ false: color.switchOff, true: color.accent }}
+            ios_backgroundColor={color.switchOff}
+            thumbColor={color.text}
+          />
+        </View>
+      </View>
+
+      <Text style={styles.footnote}>A white SIMULATED TRAFFIC banner stays on screen while any of these are on.</Text>
+
+      <Press
+        accessibilityRole="button"
+        disabled={!demo.on}
+        onPress={reset}
+        style={[styles.reset, !demo.on && styles.disabled]}
+      >
+        <Text style={styles.resetLabel}>Reset to start</Text>
+      </Press>
+    </Sheet>
   );
 }
 
@@ -216,26 +210,6 @@ function Icon({ size, stroke, width, children }: { size: number; stroke: string;
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: color.scrim },
-  sheet: {
-    backgroundColor: color.surface,
-    borderTopLeftRadius: theme.radius.sheet,
-    borderTopRightRadius: theme.radius.sheet,
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    gap: 14,
-  },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  close: {
-    width: theme.size.roundButton,
-    height: theme.size.roundButton,
-    borderRadius: theme.size.roundButton / 2,
-    borderWidth: 1,
-    borderColor: color.border,
-    backgroundColor: color.control,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   title: { ...type.sheetTitle, color: color.text, flex: 1 },
   section: { gap: 8 },
   sectionTitle: { ...type.cardTitle, color: color.text, paddingHorizontal: 6 },
