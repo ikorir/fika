@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -8,6 +8,8 @@ import { savedCommute, savedRoutes } from '@/demo/saved';
 import { useDemo } from '@/demo/useDemo';
 import { useDraft } from '@/draft/useDraft';
 import { evaluate } from '@/engine';
+import { commuteDayAt, effectiveCommute } from '@/engine/effective';
+import { isPublicHoliday } from '@/engine/holidays';
 import { NoticeCard } from '@/notice/NoticeCard';
 import { NoticeSheet } from '@/notice/NoticeSheet';
 import { useNotice } from '@/notice/useNotice';
@@ -37,10 +39,18 @@ const alertIcon = 'M12 8v4M12 16h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0';
 export default function TodayScreen() {
   const { commute: own } = useCommute();
   const demo = useDemo();
-  // Saved routes come with the commute they were fetched for. The commuter's own stays on the phone, untouched,
-  // and is still the one routes are fetched and the daily reminder is set for.
-  const commute = demo.saved ? savedCommute : own;
-  const { data, error, loading, refresh } = useRoutes(own, demo.saved);
+  // The commute for the day the screen is about (D5): its own arrive-by when it has one, and otherwise the stored
+  // commute itself, the very same object, so an ordinary day fetches and shows exactly what it always has. It changes
+  // only when the day does, never on a tick of the clock.
+  const clock = useNow(own);
+  const dayMs = commuteDayAt(own, clock).getTime();
+  const today = useMemo(() => effectiveCommute(own, { date: new Date(dayMs), direction: 'work' }), [own, dayMs]);
+  // Saved routes come with the commute they were fetched for, and bypass the day's. The commuter's own stays on the
+  // phone, untouched, and is still the one routes are fetched and the morning reminders are set for.
+  const commute = demo.saved ? savedCommute : today;
+  const { data, error, loading, refresh } = useRoutes(today, demo.saved);
+  // A public holiday (W6) says so in place of the decision line, live only: Demo mode ignores holidays.
+  const holiday = demo.on ? null : isPublicHoliday(new Date(dayMs));
   // A refresh clears the error while it runs. The error box stays up through it, saying "Trying…", so a retry that
   // fails again does not take the box away and bring it straight back.
   const [shownError, setShownError] = useState(error);
@@ -71,10 +81,10 @@ export default function TodayScreen() {
     setSelectedId(undefined);
   };
 
-  // Reminders: the daily one the commuter never has to think about, and the one-off one behind "Remind me at 7:55".
+  // Reminders: the morning ones the commuter never has to think about, and the one-off one behind "Remind me at 7:55".
   // Fresh numbers whenever the app comes forward or a reminder is tapped; no polling in between.
   const body = evaluation ? reminderBody(evaluation) : '';
-  useDailyReminder(own.usualDeparture);
+  useDailyReminder(own);
   useRefreshOnWake(refresh);
   const reminder = useOneOffReminder(evaluation?.remindAt ?? null, body);
   useDemoReminderCue(evaluation, demo.on, body);
@@ -131,7 +141,14 @@ export default function TodayScreen() {
           />
         }
       >
-        <Hero commute={commute} evaluation={evaluation} draft={draft} rain={data?.rain} loading={firstLoad} />
+        <Hero
+          commute={commute}
+          evaluation={evaluation}
+          draft={draft}
+          rain={data?.rain}
+          loading={firstLoad}
+          holiday={holiday}
+        />
 
         {/* Late, the notice takes the routes' place. The routes stay above it only while switching gets back on time. */}
         {evaluation && (!noticeCard || evaluation.betterRouteId) && (

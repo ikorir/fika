@@ -65,17 +65,20 @@
       "slug": "commute-v2-mornings",
       "parts": 3,
       "blocked_by": "03",
-      "status": "in-progress",
-      "attempts": 1,
-      "evidence": [],
+      "status": "complete",
+      "attempts": 2,
+      "evidence": [
+        "attempt1: jest 507/507, typecheck 0; rebuilt dev client; device: real v1 commute opens unchanged, setup rows + per-day sheet OK; review: no blockers, 4 findings (multi-fetch, headless task define, later arrive-by window, reopen resets body) -> repair",
+        "attempt2: findings 1,2,4 fixed (one fetch/day record, index.ts entry defines task, reopen keeps refreshed body); finding 3 accepted as known limitation (needs engine day param, SPEC change); jest 517/517, typecheck 0; device: app boots via new entry, v1 commute intact"
+      ],
       "commit": null
     },
     "07": {
       "slug": "show-the-maths",
       "parts": 4,
       "blocked_by": "02, 03",
-      "status": "not-started",
-      "attempts": 0,
+      "status": "in-progress",
+      "attempts": 1,
       "evidence": [],
       "commit": null
     },

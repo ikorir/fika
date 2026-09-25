@@ -35,12 +35,22 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-background-task"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "backgroundColor": "#000000"
+    "backgroundColor": "#000000",
+    "extra": {
+      "flags": {
+        "liveActivity": false,
+        "backgroundReminder": true,
+        "calendar": true,
+        "recap": true,
+        "secondContact": true
+      }
+    }
   }
 }

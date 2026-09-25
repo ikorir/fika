@@ -103,6 +103,19 @@ export function reminderBody(e: Evaluation): string {
 }
 
 /**
+ * The morning reminder's words once the background task has today's numbers (W12): "Leave by 7:45 today via Limuru
+ * Road.", "Leave now: traffic on Kiambu Road.", or, late, that the message is ready.
+ */
+export function morningBody(e: Evaluation): string {
+  if (e.state === 'on_time') return `Leave by ${formatTime(e.departAt)} today via ${routeName(selectedRoute(e))}.`;
+  if (e.state === 'at_risk') return `Leave now: traffic on ${routeName(selectedRoute(e))}.`;
+  return "You're likely late today. Fika has a message ready.";
+}
+
+/** In place of the decision line on a public holiday (W6), when there is no morning reminder. */
+export const holidayLine = (name: string) => `Public holiday: ${name}. No reminder today.`;
+
+/**
  * "8:00" when the forecast rain is about this drive: it starts before they arrive, and the forecast is not an old
  * one. Null otherwise, and then nothing on screen or sent to Claude mentions rain.
  */

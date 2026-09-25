@@ -1,15 +1,24 @@
-// The phone's local notifications: permission, the repeating daily reminder, and the one-off one.
-// Local only — there is no push token and no background polling anywhere in the app.
+// The phone's local notifications: permission, the morning reminders, and the one-off one.
+// Local only — there is no push token and no polling anywhere in the app. The one background task (flagged) runs when
+// the OS decides, and only rewrites a morning reminder that is already scheduled.
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
-import { dailyTrigger } from '@/reminders/schedule';
+import type { Commute } from '@/contract';
+import { nairobiDate } from '@/engine/holidays';
+import {
+  isMorningReminderId,
+  type MorningRefresh,
+  type MorningReminder,
+  morningReminders,
+} from '@/reminders/schedule';
 
-/** The daily reminder keeps one identifier, so rescheduling replaces it instead of piling up. */
-const DAILY_ID = 'fika.daily-reminder';
 const CHANNEL_ID = 'reminders';
 
 export const REMINDER_TITLE = "Check today's commute";
+
+/** What a morning reminder says until the background task has today's numbers, or when it never runs. */
+export const MORNING_BODY = 'See what traffic is doing before you leave.';
 
 // A reminder that arrives while the app is open still shows: the commuter asked for it.
 Notifications.setNotificationHandler({
@@ -47,27 +56,56 @@ export async function askForNotifications(): Promise<boolean> {
   return granted;
 }
 
-/** The repeating reminder, a fixed lead before the usual departure. Replaces whatever was scheduled before. */
-export async function scheduleDailyReminder(usualDeparture: string, now: Date): Promise<void> {
-  await channel();
-  await cancelDailyReminder();
+/** A morning reminder, one-off, under its own identifier: scheduling the same identifier again replaces it. */
+async function scheduleMorning({ identifier, at, day }: MorningReminder, body: string): Promise<void> {
   await Notifications.scheduleNotificationAsync({
-    identifier: DAILY_ID,
-    content: {
-      title: REMINDER_TITLE,
-      body: 'See what traffic is doing before you leave.',
-      data: { reminder: 'daily' },
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      channelId: CHANNEL_ID,
-      ...dailyTrigger(usualDeparture, now),
-    },
+    identifier,
+    content: { title: REMINDER_TITLE, body, data: { reminder: 'morning', day: nairobiDate(day) } },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, channelId: CHANNEL_ID, date: at },
   });
 }
 
-export async function cancelDailyReminder(): Promise<void> {
-  await Notifications.cancelScheduledNotificationAsync(DAILY_ID).catch(() => {});
+// One reschedule at a time, so two that overlap cannot leave the older one's times behind.
+let rescheduling: Promise<void> = Promise.resolve();
+
+/**
+ * The morning reminders (D6): cancels every one of Fika's pending morning reminders — the repeating one builds before
+ * v2 set included — then schedules one-offs for the next seven commute days. Notifications Fika did not schedule as a
+ * morning reminder, such as "Remind me at …", are left alone. `refreshed` is what the background task last wrote: the
+ * reminder for that same day, still ahead, keeps those words instead of going back to the plain ones.
+ */
+export function rescheduleMorningReminders(
+  commute: Pick<Commute, 'usualDeparture' | 'quietWeekends'>,
+  now: Date,
+  refreshed: MorningRefresh | null = null,
+): Promise<void> {
+  const job = rescheduling.then(async () => {
+    await channel();
+    const pending = await Notifications.getAllScheduledNotificationsAsync();
+    for (const { identifier } of pending) {
+      if (isMorningReminderId(identifier)) await Notifications.cancelScheduledNotificationAsync(identifier);
+    }
+    for (const reminder of morningReminders(commute, now)) {
+      const kept = refreshed?.date === nairobiDate(reminder.day) ? refreshed.body : null;
+      await scheduleMorning(reminder, kept ?? MORNING_BODY);
+    }
+  });
+  rescheduling = job.catch(() => {});
+  return job;
+}
+
+/** Whether a morning reminder is still waiting to go off. */
+export async function morningReminderPending(identifier: string): Promise<boolean> {
+  return (await Notifications.getAllScheduledNotificationsAsync()).some((r) => r.identifier === identifier);
+}
+
+/**
+ * The same morning reminder at the same time with new words. Nothing is cancelled first: the identifier replaces it,
+ * so if scheduling fails the reminder that was there stays.
+ */
+export async function replaceMorningReminder(reminder: MorningReminder, body: string): Promise<void> {
+  await channel();
+  await scheduleMorning(reminder, body);
 }
 
 /** The one-off reminder for today, at the instant the commuter asked for. Answers with its identifier. */

@@ -80,3 +80,7 @@ Source: Public Holidays Act, Cap. 110 (https://new.kenyalaw.org/akn/ke/act/1912/
 - **2027 Idd dates are not gazetted yet.** Leave them out of the table, and say so in the comment. They are announced days before, after the moon sighting.
 
 This replaces the fixed-date list in the Part B criterion: use these dates, with names.
+
+### Coordinator, 2026-09-25: accepted with one known limitation
+
+The review's finding 3 stays open. If tomorrow's per-day arrive-by is later than the usual one, then between today's usual arrive-by plus two hours and noon (for example Thursday 11:00 to 12:00, with usual 9:00 and Friday 10:00), the screen shows tomorrow with the usual deadline. The error only ever makes the deadline earlier, for at most the gap between the two arrive-bys. Fixing it needs an explicit `day` in the engine's `evaluate` and in `routesRequest`, which is a change to the SPEC engine contract. That is out of this batch; it is noted as a follow-up.

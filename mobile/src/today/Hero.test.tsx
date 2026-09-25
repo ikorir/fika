@@ -202,3 +202,25 @@ describe('Hero while loading', () => {
     expect(screen.getByTestId('hero-facts').props.entering?.getDuration()).toBe(theme.motion.duration.base);
   });
 });
+
+describe('Hero on a public holiday', () => {
+  const evaluation = scriptSteps(savedCommute, savedRoutes.samples, new Date('2026-09-20T22:00:00+03:00'))[0].evaluation;
+  const draft = {
+    words: { decision_line: 'Claude’s decision line', conditions_note: 'Claude’s note', notice: '', source: 'claude' as const },
+    loading: false,
+  };
+
+  it('keeps its numbers and puts the holiday in place of the decision line, Claude’s or the template’s', async () => {
+    await render(<Hero commute={savedCommute} evaluation={evaluation} draft={draft} holiday="Mashujaa Day" />);
+    expect(screen.getByText('Public holiday: Mashujaa Day. No reminder today.')).toBeOnTheScreen();
+    expect(screen.queryByText('Claude’s decision line')).toBeNull();
+    expect(screen.getByText(heroText(evaluation, savedCommute).value)).toBeOnTheScreen();
+    expect(screen.getByText('Claude’s note')).toBeOnTheScreen();
+  });
+
+  it('shows the decision line as usual on any other day', async () => {
+    await render(<Hero commute={savedCommute} evaluation={evaluation} draft={draft} holiday={null} />);
+    expect(screen.getByText('Claude’s decision line')).toBeOnTheScreen();
+    expect(screen.queryByText(/Public holiday/)).toBeNull();
+  });
+});

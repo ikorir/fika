@@ -6,9 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import { commuteProblems, extraMinLabel } from '@/commute';
-import type { Commute } from '@/contract';
-import { AddressRow, Card, InputRow, PickRow } from '@/setup/Rows';
+import type { Commute, Weekday } from '@/contract';
+import { AddressRow, Card, InputRow, PickRow, SwitchRow } from '@/setup/Rows';
 import { AddressSheet } from '@/setup/AddressSheet';
+import { DAYS_TITLE, DaysSheet, daysSummary, WEEK } from '@/setup/DaysSheet';
 import { type Option, PickerSheet } from '@/setup/PickerSheet';
 import { TimeSheet } from '@/setup/TimeSheet';
 import { theme } from '@/theme';
@@ -31,13 +32,23 @@ const MODES: { value: Commute['mode']; label: string }[] = [
   { value: 'ride_hail', label: 'Ride-hail' },
 ];
 
-// Which picker is open. One at a time, named by the field it changes.
-type Open = 'origin' | 'destination' | 'arriveBy' | 'usualDeparture' | 'bufferMin' | 'extraMin' | 'relationship';
+// Which picker is open. One at a time, named by the field it changes. `days` is the week, `dayTime` one day's time.
+type Open =
+  | 'origin'
+  | 'destination'
+  | 'arriveBy'
+  | 'usualDeparture'
+  | 'bufferMin'
+  | 'extraMin'
+  | 'relationship'
+  | 'days'
+  | 'dayTime';
 
 export default function SetupScreen() {
   const { commute, save } = useCommute();
   const [draft, setDraft] = useState<Commute>(commute);
   const [open, setOpen] = useState<Open | null>(null);
+  const [day, setDay] = useState<Weekday>('mon'); // the day whose time `dayTime` sets
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   // Nothing is flagged until the commuter has tried to save: a half-filled form is not a mistake yet.
@@ -49,6 +60,15 @@ export default function SetupScreen() {
   const set = <K extends keyof Commute>(key: K, value: Commute[K]) => setDraft((d) => ({ ...d, [key]: value }));
   const setContact = (patch: Partial<Commute['contact']>) =>
     setDraft((d) => ({ ...d, contact: { ...d.contact, ...patch } }));
+  // A day's own arrive-by, or null to put it back on the usual one. A week with no day of its own stores none.
+  const setDayTime = (which: Weekday, time: string | null) =>
+    setDraft(({ arriveByByDay, ...rest }) => {
+      const days = { ...arriveByByDay };
+      if (time === null) delete days[which];
+      else days[which] = time;
+      return Object.keys(days).length > 0 ? { ...rest, arriveByByDay: days } : rest;
+    });
+  const dayName = WEEK.find((w) => w.day === day)!.name;
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
   const onSave = async () => {
@@ -103,6 +123,16 @@ export default function SetupScreen() {
             <PickRow icon="clock" label="Usual departure" value={formatClock(draft.usualDeparture)} onPress={() => setOpen('usualDeparture')} />
             <PickRow icon="shield" label="Buffer" value={`${draft.bufferMin} min`} onPress={() => setOpen('bufferMin')} />
             <PickRow icon="extra" label={extraMinLabel(draft.mode)} value={`${draft.extraMin} min`} onPress={() => setOpen('extraMin')} />
+          </Card>
+
+          <Card>
+            <PickRow icon="calendar" label={DAYS_TITLE} value={daysSummary(draft.arriveByByDay)} onPress={() => setOpen('days')} />
+            <SwitchRow
+              icon="moon"
+              label="Quiet on weekends"
+              value={draft.quietWeekends}
+              onValueChange={(on) => set('quietWeekends', on)}
+            />
           </Card>
 
           <View style={styles.modes} accessibilityRole="radiogroup" accessibilityLabel="How you travel">
@@ -190,6 +220,26 @@ export default function SetupScreen() {
         value={draft.usualDeparture}
         onChange={(v) => set('usualDeparture', v)}
         onClose={() => setOpen(null)}
+      />
+      <DaysSheet
+        visible={open === 'days'}
+        arriveBy={draft.arriveBy}
+        days={draft.arriveByByDay}
+        onPick={(which) => {
+          setDay(which);
+          setOpen('dayTime');
+        }}
+        onClear={(which) => setDayTime(which, null)}
+        onClose={() => setOpen(null)}
+      />
+      {/* A day's time starts from the usual arrive-by, and is that day's own only once it is changed. Closing it goes
+          back to the week. */}
+      <TimeSheet
+        visible={open === 'dayTime'}
+        title={`Arrive by on ${dayName}`}
+        value={draft.arriveByByDay?.[day] ?? draft.arriveBy}
+        onChange={(v) => setDayTime(day, v)}
+        onClose={() => setOpen('days')}
       />
       <PickerSheet
         visible={open === 'bufferMin'}

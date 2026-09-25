@@ -62,8 +62,18 @@ export type DraftResponse = {
 
 export type ApiError = { error: string };
 
-// Stored commute (AsyncStorage, one key)
+// Stored commute (AsyncStorage, one key), v2. A v1 value (no `version`) reads as v2 with defaults: see SPEC.md,
+// "v2 amendments".
+export type Weekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+export type Contact = {
+  name: string;
+  phone: string; // international digits, no plus
+  relationship: string;
+  tone: 'manager' | 'friend';
+  language: 'en' | 'sw' | 'sheng';
+};
 export type Commute = {
+  version: 2;
   origin: Place;
   destination: Place;
   arriveBy: string; // "HH:mm", Africa/Nairobi
@@ -71,7 +81,11 @@ export type Commute = {
   bufferMin: number; // default 10
   extraMin: number; // default 5
   mode: 'drive' | 'ride_hail';
-  contact: { name: string; phone: string /* international digits, no plus */; relationship: string };
+  contact: { name: string; phone: string /* international digits, no plus */; relationship: string }; // = contacts[0], for older readers
+  quietWeekends: boolean; // default true
+  arriveByByDay?: Partial<Record<Weekday, string>>; // "HH:mm"; a day's own arrive-by, in place of arriveBy
+  returnTrip?: { homeBy: string }; // "HH:mm"
+  contacts: Contact[]; // one or two; contacts[0] mirrors contact
 };
 
 // Commute engine

@@ -1,15 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { fetchRoutes } from '@/api';
-import type { Commute, RoutesResponse } from '@/contract';
+import type { Commute, RoutesRequest, RoutesResponse } from '@/contract';
 import { savedRoutes } from '@/demo/saved';
 import { commuteDeadline, nairobiTimeOnDay } from '@/time';
 import { loadLastRoutes, saveLastRoutes } from '@/today/lastRoutes';
 
 /**
- * Routes for the commute: fetched on mount, and again on every refresh — the header button, waking the app, and
- * tapping a reminder. Nothing polls in between. The last response stays on screen and on the phone, so a fetch that
- * fails shows the numbers Fika last had instead of nothing.
+ * What the routes are fetched for at `now`: the deadline the screen is about, and the usual departure on its day. The
+ * background reminder (W12) asks for exactly this too.
+ */
+export function routesRequest(commute: Commute, now: Date): RoutesRequest {
+  const arriveBy = commuteDeadline(commute.arriveBy, now);
+  return {
+    origin: commute.origin.location,
+    destination: commute.destination.location,
+    arriveBy,
+    usualDeparture: nairobiTimeOnDay(commute.usualDeparture, new Date(arriveBy)),
+  };
+}
+
+/**
+ * Routes for the commute — the day's effective commute (D5), which the Today screen passes in: fetched on mount, and
+ * again on every refresh — the header button, waking the app, and tapping a reminder. Nothing polls in between. The
+ * last response stays on screen and on the phone, so a fetch that fails shows the numbers Fika last had instead of
+ * nothing.
  *
  * `saved` puts the bundled response in its place and stops it asking for anything at all, so the demo runs with the
  * phone in airplane mode. Turning it back off fetches again.
@@ -20,38 +35,40 @@ export function useRoutes(commute: Commute, saved = false) {
   const [loading, setLoading] = useState(true);
 
   // Waking the app and tapping a reminder can both ask at once, and each fetch is six billed Google calls, so a
-  // second ask joins the one already in flight instead of starting another.
-  const inFlight = useRef<Promise<void> | null>(null);
+  // second ask for the same commute joins the one already in flight instead of starting another.
+  const inFlight = useRef<{ commute: Commute; fetching: Promise<void> } | null>(null);
+  // The commute on screen now. An edited commute, or the day turning to one with its own arrive-by, can land while
+  // the last one's fetch is still out; that fetch's answer belongs to a commute no longer shown, so it is dropped.
+  const shown = useRef(commute);
+  useEffect(() => {
+    shown.current = commute;
+  }, [commute]);
 
   const fetchNow = useCallback(async () => {
+    const current = () => shown.current === commute;
     setLoading(true);
     setError(null);
     try {
-      const arriveBy = commuteDeadline(commute.arriveBy, new Date());
-      const fetched = await fetchRoutes({
-        origin: commute.origin.location,
-        destination: commute.destination.location,
-        arriveBy,
-        usualDeparture: nairobiTimeOnDay(commute.usualDeparture, new Date(arriveBy)),
-      });
+      const fetched = await fetchRoutes(routesRequest(commute, new Date()));
+      if (!current()) return;
       setData(fetched);
       await saveLastRoutes(commute, fetched);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      if (current()) setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
   }, [commute]);
 
   const refresh = useCallback(() => {
     if (saved) return Promise.resolve(); // the bundled response is already here, and there may be no network at all
-    if (inFlight.current) return inFlight.current;
+    if (inFlight.current?.commute === commute) return inFlight.current.fetching;
     const fetching = fetchNow().finally(() => {
-      inFlight.current = null;
+      if (inFlight.current?.fetching === fetching) inFlight.current = null;
     });
-    inFlight.current = fetching;
+    inFlight.current = { commute, fetching };
     return fetching;
-  }, [fetchNow, saved]);
+  }, [commute, fetchNow, saved]);
 
   useEffect(() => {
     refresh();

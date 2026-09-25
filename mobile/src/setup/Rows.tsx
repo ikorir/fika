@@ -1,6 +1,6 @@
 // The rows the setup screen is built from, and the stroke icons beside them. Design: design/screens/Setup.dc.html.
 import { Children, type ReactNode } from 'react';
-import { StyleSheet, Text, TextInput, type TextInputProps, View } from 'react-native';
+import { StyleSheet, Switch, Text, TextInput, type TextInputProps, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { theme } from '@/theme';
@@ -8,7 +8,18 @@ import { Press } from '@/ui/Press';
 
 const { color, type } = theme;
 
-export type IconName = 'from' | 'to' | 'flag' | 'clock' | 'shield' | 'extra' | 'person' | 'phone' | 'badge';
+export type IconName =
+  | 'from'
+  | 'to'
+  | 'flag'
+  | 'clock'
+  | 'shield'
+  | 'extra'
+  | 'person'
+  | 'phone'
+  | 'badge'
+  | 'calendar'
+  | 'moon';
 
 const paths: Record<Exclude<IconName, 'from'>, ReactNode> = {
   to: (
@@ -44,6 +55,13 @@ const paths: Record<Exclude<IconName, 'from'>, ReactNode> = {
       <Path d="M9 7.5V5.5h6v2" />
     </>
   ),
+  calendar: (
+    <>
+      <Rect x={3.5} y={5} width={17} height={15.5} rx={2} />
+      <Path d="M3.5 10h17M8 3v4M16 3v4" />
+    </>
+  ),
+  moon: <Path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z" />,
 };
 
 /** A 22 pt stroke icon, or the white ring that marks where the commute starts. */
@@ -170,6 +188,36 @@ export function PickRow({
         <Steps />
       </View>
     </Shell>
+  );
+}
+
+/** A setting that is on or off, with a switch at the end of the row. */
+export function SwitchRow({
+  icon,
+  label,
+  value,
+  onValueChange,
+}: {
+  icon: IconName;
+  label: string;
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+}) {
+  return (
+    <View style={styles.row}>
+      <View style={styles.line}>
+        <RowIcon name={icon} />
+        <Text style={styles.label}>{label}</Text>
+        <Switch
+          accessibilityLabel={label}
+          value={value}
+          onValueChange={onValueChange}
+          trackColor={{ false: color.switchOff, true: color.accent }}
+          ios_backgroundColor={color.switchOff}
+          thumbColor={color.text}
+        />
+      </View>
+    </View>
   );
 }
 

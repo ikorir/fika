@@ -6,7 +6,7 @@ import type { Commute, Evaluation, Rain } from '@/contract';
 import type { Draft } from '@/draft/useDraft';
 import { theme } from '@/theme';
 import { formatClock } from '@/time';
-import { conditionsNote, decisionLine, heroText, pastLeaveBy } from '@/today/words';
+import { conditionsNote, decisionLine, heroText, holidayLine, pastLeaveBy } from '@/today/words';
 import { isClockTime } from '@/ui/digits';
 import { useMotion } from '@/ui/motion';
 import { RollingDigits } from '@/ui/RollingDigits';
@@ -35,31 +35,49 @@ const stateColor: Record<Evaluation['state'], string> = { on_time: color.onTime,
 // The status pill's width with "On time" in it, for its placeholder.
 const PILL_WIDTH = 88;
 
-type Props = { commute: Commute; evaluation?: Evaluation; draft?: Draft; rain?: Rain; loading?: boolean };
+type Props = {
+  commute: Commute;
+  evaluation?: Evaluation;
+  draft?: Draft;
+  rain?: Rain;
+  loading?: boolean;
+  /** The public holiday the day is (W6), live only: it takes the decision line's place. */
+  holiday?: string | null;
+};
 
 // Status pill, commute summary, leave-by / ETA, decision line and conditions note.
 // Without an evaluation only the summary shows: beside shimmering placeholders while the first routes load, and alone
 // when there is no route. The decision line and conditions note are Claude's when it has written them for these
-// facts, and Fika's own template until then.
-export function Hero({ commute, evaluation, draft, rain, loading }: Props) {
+// facts, and Fika's own template until then. On a public holiday the numbers stay and the decision line says so.
+export function Hero({ commute, evaluation, draft, rain, loading, holiday }: Props) {
   const summary = (
     <Text style={styles.summary} numberOfLines={1} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
       {commute.origin.label} to {commute.destination.label} · arrive by {formatClock(commute.arriveBy)}
     </Text>
   );
   let body: ReactNode = summary;
-  if (evaluation) body = <Facts commute={commute} evaluation={evaluation} draft={draft} rain={rain} summary={summary} />;
+  if (evaluation)
+    body = (
+      <Facts commute={commute} evaluation={evaluation} draft={draft} rain={rain} holiday={holiday} summary={summary} />
+    );
   else if (loading) body = <Placeholder summary={summary} />;
   return <View style={styles.hero}>{body}</View>;
 }
 
-type FactsProps = { commute: Commute; evaluation: Evaluation; draft?: Draft; rain?: Rain; summary: ReactNode };
+type FactsProps = {
+  commute: Commute;
+  evaluation: Evaluation;
+  draft?: Draft;
+  rain?: Rain;
+  holiday?: string | null;
+  summary: ReactNode;
+};
 
 // The hero once there is an evaluation, fading in as a whole when it first shows. Its state colours tween from the
 // state it first showed. The hero value rolls its digits from one time to the next; to or from a word ("Leave Now")
 // it comes in with the shared enter and exit presets instead. The past-leave-by line comes and goes with the same
 // presets, and the words under it move rather than jump. With reduce motion every change is instant.
-function Facts({ commute, evaluation, draft, rain, summary }: FactsProps) {
+function Facts({ commute, evaluation, draft, rain, holiday, summary }: FactsProps) {
   const pulse = usePulse(draft?.loading ?? false);
   const colors = useStateColor(evaluation.state);
   const { enter, exit, layout } = useMotion();
@@ -115,7 +133,9 @@ function Facts({ commute, evaluation, draft, rain, summary }: FactsProps) {
           </Animated.Text>
         )}
         <Animated.View layout={layout} style={[styles.words, pulse]}>
-          <Text style={styles.decision}>{draft?.words?.decision_line ?? decisionLine(evaluation, commute)}</Text>
+          <Text style={styles.decision}>
+            {holiday ? holidayLine(holiday) : (draft?.words?.decision_line ?? decisionLine(evaluation, commute))}
+          </Text>
           <Text style={styles.note}>{draft?.words?.conditions_note ?? conditionsNote(evaluation, rain)}</Text>
         </Animated.View>
       </LayoutAnimationConfig>

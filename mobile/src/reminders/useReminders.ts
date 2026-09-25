@@ -1,17 +1,18 @@
-// The reminders as the screen uses them: the daily one, the one the commuter asks for, Demo mode's cue, and the
+// The reminders as the screen uses them: the morning ones, the one the commuter asks for, Demo mode's cue, and the
 // refresh that follows waking the app or tapping a reminder.
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, AppState } from 'react-native';
 
-import type { Evaluation } from '@/contract';
+import type { Commute, Evaluation } from '@/contract';
+import { loadMorningRefresh, syncMorningReminderTask } from '@/reminders/background';
 import {
   askForNotifications,
   canAskForNotifications,
   cancelReminder,
   notificationsAllowed,
-  scheduleDailyReminder,
+  rescheduleMorningReminders,
   scheduleOneOffReminder,
   showReminderNow,
 } from '@/reminders/notifications';
@@ -51,17 +52,33 @@ async function allowedToNotify(asked: boolean): Promise<boolean> {
   return yes ? askForNotifications() : false;
 }
 
-/** The repeating daily reminder. Scheduled on the first run, and moved whenever the usual departure changes. */
-export function useDailyReminder(usualDeparture: string) {
+/**
+ * The morning reminders (D6): one-offs for the next seven commute days, rescheduled every time the app opens or comes
+ * back to the front, and whenever the usual departure or quiet weekends change; today's keeps the words the background
+ * task gave it. Also registers the background task that may freshen today's (W12), or unregisters it, by its flag.
+ */
+export function useDailyReminder({ usualDeparture, quietWeekends }: Pick<Commute, 'usualDeparture' | 'quietWeekends'>) {
   useEffect(() => {
     let live = true;
-    (async () => {
-      if ((await allowedToNotify(false)) && live) await scheduleDailyReminder(usualDeparture, new Date());
-    })();
+    const reschedule = async () => {
+      if (!(await allowedToNotify(false)) || !live) return;
+      // Today's reminder keeps the words the background task gave it this morning, if it did (W12).
+      const refreshed = await loadMorningRefresh();
+      if (live) await rescheduleMorningReminders({ usualDeparture, quietWeekends }, new Date(), refreshed);
+    };
+    const opened = () => {
+      reschedule().catch(() => {});
+      syncMorningReminderTask().catch(() => {});
+    };
+    opened();
+    const woke = AppState.addEventListener('change', (state) => {
+      if (state === 'active') opened();
+    });
     return () => {
       live = false;
+      woke.remove();
     };
-  }, [usualDeparture]);
+  }, [usualDeparture, quietWeekends]);
 }
 
 /** Fresh data whenever the app comes back to the front or a reminder is tapped. There is no polling in between. */

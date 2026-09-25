@@ -7,6 +7,7 @@ import { heroText } from '@/today/words';
 
 // Deadline 9:00, buffer 10, extra 5.
 const commute: Commute = {
+  version: 2,
   origin: { placeId: '', label: 'Kangemi', location: { lat: -1.264, lng: 36.747 } },
   destination: { placeId: '', label: 'Upper Hill', location: { lat: -1.2985, lng: 36.8155 } },
   arriveBy: '09:00',
@@ -15,6 +16,8 @@ const commute: Commute = {
   extraMin: 5,
   mode: 'drive',
   contact: { name: 'Mary', phone: '254700000000', relationship: 'manager' },
+  quietWeekends: true,
+  contacts: [{ name: 'Mary', phone: '254700000000', relationship: 'manager', tone: 'manager', language: 'en' }],
 };
 
 const at = (hhmm: string) => new Date(`2026-09-21T${hhmm.padStart(5, '0')}:00+03:00`);

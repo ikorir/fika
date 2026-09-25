@@ -10,7 +10,7 @@ Source of truth for how the app looks: the "Fika app design" canvas, https://cla
 | Today · at risk | `AtRisk.dc.html` | Simulated-traffic banner, "Leave Now", "5 min inside your buffer", incident marker on the map, "Switch to James Gichuru Rd" | 02, 03, 05, 07 |
 | Today · late | `Late.dc.html` | "Arriving 9:15", "15 min late", notice preview card with locked ETA chips, "Review and send notice" | 02, 03, 04, 05 |
 | Late notice sheet | `Notice.dc.html` | Bottom sheet: tone switch, language chips, To row, editable message, locked chips, WhatsApp / SMS / Share | 04, 05, 06 |
-| Commute setup | `Setup.dc.html` | From, To, Arrive by, Usual departure, Buffer, Parking time, I drive / Ride-hail, contact name, phone, relationship | 08 |
+| Commute setup | `Setup.dc.html` | From, To, Arrive by, Usual departure, Buffer, Parking time, then a card with "Different time on some days" and "Quiet on weekends" (not on the canvas yet), I drive / Ride-hail, contact name, phone, relationship | 08, v2 06 |
 | Demo mode sheet | `Demo.dc.html` | Scenarios, app clock back/forward 5 minutes, "Use saved routes", Reset to start | 03, 10 |
 | Welcome | not on the canvas yet | First run only, on a phone with no commute stored: the glyph in accent (fades and rises in), "Know when to leave.", one line on what Fika does, "Set up my commute" (primary button), "Try it with a sample commute" (accent text button). Either choice ends it for good | v2 05 |
 
@@ -40,4 +40,7 @@ Source of truth for how the app looks: the "Fika app design" canvas, https://cla
 - ETA and lateness appear as locked chips next to the message, labelled "from your route, not AI", with the line "Fika opens a prefilled message. Nothing goes out until you press send."
 - Demo mode sheet has an app clock with 5-minute steps and a "Use saved routes — works with no internet" switch.
 - Setup labels the extra-minutes field "Parking time" for drivers (pickup wait for ride-hail) and ends with "Saved on this phone only. No account needed."
+- Setup's days card, under the times card: "Different time on some days" (calendar icon) shows "None", the one day ("Fri 8:30") or how many days ("2 days"), and opens a sheet listing Monday to Sunday. Each day reads "Usual" in muted grey until it has its own time; tapping a day opens the usual time sheet, titled "Arrive by on Friday", starting from the usual arrive-by, and closing it goes back to the week. A day with its own time has a stroke cross that puts it back on the usual one. "Quiet on weekends" (moon icon) is a switch, on by default. Both are saved with the rest; the footnote stays last.
+- A day's own arrive-by is what the Today screen shows and fetches for that day ("arrive by 8:30" on a Friday). Morning reminders go out 15 minutes before the usual departure on commute days only: never on Saturday or Sunday while weekends are quiet, and never on a Kenyan public holiday.
+- On a public holiday the hero keeps its numbers, and the decision line reads "Public holiday: Mashujaa Day. No reminder today." Demo mode ignores holidays.
 - The sample notice names a cause ("an accident on Waiyaki Way"). Claude may mention a cause only when one is passed to it as a fact (the simulated accident). With live data there is no cause; it must not invent one.
