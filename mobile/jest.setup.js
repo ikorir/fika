@@ -103,3 +103,23 @@ jest.mock('@gorhom/bottom-sheet', () => {
 
   return { ...library, BottomSheetModal, BottomSheetBackdrop, BottomSheetFooter, BottomSheetTextInput };
 });
+
+// Maps (ticket 04). The map is native, so tests get host elements named after what they draw (`MapView`, `Marker`,
+// `Polyline`), carrying the props they were given. The camera methods do nothing: a test spies on
+// `MapView.prototype` to see where the camera was sent, and fires `mapReady` on the `MapView` element.
+jest.mock('react-native-maps', () => {
+  const React = require('react');
+  const h = React.createElement;
+  class MapView extends React.Component {
+    animateToRegion() {}
+    animateCamera() {}
+    setCamera() {}
+    fitToCoordinates() {}
+    render() {
+      return h('MapView', this.props);
+    }
+  }
+  const Marker = (props) => h('Marker', props);
+  const Polyline = (props) => h('Polyline', props);
+  return { __esModule: true, default: MapView, Marker, Polyline, PROVIDER_DEFAULT: undefined, PROVIDER_GOOGLE: 'google' };
+});

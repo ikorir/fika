@@ -42,17 +42,20 @@
       "slug": "map-polish",
       "parts": 3,
       "blocked_by": "01",
-      "status": "in-progress",
-      "attempts": 1,
-      "evidence": [],
+      "status": "complete",
+      "attempts": 2,
+      "evidence": [
+        "attempt1: jest 375/375, typecheck 0; device: camera fit/switch flight, glow, fade, blur, incident OK; ETA bubble text blank in all states (regression) -> repair",
+        "attempt2: marker body view keeps SVG under text; jest 377/377, typecheck 0; device: bubble text on first render and after accident+switch"
+      ],
       "commit": null
     },
     "05": {
       "slug": "first-impression",
       "parts": 4,
       "blocked_by": "01",
-      "status": "not-started",
-      "attempts": 0,
+      "status": "in-progress",
+      "attempts": 1,
       "evidence": [],
       "commit": null
     },

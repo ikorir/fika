@@ -1,15 +1,26 @@
 import Constants from 'expo-constants';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Fragment, type RefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
 
 import type { Commute, Evaluation, LatLng, RouteView } from '@/contract';
 import { theme } from '@/theme';
+import { type CameraStep, type CameraView, cameraMove, cameraSteps, fitRegion, moveEnd, type Size } from '@/today/camera';
 import { HeaderControls } from '@/today/HeaderControls';
 import { darkMapStyle } from '@/today/map-style';
+import {
+  BUBBLE_ANCHOR,
+  DestinationPin,
+  EtaBubble,
+  INCIDENT_ANCHOR,
+  IncidentMarker,
+  OriginPin,
+} from '@/today/MapMarkers';
+import { withAlpha } from '@/today/marks';
 import { decodePath, distinctPoint, pointAlong } from '@/today/path';
+import { useReduceMotion } from '@/ui/useReduceMotion';
 
 const { color } = theme;
 
@@ -27,9 +38,16 @@ type Props = {
 // Android draws Google Maps, and its SDK throws "API key not found" the moment a map view is created in a build
 // made without GOOGLE_MAPS_ANDROID_KEY (see app.config.js). A missing map is a gap; that exception is the whole app
 // gone at launch. iOS draws Apple Maps and needs no key.
-const MAP_AVAILABLE = Platform.OS !== 'android' || !!Constants.expoConfig?.android?.config?.googleMaps?.apiKey;
+const mapAvailable = () => Platform.OS !== 'android' || !!Constants.expoConfig?.android?.config?.googleMaps?.apiKey;
 
 const coord = (p: LatLng) => ({ latitude: p.lat, longitude: p.lng });
+
+// Room around the routes when the camera fits them. Small, because the map itself is only 250 pt tall; the lines may
+// run under the floating controls, as they do in the design.
+const PADDING = { top: 30, right: 12, bottom: 20, left: 12 };
+
+const LINE = 5; // the selected route's width; the others are a point thinner
+const GLOW = withAlpha(color.accent, 0.2); // the soft glow under the selected route, three times its width
 
 // The routes drawn on the top third of the screen, with the header controls floating over them.
 // No live location dot and no search: the map is here to show where the routes differ.
@@ -37,8 +55,9 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
   const insets = useSafeAreaInsets();
   const map = useRef<MapView>(null);
   const [ready, setReady] = useState(false);
-  const [height, setHeight] = useState(0);
+  const [size, setSize] = useState<Size>();
   const lines = useLines(routes);
+  const flying = useCamera(map, ready, size, lines, routes.find((r) => r.selected)?.id, state);
   // Unselected routes fade back once the commute is late: only the one being driven still matters.
   const idle = state === 'late' ? color.routeDim : color.routeIdle;
   const incident = lines.get(incidentRouteId ?? '');
@@ -46,20 +65,7 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
     `${state}|${routes.map((r) => `${r.id}:${r.durationMin}:${r.selected}`).join(',')}|${incidentRouteId ?? ''}`,
   );
 
-  // The whole commute is on screen without anyone panning or zooming, and it re-fits whenever the routes change.
-  // It waits for a laid-out map: fitting into a frame that has no height yet zooms out to half the country.
-  // The padding is small because the map itself is only 250 pt tall; the lines may run under the floating
-  // controls, as they do in the design, but they stay clear of the fade at the foot of the map.
-  useEffect(() => {
-    const points = [...lines.values()].flatMap((l) => l.coords);
-    if (!ready || height === 0 || points.length === 0) return;
-    map.current?.fitToCoordinates(points, {
-      edgePadding: { top: 30, right: 12, bottom: 20, left: 12 },
-      animated: true,
-    });
-  }, [ready, height, lines, insets.top]);
-
-  if (!MAP_AVAILABLE) {
+  if (!mapAvailable()) {
     return (
       <View style={styles.map}>
         <Text style={styles.noMap}>Map unavailable: this build has no Google Maps key.</Text>
@@ -71,7 +77,14 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
   }
 
   return (
-    <View style={styles.map} onLayout={(e) => setHeight(e.nativeEvent.layout.height)}>
+    <View
+      testID="map-area"
+      style={styles.map}
+      onLayout={(e) => {
+        const { width, height } = e.nativeEvent.layout;
+        setSize((was) => (was && was.width === width && was.height === height ? was : { width, height }));
+      }}
+    >
       <MapView
         ref={map}
         style={StyleSheet.absoluteFill}
@@ -89,7 +102,8 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
         showsIndoors={false}
         toolbarEnabled={false}
         rotateEnabled={false}
-        pitchEnabled={false}
+        // Tilting is the camera's alone, and only during a switch: Apple Maps shows no pitch while this is off.
+        pitchEnabled={flying}
       >
         {/* A wide invisible line under each route: a 4 pt line is too thin to hit with a thumb. */}
         {routes.map((r) => {
@@ -106,7 +120,7 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
             />
           ) : null;
         })}
-        {/* The selected route is drawn last so it sits over the others. */}
+        {/* The selected route is drawn last so it sits over the others, on a soft glow of its own. */}
         {[...routes]
           .sort((a, b) => Number(a.selected) - Number(b.selected))
           .map((r) => {
@@ -116,31 +130,48 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
             // this long into stray wedges.
             const left = r.id === incidentRouteId && !r.selected;
             return line ? (
-              <Polyline
-                key={r.id}
-                coordinates={line.coords}
-                strokeColor={r.selected ? color.accent : left ? color.atRisk : idle}
-                strokeWidth={r.selected ? 5 : 4}
-                zIndex={r.selected ? 2 : 1}
-                lineCap="round"
-                lineJoin="round"
-                tappable
-                onPress={() => onSelectRoute(r.id)}
-              />
+              <Fragment key={r.id}>
+                {r.selected && (
+                  <Polyline
+                    coordinates={line.coords}
+                    strokeColor={GLOW}
+                    strokeWidth={LINE * 3}
+                    zIndex={2}
+                    lineCap="round"
+                    lineJoin="round"
+                  />
+                )}
+                <Polyline
+                  coordinates={line.coords}
+                  strokeColor={r.selected ? color.accent : left ? color.atRisk : idle}
+                  strokeWidth={r.selected ? LINE : LINE - 1}
+                  zIndex={r.selected ? 3 : 1}
+                  lineCap="round"
+                  lineJoin="round"
+                  tappable
+                  onPress={() => onSelectRoute(r.id)}
+                />
+              </Fragment>
             ) : null;
           })}
-        <Marker coordinate={coord(commute.origin.location)} anchor={ANCHOR} zIndex={6} title={commute.origin.label}>
-          <View style={styles.origin} />
+        {/* Every marker is a picture of a view on Google Maps, redrawn only for a moment after it changes. */}
+        <Marker
+          coordinate={coord(commute.origin.location)}
+          anchor={ANCHOR}
+          zIndex={6}
+          title={commute.origin.label}
+          tracksViewChanges={redrawing}
+        >
+          <OriginPin />
         </Marker>
         <Marker
           coordinate={coord(commute.destination.location)}
           anchor={ANCHOR}
           zIndex={6}
           title={commute.destination.label}
+          tracksViewChanges={redrawing}
         >
-          <View style={styles.destination}>
-            <View style={styles.destinationCore} />
-          </View>
+          <DestinationPin />
         </Marker>
         {/* How long each way takes, sitting on its own line. */}
         {routes.map((r) => {
@@ -149,42 +180,19 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
             <Marker
               key={`eta-${r.id}`}
               coordinate={line.mid}
-              anchor={ABOVE}
+              anchor={BUBBLE_ANCHOR}
               zIndex={r.selected ? 4 : 3}
               tracksViewChanges={redrawing}
               onPress={() => onSelectRoute(r.id)}
             >
-              <View style={r.selected ? styles.bubbleOn : r.id === incidentRouteId ? styles.bubbleLeft : styles.bubble}>
-                {/* A map annotation, not body text: it barely grows with the phone's text size, so bubbles don't pile up. */}
-                <Text
-                  style={
-                    r.selected ? styles.bubbleOnText : r.id === incidentRouteId ? styles.bubbleLeftText : styles.bubbleText
-                  }
-                  maxFontSizeMultiplier={1.2}
-                >
-                  {r.durationMin} min
-                </Text>
-              </View>
+              <EtaBubble minutes={r.durationMin} tone={r.selected ? 'selected' : r.id === incidentRouteId ? 'left' : 'idle'} />
             </Marker>
           ) : null;
         })}
         {/* What the simulated accident is doing to the route it is on. */}
         {incident?.incident && (
-          <Marker coordinate={incident.incident} anchor={BELOW} zIndex={5} tracksViewChanges={redrawing}>
-            <View style={[styles.incident, { backgroundColor: state === 'late' ? color.late : color.atRisk }]}>
-              <Svg
-                width={18}
-                height={18}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={state === 'late' ? color.lateTint : color.atRiskTint}
-                strokeWidth={2.2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <Path d="M12 4 2.5 20h19zM12 10v5M12 17.5v.5" />
-              </Svg>
-            </View>
+          <Marker coordinate={incident.incident} anchor={INCIDENT_ANCHOR} zIndex={5} tracksViewChanges={redrawing}>
+            <IncidentMarker late={state === 'late'} />
           </Marker>
         )}
       </MapView>
@@ -197,10 +205,6 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
 }
 
 const ANCHOR = { x: 0.5, y: 0.5 };
-// An ETA bubble rides above its line and the incident marker hangs below it, so the two never cover each other
-// when the accident happens to be where a route parts from the rest.
-const ABOVE = { x: 0.5, y: 1.2 };
-const BELOW = { x: 0.5, y: -0.2 };
 
 // Decoding is the expensive part, and the Today screen re-renders on every tick, so the lines are keyed on the
 // encoded shapes themselves: selecting a route re-styles them without decoding anything again.
@@ -227,6 +231,61 @@ function useLines(routes: RouteView[]) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [key],
   );
+}
+
+type Lines = ReturnType<typeof useLines>;
+
+/**
+ * The camera follows the routes instead of jumping: it eases to fit them all when they change, to fit the selected
+ * one when the selection changes, and after "Switch to …" tilts on the way before settling flat (`camera.ts`). It
+ * waits for a laid-out map: fitting into a frame that has no size yet zooms out to half the country. With reduce
+ * motion every move is instant. True while a move that tilts is under way: the map allows pitch only then.
+ */
+function useCamera(
+  map: RefObject<MapView | null>,
+  ready: boolean,
+  size: Size | undefined,
+  lines: Lines,
+  selectedId: string | undefined,
+  state: Evaluation['state'] | undefined,
+) {
+  const reduceMotion = useReduceMotion();
+  const shown = useRef<CameraView | undefined>(undefined);
+  // A move that tilts, held in state so the map allows pitch before its first step is sent.
+  const [flight, setFlight] = useState<CameraStep[]>();
+
+  useEffect(() => {
+    if (!ready || !size) return;
+    const view = { routes: lines, selectedId, state, size };
+    const move = cameraMove(shown.current, view);
+    shown.current = view;
+    if (!move) return;
+    const points = move === 'all' ? [...lines.values()].flatMap((l) => l.coords) : (lines.get(selectedId ?? '')?.coords ?? []);
+    if (points.length === 0) return;
+    const steps = cameraSteps(move, fitRegion(points, size, PADDING), reduceMotion);
+    if (steps.some((s) => 'camera' in s && s.camera.pitch)) {
+      setFlight(steps);
+      return;
+    }
+    setFlight(undefined); // a new move takes over from a flight still going
+    for (const step of steps) play(map.current, step);
+  }, [map, ready, size, lines, selectedId, state, reduceMotion]);
+
+  useEffect(() => {
+    if (!flight) return;
+    const timers = flight.map((step) => setTimeout(() => play(map.current, step), step.at));
+    // Apple Maps keeps its own time for a camera move, so the pitch stays allowed a moment past the last step.
+    timers.push(setTimeout(() => setFlight(undefined), moveEnd(flight) + theme.motion.duration.base));
+    return () => timers.forEach(clearTimeout);
+  }, [map, flight]);
+
+  return flight !== undefined;
+}
+
+function play(map: MapView | null, step: CameraStep) {
+  if (!map) return;
+  if ('region' in step) map.animateToRegion(step.region, step.duration);
+  else map.animateCamera(step.camera, { duration: step.duration });
 }
 
 /**
@@ -256,16 +315,17 @@ function regionAround(points: LatLng[]) {
   };
 }
 
-const FADE = 44; // the height of that fade, which the fit keeps the routes clear of
+const FADE = 48; // the height of that fade
 
-/** The map meets the black screen in a soft fade, as in the design. Bands, since there is no gradient library. */
+/** The map meets the black screen in a soft fade, as in the design. Touches go through it to the map. */
 function MapFade() {
   return (
-    <View pointerEvents="none" style={styles.fade}>
-      {Array.from({ length: 8 }, (_, i) => (
-        <View key={i} style={{ flex: 1, backgroundColor: `rgba(0,0,0,${(((i + 1) / 8) ** 2).toFixed(3)})` }} />
-      ))}
-    </View>
+    <LinearGradient
+      testID="map-fade"
+      pointerEvents="none"
+      colors={[withAlpha(color.bg, 0), color.bg]}
+      style={styles.fade}
+    />
   );
 }
 
@@ -274,21 +334,4 @@ const styles = StyleSheet.create({
   noMap: { ...theme.type.meta, color: color.textMuted, textAlign: 'center', marginTop: 150, paddingHorizontal: 32 },
   controls: { position: 'absolute', left: theme.space.screen, right: theme.space.screen },
   fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: FADE },
-  origin: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#000000', borderWidth: 3, borderColor: color.text },
-  destination: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: color.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  destinationCore: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: color.onAccent },
-  bubble: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 11, backgroundColor: color.control },
-  bubbleText: { ...theme.type.segment, fontSize: 12, color: color.textChip },
-  bubbleLeft: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 11, backgroundColor: color.atRiskTint },
-  bubbleLeftText: { ...theme.type.segment, fontSize: 12, color: color.atRisk },
-  bubbleOn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: color.accent },
-  bubbleOnText: { ...theme.type.metaStrong, fontFamily: theme.font.bold, color: color.onAccent },
-  incident: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
 });
