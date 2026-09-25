@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Commute, Evaluation } from '@/contract';
@@ -9,6 +9,8 @@ import { directionsUrl } from '@/today/directions';
 import { updatedLabel } from '@/today/freshness';
 import { decodePath, pointAlong } from '@/today/path';
 import { PrimaryAction } from '@/today/PrimaryAction';
+import { Press } from '@/ui/Press';
+import { LARGE_TEXT_CAP } from '@/ui/useFontScale';
 
 // The primary action, then how old the numbers are and "Open in Google Maps".
 type Props = {
@@ -40,10 +42,18 @@ export function ActionArea({ commute, updatedAt, now, evaluation, reminder, onSe
         onReviewNotice={onReviewNotice}
       />
       <View style={styles.footer}>
-        {updated ? <Text style={[styles.updated, updated.stale && styles.stale]}>{updated.text}</Text> : <View />}
-        <Pressable accessibilityRole="link" onPress={() => openDirections(url)} hitSlop={10}>
-          <Text style={styles.link}>Open in Google Maps</Text>
-        </Pressable>
+        {updated ? (
+          <Text style={[styles.updated, updated.stale && styles.stale]} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+            {updated.text}
+          </Text>
+        ) : (
+          <View />
+        )}
+        <Press accessibilityRole="link" onPress={() => openDirections(url)} hitSlop={10} style={styles.linkPress}>
+          <Text style={styles.link} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+            Open in Google Maps
+          </Text>
+        </Press>
       </View>
     </View>
   );
@@ -60,14 +70,19 @@ async function openDirections(url: string) {
 
 const styles = StyleSheet.create({
   area: { paddingHorizontal: theme.space.screen, paddingTop: 10, gap: 10 },
+  // Side by side while both fit; at large text sizes the link wraps onto its own line, still on the right.
   footer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
+    columnGap: 12,
+    rowGap: 6,
     paddingHorizontal: 6,
     minHeight: 24,
   },
-  updated: { ...theme.type.meta, color: theme.color.textMuted },
+  updated: { ...theme.type.meta, color: theme.color.textMuted, flexShrink: 1 },
   stale: { color: theme.color.atRisk },
-  link: { ...theme.type.metaStrong, fontSize: 14, color: theme.color.accent },
+  linkPress: { marginLeft: 'auto', flexShrink: 1 },
+  link: { ...theme.type.metaStrong, fontSize: 14, color: theme.color.accent, textAlign: 'right' },
 });

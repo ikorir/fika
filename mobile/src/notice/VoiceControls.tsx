@@ -1,7 +1,8 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { LANGUAGES, TONES, type Language, type Tone } from '@/notice/voice';
 import { theme } from '@/theme';
+import { Press } from '@/ui/Press';
 
 const { color, type } = theme;
 
@@ -12,15 +13,16 @@ export function ToneSwitch({ tone, onChange }: { tone: Tone; onChange: (tone: To
       {TONES.map(({ value, label }) => {
         const on = value === tone;
         return (
-          <Pressable
+          <Press
             key={value}
             accessibilityRole="radio"
             accessibilityState={{ checked: on, selected: on }}
+            haptic="select"
             onPress={() => onChange(value)}
             style={[styles.segmentItem, on && styles.segmentItemOn]}
           >
             <Text style={styles.label}>{label}</Text>
-          </Pressable>
+          </Press>
         );
       })}
     </View>
@@ -34,15 +36,16 @@ export function LanguageChips({ language, onChange }: { language: Language; onCh
       {LANGUAGES.map(({ value, label }) => {
         const on = value === language;
         return (
-          <Pressable
+          <Press
             key={value}
             accessibilityRole="radio"
             accessibilityState={{ checked: on, selected: on }}
+            haptic="select"
             onPress={() => onChange(value)}
             style={[styles.chip, on && styles.chipOn]}
           >
             <Text style={[styles.label, on && styles.labelOn]}>{label}</Text>
-          </Pressable>
+          </Press>
         );
       })}
     </View>

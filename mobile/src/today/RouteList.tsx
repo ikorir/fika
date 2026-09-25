@@ -1,8 +1,10 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import type { RouteView } from '@/contract';
 import { theme } from '@/theme';
 import { formatTime } from '@/time';
+import { Press } from '@/ui/Press';
+import { LARGE_TEXT_CAP } from '@/ui/useFontScale';
 
 const { color, type } = theme;
 
@@ -27,15 +29,20 @@ export function RouteList({ routes, caption, onSelect }: Props) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>Routes</Text>
-        <Text style={styles.leaving}>{caption}</Text>
+        <Text style={styles.title} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+          Routes
+        </Text>
+        <Text style={styles.leaving} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+          {caption}
+        </Text>
       </View>
       {routes.map((r, i) => (
         <View key={r.id}>
           {i > 0 && <View style={styles.divider} />}
-          <Pressable
+          <Press
             accessibilityRole="radio"
             accessibilityState={{ selected: r.selected }}
+            haptic="select"
             onPress={() => onSelect?.(r.id)}
             style={styles.row}
           >
@@ -48,21 +55,30 @@ export function RouteList({ routes, caption, onSelect }: Props) {
             )}
             <View style={styles.body}>
               <View style={styles.nameLine}>
-                <Text style={styles.name} numberOfLines={1}>
+                {/* One line, cut with an ellipsis, so a long name never pushes the arrival column off the screen. */}
+                <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail" maxFontSizeMultiplier={LARGE_TEXT_CAP}>
                   {r.label}
                 </Text>
-                {r.recommended && <Text style={styles.best}>Best</Text>}
+                {r.recommended && (
+                  <Text style={styles.best} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+                    Best
+                  </Text>
+                )}
               </View>
-              <Text style={styles.meta}>
+              <Text style={styles.meta} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
                 {r.durationMin} min
                 {r.trafficDelayMin > 0 ? ` · ${r.trafficDelayMin} min traffic delay` : ''}
               </Text>
             </View>
             <View style={styles.end}>
-              <Text style={styles.arrive}>{formatTime(r.arriveAt)}</Text>
-              <Text style={[styles.delta, { color: deltaColor[r.deltaKind] }]}>{deltaText(r.deltaMin)}</Text>
+              <Text style={styles.arrive} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+                {formatTime(r.arriveAt)}
+              </Text>
+              <Text style={[styles.delta, { color: deltaColor[r.deltaKind] }]} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+                {deltaText(r.deltaMin)}
+              </Text>
             </View>
-          </Pressable>
+          </Press>
         </View>
       ))}
     </View>

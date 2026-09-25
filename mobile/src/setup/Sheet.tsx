@@ -1,10 +1,11 @@
 // The bottom sheet the setup screen picks values in: one title, one close button, and whatever the picker needs.
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import { theme } from '@/theme';
+import { Press } from '@/ui/Press';
 
 const { color, type } = theme;
 
@@ -15,15 +16,15 @@ export function Sheet({ visible, title, onClose, children }: Props) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <Pressable style={StyleSheet.absoluteFill} accessibilityLabel={`Close ${title}`} onPress={onClose} />
+        <Press style={StyleSheet.absoluteFill} accessibilityLabel={`Close ${title}`} onPress={onClose} />
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 34) }]}>
             <View style={styles.header}>
-              <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} style={styles.close}>
+              <Press accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} style={styles.close}>
                 <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color.text} strokeWidth={2} strokeLinecap="round">
                   <Path d="M6 6l12 12M18 6 6 18" />
                 </Svg>
-              </Pressable>
+              </Press>
               <Text style={styles.title} accessibilityRole="header">
                 {title}
               </Text>

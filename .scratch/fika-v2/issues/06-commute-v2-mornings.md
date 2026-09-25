@@ -70,3 +70,13 @@ Behind `flag('backgroundReminder')`, an opportunistic background task refreshes 
 **Device check (coordinator, D14):** Coordinator triggers the task via the dev-client debug path if available; otherwise verify registration logs and rely on unit tests. Report which.
 
 ## Comments
+
+### Coordinator, 2026-09-25: verified holiday dates for Part B
+
+Source: Public Holidays Act, Cap. 110 (https://new.kenyalaw.org/akn/ke/act/1912/21/eng@2022-12-31/source.pdf). A holiday that falls on a Sunday is observed on the Monday. A Saturday gets no substitute. 10 Oct is Mazingira Day (renamed 2024); 26 Dec is Boxing Day.
+
+- **2026:** 01-01 New Year's Day · 03-20 Idd-ul-Fitr (gazetted) · 04-03 Good Friday · 04-06 Easter Monday · 05-01 Labour Day · 05-27 Idd-ul-Adha (gazetted) · 06-01 Madaraka Day · 10-10 Mazingira Day · 10-20 Mashujaa Day · 12-12 Jamhuri Day · 12-25 Christmas Day · 12-26 Boxing Day.
+- **2027:** 01-01 New Year's Day · 03-26 Good Friday · 03-29 Easter Monday · 05-01 Labour Day · 06-01 Madaraka Day · 10-11 Mazingira Day (observed; 10-10 is a Sunday) · 10-20 Mashujaa Day · 12-13 Jamhuri Day (observed; 12-12 is a Sunday) · 12-25 Christmas Day · 12-27 Boxing Day (observed; 12-26 is a Sunday).
+- **2027 Idd dates are not gazetted yet.** Leave them out of the table, and say so in the comment. They are announced days before, after the moon sighting.
+
+This replaces the fixed-date list in the Part B criterion: use these dates, with names.

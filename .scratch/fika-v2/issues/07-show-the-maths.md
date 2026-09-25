@@ -50,16 +50,16 @@ Tapping the decision line opens a sheet that shows the maths: deadline, buffer, 
 
 ## Part C — Nairobi Expressway toll (W3)
 
-Routes on the Nairobi Expressway carry a toll range from the backend, and the app shows it in the route's meta line: "34 min · Toll KES 120–360".
+Routes on the Nairobi Expressway carry a toll range from the backend, and the app shows it in the route's meta line: "34 min · Toll KES 170–500".
 
 **Files:** new `backend/lib/tolls.ts` + test, `backend/lib/contract.ts`, `backend/lib/google-routes.ts` (attach toll) + test, `mobile/src/contract.ts` (`Route.toll`, `RouteView.toll`), `mobile/src/engine.ts` (pass through only), `mobile/src/today/RouteList.tsx`, `mobile/src/demo/saved-routes.json` (add `toll` to the Expressway route in every sample).
 
 **Acceptance criteria**
 
 - [ ] `Route.toll?: { fromKes: number; toKes: number }` in both contract copies, matching SPEC.md.
-- [ ] `tolls.ts` holds one entry for the Nairobi Expressway: class 1 (private car) fares, lowest and highest, with a comment giving the source and the date checked. The coordinator's dispatch supplies the verified figures; do not invent them.
+- [ ] `tolls.ts` holds one entry for the Nairobi Expressway: class 3 (private car) fares, lowest and highest, with a comment giving the source and the date checked. The coordinator's dispatch supplies the verified figures; do not invent them.
 - [ ] `tollFor(label)` matches a route label containing "Expressway" (case-insensitive) and returns the range; any other label returns undefined. The routes endpoint sets `toll` on matching routes only.
-- [ ] `RouteView.toll` passes through `evaluate()` unchanged; RouteList appends " · Toll KES 120–360" (formatted from the numbers) to the meta line.
+- [ ] `RouteView.toll` passes through `evaluate()` unchanged; RouteList appends " · Toll KES 170–500" (formatted from the numbers) to the meta line.
 - [ ] The saved-routes fixture's Expressway route carries the same range.
 
 **Testing:** Test-first in the backend: `tollFor` matches and misses; the routes mapper adds `toll` only to the Expressway route. Mobile: RouteList render shows the toll text; saved fixture test still passes. Both suites and typechecks.
@@ -85,3 +85,10 @@ In the last 15 minutes before leave-by, a thin ring beside "in N min" drains wit
 **Device check (coordinator, D14):** Demo mode: step the clock toward leave-by; ring appears at 15 min and drains; screenshot at ~7 min.
 
 ## Comments
+
+### Coordinator, 2026-09-25: verified toll figures for Part C
+
+- Private cars are **class 3** on the Nairobi Expressway. Classes 1 and 2 are two- and three-wheelers, which are not allowed on it.
+- Class 3 fares: **lowest KES 170**, for example JKIA to Eastern Bypass. **Highest KES 500**, Mlolongo to Westlands. So `{ fromKes: 170, toKes: 500 }`.
+- The fares took effect on 1 January 2024. Source: Kenya Gazette Notice No. 17419, Vol. CXXV No. 266, 19 Dec 2023, under the Public Roads Toll Act (Cap. 407): https://nairobiexpressway.ke/downloads/NAIROBI_EXPRESSWAY_RATES_GAZETTE_071223.pdf
+- No revision since, as reported in 2025–2026. Put the source and "checked 2026-09-25" in the `tolls.ts` comment.

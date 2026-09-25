@@ -1,10 +1,11 @@
 // The sheet behind the two times: hours one at a time, minutes five at a time, as the Demo mode clock steps.
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { Sheet } from '@/setup/Sheet';
 import { theme } from '@/theme';
 import { formatClock } from '@/time';
+import { Press } from '@/ui/Press';
 
 const { color, type } = theme;
 
@@ -48,11 +49,11 @@ function Stepper({ label, value, onStep }: { label: string; value: string; onSte
 
 function Step({ label, onPress, path }: { label: string; onPress: () => void; path: string }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.step}>
+    <Press accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.step}>
       <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={color.text} strokeWidth={2.2} strokeLinecap="round">
         <Path d={path} />
       </Svg>
-    </Pressable>
+    </Press>
   );
 }
 

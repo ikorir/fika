@@ -1,5 +1,6 @@
 // Design tokens from design/DESIGN.md. Dark only.
 import type { TextStyle } from 'react-native';
+import { Easing } from 'react-native-reanimated';
 
 // Each Figtree weight is its own font family in React Native, loaded in app/_layout.tsx.
 const font = {
@@ -49,6 +50,7 @@ const color = {
 // Ready-to-spread text styles.
 const type = {
   hero: { fontFamily: font.extrabold, fontSize: 64, lineHeight: 64, letterSpacing: -2 },
+  heroCompact: { fontFamily: font.extrabold, fontSize: 52, lineHeight: 52, letterSpacing: -2 }, // above 1.3 text scale
   heroLabel: { fontFamily: font.semibold, fontSize: 14 }, // "Leave by" over the hero time
   heroAside: { fontFamily: font.bold, fontSize: 16 }, // "in 25 min" beside it
   status: { fontFamily: font.bold, fontSize: 14 }, // status pill
@@ -81,4 +83,10 @@ export const theme = {
   radius: { card: 22, sheet: 32, field: 18, pill: 999 },
   space: { screen: 16, heroInset: 20, cardPad: 16, gap: 14 },
   size: { button: 56, buttonSecondary: 50, roundButton: 44, row: 54, routeRow: 58, chip: 28, chipButton: 44, segment: 34 },
+  // One set of durations and one easing for every animation, and how far a pressed control dips.
+  motion: {
+    duration: { fast: 150, base: 250, slow: 400 },
+    easing: Easing.out(Easing.cubic),
+    pressScale: 0.97,
+  },
 } as const;

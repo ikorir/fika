@@ -1,7 +1,7 @@
 // Commute setup: the whole commute on one screen, saved on this phone only. Design: design/screens/Setup.dc.html.
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
@@ -13,6 +13,7 @@ import { type Option, PickerSheet } from '@/setup/PickerSheet';
 import { TimeSheet } from '@/setup/TimeSheet';
 import { theme } from '@/theme';
 import { formatClock } from '@/time';
+import { Press } from '@/ui/Press';
 import { useCommute } from '@/useCommute';
 
 const { color, type } = theme;
@@ -70,12 +71,12 @@ export default function SetupScreen() {
       <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <View style={styles.header}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Close without saving" onPress={close} style={[styles.round, styles.chrome]}>
+            <Press accessibilityRole="button" accessibilityLabel="Close without saving" onPress={close} style={[styles.round, styles.chrome]}>
               <Icon stroke={color.text} width={2}>
                 <Path d="M6 6l12 12M18 6 6 18" />
               </Icon>
-            </Pressable>
-            <Pressable
+            </Press>
+            <Press
               accessibilityRole="button"
               accessibilityLabel="Save commute"
               disabled={saving}
@@ -85,7 +86,7 @@ export default function SetupScreen() {
               <Icon stroke={color.onAccent} width={2.4}>
                 <Path d="m5 12.5 4.5 4.5L19 7.5" />
               </Icon>
-            </Pressable>
+            </Press>
           </View>
 
           <Text style={styles.title} accessibilityRole="header">
@@ -108,7 +109,7 @@ export default function SetupScreen() {
             {MODES.map(({ value, label }) => {
               const on = draft.mode === value;
               return (
-                <Pressable
+                <Press
                   key={value}
                   accessibilityRole="radio"
                   accessibilityState={{ checked: on, selected: on }}
@@ -116,7 +117,7 @@ export default function SetupScreen() {
                   style={[styles.mode, on && styles.modeOn]}
                 >
                   <Text style={styles.modeLabel}>{label}</Text>
-                </Pressable>
+                </Press>
               );
             })}
           </View>

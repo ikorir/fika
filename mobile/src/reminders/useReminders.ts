@@ -16,6 +16,7 @@ import {
   showReminderNow,
 } from '@/reminders/notifications';
 import { DAILY_LEAD_MIN, oneOffReminderAt } from '@/reminders/schedule';
+import { reminderSet } from '@/ui/haptics';
 
 let askedThisSession = false;
 
@@ -133,6 +134,7 @@ export function useOneOffReminder(at: string | null, body: string): Reminder {
     }
     wanted.current = true;
     setSet(true);
+    reminderSet();
     // In Demo mode the app clock can be ahead of the phone's, so the time asked for may already have gone by.
     const when = oneOffReminderAt(at, new Date());
     if (when) arm(when);

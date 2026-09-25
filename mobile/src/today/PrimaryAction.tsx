@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import type { Evaluation } from '@/contract';
@@ -7,6 +7,8 @@ import type { Reminder } from '@/reminders/useReminders';
 import { theme } from '@/theme';
 import { formatTime } from '@/time';
 import { betterRoute, routeName } from '@/today/words';
+import { Press } from '@/ui/Press';
+import { LARGE_TEXT_CAP } from '@/ui/useFontScale';
 
 const { color } = theme;
 
@@ -47,14 +49,21 @@ export function PrimaryAction({ evaluation, reminder, onSelectRoute, onReviewNot
 
 function Action({ icon, label, selected, onPress }: { icon: string; label: string; selected?: boolean; onPress: () => void }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityState={{ selected }} onPress={onPress} style={styles.button}>
+    <Press accessibilityRole="button" accessibilityState={{ selected }} onPress={onPress} style={styles.button}>
       <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={color.onAccent} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
         <Path d={icon} />
       </Svg>
-      <Text style={styles.label} numberOfLines={1}>
+      {/* One line at any text size: the label shrinks to 80% before it is cut. */}
+      <Text
+        style={styles.label}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
+        maxFontSizeMultiplier={LARGE_TEXT_CAP}
+      >
         {label}
       </Text>
-    </Pressable>
+    </Press>
   );
 }
 

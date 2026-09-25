@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DemoSheet } from '@/demo/DemoSheet';
 import { savedCommute, savedRoutes } from '@/demo/saved';
@@ -20,6 +20,8 @@ import { SimulationBanner } from '@/today/SimulationBanner';
 import { useNow } from '@/today/useNow';
 import { useRoutes } from '@/today/useRoutes';
 import { departureCaption, reminderBody } from '@/today/words';
+import { useStateHaptic } from '@/ui/haptics';
+import { Press } from '@/ui/Press';
 import { useCommute } from '@/useCommute';
 
 const { color, type } = theme;
@@ -42,6 +44,8 @@ export default function TodayScreen() {
       ? evaluate({ commute, samples: data.samples, now, selectedRouteId: selectedId, simulation: demo.simulation })
       : undefined;
   const routes = evaluation?.routes ?? [];
+  // A buzz when the state changes, simulated changes included; Demo mode's clock steps themselves stay silent.
+  useStateHaptic(evaluation?.state);
 
   // Onto the saved routes, Demo mode starts again from their numbers. Off them, Demo mode goes off too and the
   // screen is live: the live numbers may not be in yet, and a demo clock set for one day's routes is wrong on another's.
@@ -119,9 +123,9 @@ export default function TodayScreen() {
               {data ? 'Couldn’t refresh — these are the numbers Fika last got. ' : 'Couldn’t get routes. '}
               {error}
             </Text>
-            <Pressable accessibilityRole="button" onPress={refresh} disabled={loading} style={styles.retry}>
+            <Press accessibilityRole="button" onPress={refresh} disabled={loading} style={styles.retry}>
               <Text style={styles.retryLabel}>{loading ? 'Trying…' : 'Try again'}</Text>
-            </Pressable>
+            </Press>
           </View>
         )}
       </ScrollView>

@@ -1,6 +1,6 @@
 // The sheet behind From and To: type an address, pick it from Google's suggestions, and the commute keeps the place.
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import { fetchPlace } from '@/api';
@@ -8,6 +8,7 @@ import type { Place } from '@/contract';
 import { Sheet } from '@/setup/Sheet';
 import { usePlaceSearch } from '@/setup/usePlaceSearch';
 import { theme } from '@/theme';
+import { Press } from '@/ui/Press';
 
 const { color, type } = theme;
 
@@ -78,7 +79,7 @@ export function AddressSheet({ visible, title, onPick, onClose }: Props) {
         {suggestions.map((suggestion, i) => (
           <View key={suggestion.placeId}>
             {i > 0 && <View style={styles.divider} />}
-            <Pressable
+            <Press
               accessibilityRole="button"
               disabled={picking !== null}
               onPress={() => pick(suggestion.placeId)}
@@ -88,7 +89,7 @@ export function AddressSheet({ visible, title, onPick, onClose }: Props) {
                 {suggestion.label}
               </Text>
               {picking === suggestion.placeId && <ActivityIndicator color={color.accent} />}
-            </Pressable>
+            </Press>
           </View>
         ))}
       </ScrollView>

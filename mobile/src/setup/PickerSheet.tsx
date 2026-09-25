@@ -1,9 +1,10 @@
 // The sheet behind a row with a few sensible values: buffer, extra minutes, who to tell.
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { Sheet } from '@/setup/Sheet';
 import { theme } from '@/theme';
+import { Press } from '@/ui/Press';
 
 const { color, type } = theme;
 
@@ -27,7 +28,7 @@ export function PickerSheet<T extends string | number>({ visible, title, options
           return (
             <View key={option.value}>
               {i > 0 && <View style={styles.divider} />}
-              <Pressable
+              <Press
                 accessibilityRole="radio"
                 accessibilityState={{ checked: picked, selected: picked }}
                 onPress={() => onPick(option.value)}
@@ -39,7 +40,7 @@ export function PickerSheet<T extends string | number>({ visible, title, options
                     <Path d="m5 12.5 4.5 4.5L19 7.5" />
                   </Svg>
                 )}
-              </Pressable>
+              </Press>
             </View>
           );
         })}

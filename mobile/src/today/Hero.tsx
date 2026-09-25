@@ -6,8 +6,21 @@ import { usePulse } from '@/draft/usePulse';
 import { theme } from '@/theme';
 import { formatClock } from '@/time';
 import { conditionsNote, decisionLine, heroText, pastLeaveBy } from '@/today/words';
+import { LARGE_TEXT_CAP, useFontScale } from '@/ui/useFontScale';
 
 const { color, type } = theme;
+
+// The hero time never measures more than this on screen, whatever the phone's text size.
+const HERO_MAX = type.hero.fontSize * 1.2;
+
+/**
+ * The hero time's size at a text scale: 64 pt up to 1.3, then 52 pt so a large text size still leaves room beside it.
+ * Either way it grows with the text size only until it measures 64 × 1.2 on screen.
+ */
+export function heroSize(scale: number) {
+  const { fontSize, lineHeight } = scale > 1.3 ? type.heroCompact : type.hero;
+  return { fontSize, lineHeight, maxFontSizeMultiplier: HERO_MAX / fontSize };
+}
 
 const stateStyle: Record<Evaluation['state'], { label: string; color: string; tint: string }> = {
   on_time: { label: 'On time', color: color.onTime, tint: color.onTimeTint },
@@ -22,8 +35,9 @@ type Props = { commute: Commute; evaluation?: Evaluation; draft?: Draft; rain?: 
 // Claude's when it has written them for these facts, and Fika's own template until then.
 export function Hero({ commute, evaluation, draft, rain }: Props) {
   const opacity = usePulse(draft?.loading ?? false);
+  const { maxFontSizeMultiplier, ...size } = heroSize(useFontScale());
   const summary = (
-    <Text style={styles.summary} numberOfLines={1}>
+    <Text style={styles.summary} numberOfLines={1} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
       {commute.origin.label} to {commute.destination.label} · arrive by {formatClock(commute.arriveBy)}
     </Text>
   );
@@ -37,19 +51,32 @@ export function Hero({ commute, evaluation, draft, rain }: Props) {
       <View style={styles.statusLine}>
         <View style={[styles.pill, { backgroundColor: state.tint }]}>
           <View style={[styles.dot, { backgroundColor: state.color }]} />
-          <Text style={[styles.pillLabel, { color: state.color }]}>{state.label}</Text>
+          <Text style={[styles.pillLabel, { color: state.color }]} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+            {state.label}
+          </Text>
         </View>
         {summary}
       </View>
 
       <View style={styles.timeRow}>
         <View>
-          <Text style={styles.label}>{hero.label}</Text>
-          <Text style={[styles.time, evaluation.state !== 'on_time' && { color: state.color }]}>{hero.value}</Text>
+          <Text style={styles.label} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+            {hero.label}
+          </Text>
+          <Text
+            style={[styles.time, size, evaluation.state !== 'on_time' && { color: state.color }]}
+            maxFontSizeMultiplier={maxFontSizeMultiplier}
+          >
+            {hero.value}
+          </Text>
         </View>
         <View style={styles.aside}>
-          <Text style={styles.primary}>{hero.primary}</Text>
-          <Text style={styles.secondary}>{hero.secondary}</Text>
+          <Text style={styles.primary} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+            {hero.primary}
+          </Text>
+          <Text style={styles.secondary} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+            {hero.secondary}
+          </Text>
         </View>
       </View>
 
@@ -69,7 +96,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    height: theme.size.chip,
+    minHeight: theme.size.chip,
     paddingHorizontal: 12,
     borderRadius: theme.size.chip / 2,
   },
@@ -79,7 +106,7 @@ const styles = StyleSheet.create({
   timeRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
   label: { ...type.heroLabel, color: color.textMuted },
   time: { ...type.hero, color: color.text },
-  aside: { alignItems: 'flex-end', gap: 2, paddingBottom: 8 },
+  aside: { flexShrink: 1, alignItems: 'flex-end', gap: 2, paddingBottom: 8 },
   primary: { ...type.heroAside, color: color.text },
   secondary: { ...type.note, color: color.textMuted },
   past: type.callout,

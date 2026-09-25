@@ -155,10 +155,12 @@ export function MapArea({ commute, routes, state, incidentRouteId, onSelectRoute
               onPress={() => onSelectRoute(r.id)}
             >
               <View style={r.selected ? styles.bubbleOn : r.id === incidentRouteId ? styles.bubbleLeft : styles.bubble}>
+                {/* A map annotation, not body text: it barely grows with the phone's text size, so bubbles don't pile up. */}
                 <Text
                   style={
                     r.selected ? styles.bubbleOnText : r.id === incidentRouteId ? styles.bubbleLeftText : styles.bubbleText
                   }
+                  maxFontSizeMultiplier={1.2}
                 >
                   {r.durationMin} min
                 </Text>

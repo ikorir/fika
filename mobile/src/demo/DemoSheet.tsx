@@ -1,4 +1,4 @@
-import { Modal, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Modal, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
@@ -8,6 +8,7 @@ import type { DemoMode } from '@/demo/useDemo';
 import { theme } from '@/theme';
 import { formatTime } from '@/time';
 import { routeName } from '@/today/words';
+import { Press } from '@/ui/Press';
 
 const { color, type } = theme;
 const CLOCK_STEP_MIN = 5;
@@ -54,14 +55,14 @@ export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close Demo mode" />
+        <Press style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close Demo mode" />
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 34) }]}>
           <View style={styles.header}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} style={styles.close}>
+            <Press accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} style={styles.close}>
               <Icon size={20} stroke={color.text} width={2}>
                 <Path d="M6 6l12 12M18 6 6 18" />
               </Icon>
-            </Pressable>
+            </Press>
             <Text style={styles.title} accessibilityRole="header">
               Demo mode
             </Text>
@@ -107,7 +108,7 @@ export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation
                 <Path d="M12 7.5V12l3 2" />
               </Icon>
               <Text style={styles.clockLabel}>App clock</Text>
-              <Pressable
+              <Press
                 accessibilityRole="button"
                 accessibilityLabel={`Back ${CLOCK_STEP_MIN} minutes`}
                 disabled={disabled}
@@ -117,9 +118,9 @@ export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation
                 <Icon size={18} stroke={color.text} width={2.2}>
                   <Path d="M6 12h12" />
                 </Icon>
-              </Pressable>
+              </Press>
               <Text style={styles.clock}>{evaluation ? formatTime(evaluation.now) : '–'}</Text>
-              <Pressable
+              <Press
                 accessibilityRole="button"
                 accessibilityLabel={`Forward ${CLOCK_STEP_MIN} minutes`}
                 disabled={disabled}
@@ -129,7 +130,7 @@ export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation
                 <Icon size={18} stroke={color.text} width={2.2}>
                   <Path d="M6 12h12M12 6v12" />
                 </Icon>
-              </Pressable>
+              </Press>
             </View>
             <View style={styles.divider} />
             {/* Never disabled: with no network there is nothing else on this sheet that can get the demo going. */}
@@ -154,14 +155,14 @@ export function DemoSheet({ visible, onClose, demo, commute, samples, evaluation
 
           <Text style={styles.footnote}>A white SIMULATED TRAFFIC banner stays on screen while any of these are on.</Text>
 
-          <Pressable
+          <Press
             accessibilityRole="button"
             disabled={!demo.on}
             onPress={reset}
             style={[styles.reset, !demo.on && styles.disabled]}
           >
             <Text style={styles.resetLabel}>Reset to start</Text>
-          </Pressable>
+          </Press>
         </View>
       </View>
     </Modal>
@@ -180,10 +181,11 @@ type ScenarioProps = {
 
 function Scenario({ title, detail, value, valueColor, checked, disabled, onPress }: ScenarioProps) {
   return (
-    <Pressable
+    <Press
       accessibilityRole="checkbox"
       accessibilityState={{ checked, disabled }}
       disabled={disabled}
+      haptic="select"
       onPress={onPress}
       style={styles.scenario}
     >
@@ -201,7 +203,7 @@ function Scenario({ title, detail, value, valueColor, checked, disabled, onPress
         <Text style={styles.scenarioDetail}>{detail}</Text>
       </View>
       <Text style={[styles.value, { color: valueColor }]}>{value}</Text>
-    </Pressable>
+    </Press>
   );
 }
 

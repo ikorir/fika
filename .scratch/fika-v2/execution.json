@@ -7,9 +7,12 @@
       "slug": "motion-foundations",
       "parts": 3,
       "blocked_by": "none",
-      "status": "not-started",
-      "attempts": 0,
-      "evidence": [],
+      "status": "complete",
+      "attempts": 2,
+      "evidence": [
+        "attempt1: jest 232/232, typecheck 0, D3 grep clean; device iOS 26: renders, taps, route select OK; largest text: footer link clipped off-screen, map ETA bubbles overlap",
+        "attempt2: jest 234/234, typecheck 0; device iOS 26 at AX-XXXL: footer wraps, bubbles capped, summary truncates; normal size unchanged"
+      ],
       "commit": null
     },
     "02": {

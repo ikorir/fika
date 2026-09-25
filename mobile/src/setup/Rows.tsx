@@ -1,9 +1,10 @@
 // The rows the setup screen is built from, and the stroke icons beside them. Design: design/screens/Setup.dc.html.
 import { Children, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, type TextInputProps, View } from 'react-native';
+import { StyleSheet, Text, TextInput, type TextInputProps, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { theme } from '@/theme';
+import { Press } from '@/ui/Press';
 
 const { color, type } = theme;
 
@@ -111,9 +112,9 @@ function Shell({
   );
   if (!onPress) return <View style={styles.row}>{inside}</View>;
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={styles.row}>
+    <Press accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={styles.row}>
       {inside}
-    </Pressable>
+    </Press>
   );
 }
 

@@ -1,14 +1,4 @@
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Path } from 'react-native-svg';
 
@@ -19,6 +9,7 @@ import type { Notice } from '@/notice/useNotice';
 import type { Language, Tone, Voice } from '@/notice/voice';
 import { LanguageChips, ToneSwitch } from '@/notice/VoiceControls';
 import { theme } from '@/theme';
+import { Press } from '@/ui/Press';
 
 const { color, type } = theme;
 
@@ -44,7 +35,7 @@ export function NoticeSheet({ visible, notice, contact, voice, onTone, onLanguag
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={[styles.backdrop, { paddingTop: insets.top + 8 }]}
       >
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close the notice" />
+        <Press style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close the notice" />
         {notice && (
           <View style={styles.sheet}>
             <ScrollView
@@ -54,11 +45,11 @@ export function NoticeSheet({ visible, notice, contact, voice, onTone, onLanguag
               contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, 34) }]}
             >
               <View style={styles.header}>
-                <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} style={styles.close}>
+                <Press accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} style={styles.close}>
                   <Icon size={20} stroke={color.text} width={2}>
                     <Path d="M6 6l12 12M18 6 6 18" />
                   </Icon>
-                </Pressable>
+                </Press>
                 <ToneSwitch tone={voice.tone} onChange={onTone} />
                 <View style={styles.spacer} />
               </View>
@@ -85,7 +76,7 @@ export function NoticeSheet({ visible, notice, contact, voice, onTone, onLanguag
 
               <LockedChips notice={notice} caption />
 
-              <Pressable
+              <Press
                 accessibilityRole="button"
                 onPress={() => whatsAppNotice(contact.phone, notice.text)}
                 style={styles.primary}
@@ -94,9 +85,9 @@ export function NoticeSheet({ visible, notice, contact, voice, onTone, onLanguag
                   <Path d={sendPath} />
                 </Icon>
                 <Text style={styles.primaryLabel}>Send on WhatsApp</Text>
-              </Pressable>
+              </Press>
               <View style={styles.secondaryRow}>
-                <Pressable
+                <Press
                   accessibilityRole="button"
                   onPress={() => smsNotice(contact.phone, notice.text)}
                   style={styles.secondary}
@@ -105,13 +96,13 @@ export function NoticeSheet({ visible, notice, contact, voice, onTone, onLanguag
                     <Path d="M4 5h16v11H9l-5 4z" />
                   </Icon>
                   <Text style={styles.secondaryLabel}>SMS</Text>
-                </Pressable>
-                <Pressable accessibilityRole="button" onPress={() => shareNotice(notice.text)} style={styles.secondary}>
+                </Press>
+                <Press accessibilityRole="button" onPress={() => shareNotice(notice.text)} style={styles.secondary}>
                   <Icon size={20} stroke={color.text} width={1.8}>
                     <Path d="M12 15V4M8 8l4-4 4 4M5 12v7h14v-7" />
                   </Icon>
                   <Text style={styles.secondaryLabel}>Share</Text>
-                </Pressable>
+                </Press>
               </View>
 
               <Text style={styles.footnote}>Fika opens a prefilled message. Nothing goes out until you press send.</Text>

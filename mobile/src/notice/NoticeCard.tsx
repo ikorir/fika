@@ -1,10 +1,11 @@
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 
 import type { Commute } from '@/contract';
 import { usePulse } from '@/draft/usePulse';
 import { LockedChips, recipient } from '@/notice/NoticeParts';
 import type { Notice } from '@/notice/useNotice';
 import { theme } from '@/theme';
+import { Press } from '@/ui/Press';
 
 const { color, type } = theme;
 
@@ -16,7 +17,7 @@ export function NoticeCard({ notice, contact, loading, onPress }: Props) {
   const opacity = usePulse(loading ?? false);
   const to = recipient(contact);
   return (
-    <Pressable
+    <Press
       accessibilityRole="button"
       accessibilityHint="Opens the notice to review and send"
       onPress={onPress}
@@ -32,7 +33,7 @@ export function NoticeCard({ notice, contact, loading, onPress }: Props) {
       </View>
       <Animated.Text style={[styles.text, { opacity }]}>{notice.text}</Animated.Text>
       <LockedChips notice={notice} />
-    </Pressable>
+    </Press>
   );
 }
 
