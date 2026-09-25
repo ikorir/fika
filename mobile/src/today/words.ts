@@ -1,6 +1,7 @@
 // What the Today screen says, worded from an Evaluation. No commute decisions here: the engine makes them.
 // The decision line and conditions note are a fixed English template until Claude writes them (#7).
 import type { Commute, Evaluation, Rain, RouteView } from '@/contract';
+import type { Explanation } from '@/engine/explain';
 import { formatTime, nairobiTimeOnDay } from '@/time';
 
 const MIN = 60_000;
@@ -110,6 +111,43 @@ export function morningBody(e: Evaluation): string {
   if (e.state === 'on_time') return `Leave by ${formatTime(e.departAt)} today via ${routeName(selectedRoute(e))}.`;
   if (e.state === 'at_risk') return `Leave now: traffic on ${routeName(selectedRoute(e))}.`;
   return "You're likely late today. Fika has a message ready.";
+}
+
+/** How an arrival stands, in words: for the departure window and the "Why" sheet. */
+export const standingWords: Record<RouteView['deltaKind'], string> = {
+  early: 'on time',
+  tight: 'inside your buffer',
+  late: 'late',
+};
+
+/** The "Why" sheet's title (W2): "Why leave by 7:50", "Why leave now". */
+export const whyTitle = (e: Evaluation) => (leavingNow(e) ? 'Why leave now' : `Why leave by ${formatTime(e.departAt)}`);
+
+const extraWords: Record<Explanation['extraLabel'], string> = { parking: 'parking', pickup: 'pickup wait' };
+
+/** The rule in one line: "Arrive by 9:00, minus 10 min buffer and 10 min parking". Nothing is minus 0 min. */
+export function ruleLine(x: Explanation): string {
+  const less = [
+    x.bufferMin > 0 && `${x.bufferMin} min buffer`,
+    x.extraMin > 0 && `${x.extraMin} min ${extraWords[x.extraLabel]}`,
+  ].filter((part) => !!part);
+  return `Arrive by ${formatTime(x.deadline)}${less.length ? `, minus ${less.join(' and ')}` : ''}`;
+}
+
+/** Why Fika chose the time it did, as a sentence for the end of the "Why" sheet. */
+export function whyReason(x: Explanation, e: Evaluation): string {
+  const deadline = formatTime(x.deadline);
+  const onTimeBy = formatTime(new Date(Date.parse(x.deadline) - x.bufferMin * MIN));
+  switch (x.reason) {
+    case 'latest_on_time':
+      return `${leavingNow(e) ? 'Leaving now' : formatTime(e.departAt)} is the latest time Fika checked that still gets you there by ${onTimeBy}, before your buffer.`;
+    case 'leave_now_inside_buffer':
+      return `No time Fika checked gets you there by ${onTimeBy} any more, but leaving now still makes ${deadline}, inside your buffer.`;
+    case 'no_route_on_time':
+      return `No route gets you there by ${deadline} any more, so leaving now makes you as little late as it can.`;
+    case 'on_the_road':
+      return `You left at ${formatTime(e.departAt)}, so Fika works out your arrival from the part of the trip still ahead.`;
+  }
 }
 
 /** In place of the decision line on a public holiday (W6), when there is no morning reminder. */

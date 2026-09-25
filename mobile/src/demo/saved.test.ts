@@ -74,3 +74,20 @@ describe('the saved drafts', () => {
     expect(savedDraft(request(onTime))).toBeDefined();
   });
 });
+
+describe('the Nairobi Expressway toll (W3)', () => {
+  const toll = { fromKes: 170, toKes: 500 };
+
+  it('is on the Expressway route in every saved sample, and on no other route', () => {
+    for (const sample of savedRoutes.samples)
+      for (const route of sample.routes)
+        expect([route.id, route.toll]).toEqual([route.id, route.id === 'nairobi-expressway' ? toll : undefined]);
+  });
+
+  it('comes through evaluate() on the Expressway route as it is', () => {
+    for (const { evaluation } of script()) {
+      const byId = Object.fromEntries(evaluation.routes.map((r) => [r.id, r.toll]));
+      expect(byId).toEqual({ 'limuru-road': undefined, 'nairobi-expressway': toll, 'kiambu-road': undefined });
+    }
+  });
+});

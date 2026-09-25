@@ -1,14 +1,18 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { LayoutAnimationConfig } from 'react-native-reanimated';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 import type { Commute, Evaluation, Rain } from '@/contract';
 import type { Draft } from '@/draft/useDraft';
 import { theme } from '@/theme';
 import { formatClock } from '@/time';
+import { countdownFraction } from '@/today/countdown';
 import { conditionsNote, decisionLine, heroText, holidayLine, pastLeaveBy } from '@/today/words';
+import { CountdownRing } from '@/ui/CountdownRing';
 import { isClockTime } from '@/ui/digits';
 import { useMotion } from '@/ui/motion';
+import { Press } from '@/ui/Press';
 import { RollingDigits } from '@/ui/RollingDigits';
 import { Skeleton } from '@/ui/Skeleton';
 import { LARGE_TEXT_CAP, useFontScale } from '@/ui/useFontScale';
@@ -43,13 +47,16 @@ type Props = {
   loading?: boolean;
   /** The public holiday the day is (W6), live only: it takes the decision line's place. */
   holiday?: string | null;
+  /** Makes the decision line a button that shows the maths behind it (W2). */
+  onWhy?: () => void;
 };
 
 // Status pill, commute summary, leave-by / ETA, decision line and conditions note.
 // Without an evaluation only the summary shows: beside shimmering placeholders while the first routes load, and alone
 // when there is no route. The decision line and conditions note are Claude's when it has written them for these
 // facts, and Fika's own template until then. On a public holiday the numbers stay and the decision line says so.
-export function Hero({ commute, evaluation, draft, rain, loading, holiday }: Props) {
+// Given `onWhy`, the decision line is a button, marked with an info glyph, that opens "Why this time".
+export function Hero({ commute, evaluation, draft, rain, loading, holiday, onWhy }: Props) {
   const summary = (
     <Text style={styles.summary} numberOfLines={1} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
       {commute.origin.label} to {commute.destination.label} · arrive by {formatClock(commute.arriveBy)}
@@ -58,7 +65,15 @@ export function Hero({ commute, evaluation, draft, rain, loading, holiday }: Pro
   let body: ReactNode = summary;
   if (evaluation)
     body = (
-      <Facts commute={commute} evaluation={evaluation} draft={draft} rain={rain} holiday={holiday} summary={summary} />
+      <Facts
+        commute={commute}
+        evaluation={evaluation}
+        draft={draft}
+        rain={rain}
+        holiday={holiday}
+        onWhy={onWhy}
+        summary={summary}
+      />
     );
   else if (loading) body = <Placeholder summary={summary} />;
   return <View style={styles.hero}>{body}</View>;
@@ -70,6 +85,7 @@ type FactsProps = {
   draft?: Draft;
   rain?: Rain;
   holiday?: string | null;
+  onWhy?: () => void;
   summary: ReactNode;
 };
 
@@ -77,13 +93,16 @@ type FactsProps = {
 // state it first showed. The hero value rolls its digits from one time to the next; to or from a word ("Leave Now")
 // it comes in with the shared enter and exit presets instead. The past-leave-by line comes and goes with the same
 // presets, and the words under it move rather than jump. With reduce motion every change is instant.
-function Facts({ commute, evaluation, draft, rain, holiday, summary }: FactsProps) {
+function Facts({ commute, evaluation, draft, rain, holiday, onWhy, summary }: FactsProps) {
   const pulse = usePulse(draft?.loading ?? false);
   const colors = useStateColor(evaluation.state);
   const { enter, exit, layout } = useMotion();
   const { maxFontSizeMultiplier, ...size } = heroSize(useFontScale());
   const hero = heroText(evaluation, commute);
   const past = pastLeaveBy(evaluation);
+  // The last 15 minutes to leave-by, on the app clock (Demo mode's too), on time only (D11).
+  const countdown = evaluation.state === 'on_time' ? countdownFraction(evaluation.now, evaluation.leaveBy) : null;
+  const line = holiday ? holidayLine(holiday) : (draft?.words?.decision_line ?? decisionLine(evaluation, commute));
   return (
     <Animated.View testID="hero-facts" entering={enter} style={styles.stack}>
       {/* Only this view comes in on the first frame; everything inside animates only when it changes after that. */}
@@ -118,9 +137,16 @@ function Facts({ commute, evaluation, draft, rain, holiday, summary }: FactsProp
             </Animated.View>
           </View>
           <View style={styles.aside}>
-            <Text style={styles.primary} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
-              {hero.primary}
-            </Text>
+            <View style={styles.primaryLine}>
+              {countdown !== null && (
+                <Animated.View entering={enter} exiting={exit}>
+                  <CountdownRing fraction={countdown} />
+                </Animated.View>
+              )}
+              <Text style={[styles.primary, styles.shrink]} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
+                {hero.primary}
+              </Text>
+            </View>
             <Text style={styles.secondary} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
               {hero.secondary}
             </Text>
@@ -133,9 +159,32 @@ function Facts({ commute, evaluation, draft, rain, holiday, summary }: FactsProp
           </Animated.Text>
         )}
         <Animated.View layout={layout} style={[styles.words, pulse]}>
-          <Text style={styles.decision}>
-            {holiday ? holidayLine(holiday) : (draft?.words?.decision_line ?? decisionLine(evaluation, commute))}
-          </Text>
+          {onWhy ? (
+            <Press
+              accessibilityRole="button"
+              accessibilityHint="Shows how Fika chose this time"
+              onPress={onWhy}
+              style={styles.why}
+            >
+              <Text style={[styles.decision, styles.whyLine]}>{line}</Text>
+              <Svg
+                testID="why-glyph"
+                width={16}
+                height={16}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={color.textMuted}
+                strokeWidth={2}
+                strokeLinecap="round"
+                style={styles.glyph}
+              >
+                <Circle cx={12} cy={12} r={9.5} />
+                <Path d="M12 11v5.5M12 7.5h.01" />
+              </Svg>
+            </Press>
+          ) : (
+            <Text style={styles.decision}>{line}</Text>
+          )}
           <Text style={styles.note}>{draft?.words?.conditions_note ?? conditionsNote(evaluation, rain)}</Text>
         </Animated.View>
       </LayoutAnimationConfig>
@@ -196,11 +245,18 @@ const styles = StyleSheet.create({
   label: { ...type.heroLabel, color: color.textMuted },
   time: { ...type.hero, color: color.text },
   aside: { flexShrink: 1, alignItems: 'flex-end', gap: 2, paddingBottom: 8 },
+  // "in 7 min", with the countdown ring before it in the last 15 minutes.
+  primaryLine: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   primary: { ...type.heroAside, color: color.text },
+  shrink: { flexShrink: 1 },
   secondary: { ...type.note, color: color.textMuted },
   past: type.callout,
   words: { gap: 8 },
   decision: { ...type.decision, color: color.text, marginTop: 2 },
+  // The decision line as a button: the words, then the info glyph centred on their first line.
+  why: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+  whyLine: { flexShrink: 1 },
+  glyph: { marginTop: 2 + (type.decision.lineHeight - 16) / 2 },
   note: { ...type.note, color: color.textMuted },
   // Each placeholder sits in a line the height of the text it stands for.
   labelLine: { height: 17, justifyContent: 'center' },

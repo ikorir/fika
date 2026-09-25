@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
-import type { RouteView } from '@/contract';
+import type { RouteView, Toll } from '@/contract';
 import { theme } from '@/theme';
 import { formatTime } from '@/time';
 import { useMotion } from '@/ui/motion';
@@ -22,6 +22,9 @@ const deltaColor: Record<RouteView['deltaKind'], string> = {
   tight: color.atRisk,
   late: color.late,
 };
+
+/** "Toll KES 170–500": the range, since the fare depends on where the car joins and leaves the road. */
+const tollText = ({ fromKes, toKes }: Toll) => `Toll KES ${fromKes === toKes ? fromKes : `${fromKes}–${toKes}`}`;
 
 function deltaText(deltaMin: number): string {
   if (deltaMin === 0) return 'right on time';
@@ -74,6 +77,7 @@ export function RouteList({ routes, caption, onSelect }: Props) {
               <Text style={styles.meta} maxFontSizeMultiplier={LARGE_TEXT_CAP}>
                 {r.durationMin} min
                 {r.trafficDelayMin > 0 ? ` · ${r.trafficDelayMin} min traffic delay` : ''}
+                {r.toll ? ` · ${tollText(r.toll)}` : ''}
               </Text>
             </View>
             <View style={styles.end}>

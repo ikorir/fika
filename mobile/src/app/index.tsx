@@ -9,7 +9,9 @@ import { useDemo } from '@/demo/useDemo';
 import { useDraft } from '@/draft/useDraft';
 import { evaluate } from '@/engine';
 import { commuteDayAt, effectiveCommute } from '@/engine/effective';
+import { explain } from '@/engine/explain';
 import { isPublicHoliday } from '@/engine/holidays';
+import { departureWindow } from '@/engine/window';
 import { NoticeCard } from '@/notice/NoticeCard';
 import { NoticeSheet } from '@/notice/NoticeSheet';
 import { useNotice } from '@/notice/useNotice';
@@ -17,12 +19,14 @@ import { useVoice } from '@/notice/voice';
 import { useDailyReminder, useDemoReminderCue, useOneOffReminder, useRefreshOnWake } from '@/reminders/useReminders';
 import { theme } from '@/theme';
 import { ActionArea } from '@/today/ActionArea';
+import { DepartureWindow } from '@/today/DepartureWindow';
 import { Hero } from '@/today/Hero';
 import { MapArea } from '@/today/MapArea';
 import { RouteList, RouteListSkeleton } from '@/today/RouteList';
 import { SimulationBanner } from '@/today/SimulationBanner';
 import { useNow } from '@/today/useNow';
 import { useRoutes } from '@/today/useRoutes';
+import { WhySheet } from '@/today/WhySheet';
 import { departureCaption, reminderBody } from '@/today/words';
 import { EmptyState } from '@/ui/EmptyState';
 import { useStateHaptic } from '@/ui/haptics';
@@ -62,6 +66,7 @@ export default function TodayScreen() {
   const [selectedId, setSelectedId] = useState<string>();
   const now = useNow(data);
   const [demoOpen, setDemoOpen] = useState(false);
+  const [whyOpen, setWhyOpen] = useState(false);
 
   // The screen renders the engine's Evaluation and makes no commute decisions of its own.
   const hasRoute = data?.samples.some((s) => s.routes.length > 0) ?? false;
@@ -148,15 +153,20 @@ export default function TodayScreen() {
           rain={data?.rain}
           loading={firstLoad}
           holiday={holiday}
+          onWhy={() => setWhyOpen(true)}
         />
 
-        {/* Late, the notice takes the routes' place. The routes stay above it only while switching gets back on time. */}
-        {evaluation && (!noticeCard || evaluation.betterRouteId) && (
-          <RouteList
-            routes={routes}
-            caption={departureCaption(evaluation)}
-            onSelect={setSelectedId}
-          />
+        {/* Late, the notice takes the routes' place. The routes stay above it only while switching gets back on time.
+            Over them, the departures Fika checked to get there (W1), which go when the routes do. */}
+        {data && evaluation && (!noticeCard || evaluation.betterRouteId) && (
+          <>
+            <DepartureWindow blocks={departureWindow(data.samples, commute, evaluation, demo.simulation)} />
+            <RouteList
+              routes={routes}
+              caption={departureCaption(evaluation)}
+              onSelect={setSelectedId}
+            />
+          </>
         )}
         {noticeCard}
         {data && !hasRoute && (
@@ -213,6 +223,13 @@ export default function TodayScreen() {
         onLanguage={setLanguage}
         onEdit={notice.edit}
         onClose={notice.hide}
+      />
+      {/* The maths behind the decision line (W2), from the same numbers the screen shows, Demo mode's included. */}
+      <WhySheet
+        visible={whyOpen && !!evaluation}
+        evaluation={evaluation}
+        explanation={evaluation && data ? explain(evaluation, commute, data.samples, demo.simulation) : undefined}
+        onClose={() => setWhyOpen(false)}
       />
       <DemoSheet
         visible={demoOpen}

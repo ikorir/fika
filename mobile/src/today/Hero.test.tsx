@@ -1,7 +1,8 @@
-import { act, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { AccessibilityInfo, PixelRatio } from 'react-native';
 
 import { savedCommute, savedRoutes, scriptSteps } from '@/demo/saved';
+import { evaluate } from '@/engine';
 import { theme } from '@/theme';
 import { formatTime } from '@/time';
 import { Hero, heroSize } from '@/today/Hero';
@@ -222,5 +223,81 @@ describe('Hero on a public holiday', () => {
     await render(<Hero commute={savedCommute} evaluation={evaluation} draft={draft} holiday={null} />);
     expect(screen.getByText('Claude’s decision line')).toBeOnTheScreen();
     expect(screen.queryByText(/Public holiday/)).toBeNull();
+  });
+});
+
+describe('Hero, why this time (W2)', () => {
+  const steps = scriptSteps(savedCommute, savedRoutes.samples, new Date('2026-09-20T22:00:00+03:00'));
+  const decision = /^Leave by 7:50 via Limuru Road/;
+
+  it('makes the decision line a button, with an info glyph, that asks for the maths', async () => {
+    const onWhy = jest.fn();
+    await render(<Hero commute={savedCommute} evaluation={steps[0].evaluation} onWhy={onWhy} />);
+    const line = screen.getByRole('button', { name: decision });
+    expect(line.props.accessibilityHint).toBe('Shows how Fika chose this time');
+    expect(screen.getByTestId('why-glyph')).toBeOnTheScreen();
+    await fireEvent.press(line);
+    expect(onWhy).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['at_risk', 'late'] as const)('is a button %s too', async (scenario) => {
+    const onWhy = jest.fn();
+    const { evaluation } = steps.find((s) => s.scenario === scenario)!;
+    await render(<Hero commute={savedCommute} evaluation={evaluation} onWhy={onWhy} />);
+    await fireEvent.press(screen.getByTestId('why-glyph'));
+    expect(onWhy).toHaveBeenCalledTimes(1);
+  });
+
+  it('is plain words, with no glyph, where there is nothing to open', async () => {
+    await render(<Hero commute={savedCommute} evaluation={steps[0].evaluation} />);
+    expect(screen.getByText(decision)).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: decision })).toBeNull();
+    expect(screen.queryByTestId('why-glyph')).toBeNull();
+  });
+});
+
+describe('Hero, the countdown ring (W11, D11)', () => {
+  const all = { includeHiddenElements: true }; // the ring is decoration, hidden from assistive tech
+  const CIRCUMFERENCE = 2 * Math.PI * 12.5;
+  // Leave-by is 7:50 on the saved routes. The phone's own clock is the evening before: only the app clock counts.
+  const at = (hhmm: string, delay?: { routeId: string; addMin: number; cause: string }) =>
+    evaluate({
+      commute: savedCommute,
+      samples: savedRoutes.samples,
+      now: new Date('2026-09-20T22:00:00+03:00'),
+      simulation: { clock: `2026-09-21T${hhmm}:00+03:00`, delay },
+    });
+
+  it('shows beside "in N min" in the last 15 minutes before leave-by, as much of it as is still to go', async () => {
+    const e = at('07:43');
+    expect(e.state).toBe('on_time');
+    await render(<Hero commute={savedCommute} evaluation={e} />);
+    expect(screen.getByText('in 7 min')).toBeOnTheScreen();
+    expect(screen.getByTestId('countdown-arc', all).props.strokeDashoffset).toBeCloseTo(CIRCUMFERENCE * (1 - 7 / 15));
+  });
+
+  it('comes in as the window opens, at 15 minutes', async () => {
+    await render(<Hero commute={savedCommute} evaluation={at('07:35')} />);
+    expect(screen.getByTestId('countdown-ring', all)).toBeOnTheScreen();
+  });
+
+  it('is not there before the window', async () => {
+    await render(<Hero commute={savedCommute} evaluation={at('07:34')} />);
+    expect(screen.getByText('in 16 min')).toBeOnTheScreen();
+    expect(screen.queryByTestId('countdown-ring', all)).toBeNull();
+  });
+
+  it('is only for the on-time state', async () => {
+    // With the accident, leave-by moves to 7:30: at 7:25 the screen is at risk on Limuru Road, 5 min from leave-by.
+    const e = evaluate({
+      commute: savedCommute,
+      samples: savedRoutes.samples,
+      now: new Date('2026-09-20T22:00:00+03:00'),
+      selectedRouteId: 'limuru-road',
+      simulation: { clock: '2026-09-21T07:25:00+03:00', delay: { routeId: 'limuru-road', addMin: 25, cause: 'Accident' } },
+    });
+    expect([e.state, formatTime(e.leaveBy!)]).toEqual(['at_risk', '7:30']);
+    await render(<Hero commute={savedCommute} evaluation={e} />);
+    expect(screen.queryByTestId('countdown-ring', all)).toBeNull();
   });
 });

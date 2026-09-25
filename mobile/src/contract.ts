@@ -18,7 +18,10 @@ export type Route = {
   staticDurationSec: number;
   distanceM: number;
   polyline: string;
+  toll?: Toll; // v2: only on a route that uses a toll road
 };
+/** A toll road's fares, lowest to highest: the fare depends on where a car joins and leaves it. */
+export type Toll = { fromKes: number; toKes: number };
 export type Sample = { departAt: string /* ISO */; kind: 'now' | 'usual' | 'step'; routes: Route[] };
 /** When rain is likely to start, as an ISO instant. Only there when it is forecast around the drive. */
 export type Rain = { at: string };
@@ -105,6 +108,7 @@ export type RouteView = {
   recommended: boolean;
   selected: boolean;
   polyline: string;
+  toll?: Toll; // the route's own, passed through
 };
 export type Evaluation = {
   state: 'on_time' | 'at_risk' | 'late';

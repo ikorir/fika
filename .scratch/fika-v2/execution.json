@@ -77,17 +77,19 @@
       "slug": "show-the-maths",
       "parts": 4,
       "blocked_by": "02, 03",
-      "status": "in-progress",
+      "status": "complete",
       "attempts": 1,
-      "evidence": [],
+      "evidence": [
+        "attempt1: mobile jest 591/591, backend vitest 88/88, both typechecks clean, engine.test.ts unchanged; device (saved routes): 5-block strip with chosen raised, block line, toll in Expressway meta, why sheet rows+reason, countdown ring at 7:40; decisions accepted (pulse on present action, reason latest_on_time, 5 blocks, simulation arg, SPEC RouteView.toll amended)"
+      ],
       "commit": null
     },
     "08": {
       "slug": "beyond-one-trip",
       "parts": 3,
       "blocked_by": "06",
-      "status": "not-started",
-      "attempts": 0,
+      "status": "in-progress",
+      "attempts": 1,
       "evidence": [],
       "commit": null
     },

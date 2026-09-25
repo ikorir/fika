@@ -192,3 +192,109 @@ describe('Today on a public holiday', () => {
     expect(screen.queryByText(/Public holiday/)).not.toBeOnTheScreen();
   });
 });
+
+describe('Today, the departure window (W1)', () => {
+  const inOrder = (...ids: string[]) => [
+    ...new Set(screen.container.queryAll((n) => ids.includes(n.props.testID)).map((n) => n.props.testID as string)),
+  ];
+  const block = (time: string) => screen.getByRole('button', { name: new RegExp(`^Leave ${time} · `) });
+
+  it('sits between the hero and the routes, with the departure the screen is about raised', async () => {
+    routes({ data: fetchedAgo(0) });
+    await render(<TodayScreen />);
+    expect(inOrder('hero-facts', 'departure-window', 'route-card')).toEqual([
+      'hero-facts',
+      'departure-window',
+      'route-card',
+    ]);
+    expect(block('7:50')).toBeSelected();
+    expect(block('7:30')).not.toBeSelected();
+  });
+
+  it('says what leaving at a tapped time gives, and leaves what the screen decided as it was', async () => {
+    routes({ data: fetchedAgo(0) });
+    await render(<TodayScreen />);
+    await fireEvent.press(block('8:00'));
+    expect(screen.getByText('Leave 8:00 · arrive 8:58 via Limuru Road')).toBeOnTheScreen();
+    expect(screen.getByTestId('hero-value')).toHaveTextContent('7:50');
+    expect(screen.getByText('leaving 7:50')).toBeOnTheScreen();
+    expect(block('7:50')).toBeSelected();
+  });
+
+  it('recolours with Demo mode’s accident and follows its clock', async () => {
+    routes({ data: fetchedAgo(0) });
+    await render(<TodayScreen />);
+    expect(block('7:50')).toHaveStyle({ backgroundColor: color.onTimeTint });
+    await fireEvent.press(screen.getByText('Open Demo mode'));
+    await fireEvent(screen.getByRole('switch', { name: 'Demo mode' }), 'valueChange', true);
+    await fireEvent.press(screen.getByRole('checkbox', { name: /Accident on Limuru Road/ }));
+    // Limuru Road +25 min with the clock at 7:30: leaving at 7:50 now gets in inside the buffer at best, and the
+    // screen is about leaving now, at 7:30.
+    expect(block('7:50')).toHaveStyle({ backgroundColor: color.atRiskTint });
+    expect(block('7:30')).toBeSelected();
+  });
+
+  it('goes with the routes when, late, the notice takes their place', async () => {
+    jest.setSystemTime(new Date('2026-09-21T08:20:00+03:00'));
+    routes({ data: fetchedAgo(0) });
+    await render(<TodayScreen />);
+    expect(screen.getByTestId('notice-card')).toBeOnTheScreen();
+    expect(screen.queryByTestId('route-card')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId('departure-window')).not.toBeOnTheScreen();
+  });
+});
+
+describe('Today, why this time (W2)', () => {
+  const openWhy = () => fireEvent.press(screen.getByTestId('why-glyph'));
+
+  it('opens the maths from the decision line, and closes it', async () => {
+    routes({ data: fetchedAgo(0) });
+    await render(<TodayScreen />);
+    expect(screen.getByRole('button', { name: /^Leave by 7:50 via Limuru Road/ })).toBeOnTheScreen();
+    await openWhy();
+    expect(screen.getByRole('header', { name: 'Why leave by 7:50' })).toBeOnTheScreen();
+    expect(screen.getAllByTestId('why-row')).toHaveLength(5);
+    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('header', { name: 'Why leave by 7:50' })).not.toBeOnTheScreen();
+  });
+
+  it('shows Demo mode’s numbers: the accident, then the trip under way', async () => {
+    routes({ data: fetchedAgo(0) });
+    await render(<TodayScreen />);
+    await fireEvent.press(screen.getByText('Open Demo mode'));
+    await fireEvent(screen.getByRole('switch', { name: 'Demo mode' }), 'valueChange', true);
+    await fireEvent.press(screen.getByRole('checkbox', { name: /Accident on Limuru Road/ }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
+
+    await openWhy();
+    expect(screen.getByRole('header', { name: 'Why leave now' })).toBeOnTheScreen();
+    expect(screen.getByText('arrive 8:53')).toHaveStyle({ color: color.atRisk }); // the 7:50 row, with the delay
+    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
+
+    // Late, on the road: the notice has taken the routes' place, and the decision line still opens the maths.
+    await fireEvent.press(screen.getByText('Open Demo mode'));
+    await fireEvent.press(screen.getByRole('checkbox', { name: /Advance clock to mid-trip/ }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
+    await openWhy();
+    expect(screen.getByText(/^You left at 7:50, so Fika works out your arrival/)).toBeOnTheScreen();
+  });
+});
+
+describe('Today, the countdown ring (W11)', () => {
+  const ring = () => screen.queryByTestId('countdown-ring', { includeHiddenElements: true });
+  const forward = () => fireEvent.press(screen.getByRole('button', { name: 'Forward 5 minutes' }));
+
+  it('comes in 15 minutes before leave-by on Demo mode’s clock, and stays as the clock steps on', async () => {
+    routes({ data: fetchedAgo(0) });
+    await render(<TodayScreen />);
+    expect(ring()).toBeNull(); // 7:20, leave-by 7:50
+    await fireEvent.press(screen.getByText('Open Demo mode'));
+    await fireEvent(screen.getByRole('switch', { name: 'Demo mode' }), 'valueChange', true);
+    expect(ring()).toBeNull(); // Demo mode starts at 7:30, 20 minutes out
+    await forward();
+    expect(ring()).toBeOnTheScreen(); // 7:35
+    await forward();
+    expect(ring()).toBeOnTheScreen(); // 7:40
+    expect(screen.getByText('in 10 min')).toBeOnTheScreen();
+  });
+});

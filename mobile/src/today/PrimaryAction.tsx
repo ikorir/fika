@@ -1,4 +1,6 @@
+import { useEffect, useRef } from 'react';
 import { Linking, StyleSheet, Text } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 
 import type { Evaluation } from '@/contract';
@@ -6,12 +8,18 @@ import { sendPath } from '@/notice/NoticeParts';
 import type { Reminder } from '@/reminders/useReminders';
 import { theme } from '@/theme';
 import { formatTime } from '@/time';
+import { countdownFraction } from '@/today/countdown';
 import { betterRoute, routeName } from '@/today/words';
 import { EmptyState } from '@/ui/EmptyState';
 import { Press } from '@/ui/Press';
 import { LARGE_TEXT_CAP } from '@/ui/useFontScale';
+import { useReduceMotion } from '@/ui/useReduceMotion';
 
-const { color } = theme;
+const { color, motion } = theme;
+
+// At leave-by the action swells this much and back, once (W11, D11).
+const PULSE_SCALE = 1.04;
+const pulseTiming = { duration: motion.duration.base, easing: motion.easing };
 
 type Props = {
   evaluation?: Evaluation;
@@ -26,8 +34,35 @@ const bellOffPath = `${bellPath}M4 4l16 16`;
 
 // The state's one primary action. On time: "Remind me at 7:55", which the commuter can tap again to drop. At risk:
 // "Switch to <route>" when another route restores on time. Late: the same switch while there is still one to make
-// (not yet on the road), otherwise "Review and send notice".
-export function PrimaryAction({ evaluation, reminder, onSelectRoute, onReviewNotice }: Props) {
+// (not yet on the road), otherwise "Review and send notice". Whichever it is pulses once as the countdown to
+// leave-by reaches zero on the app clock, and not again until there is another leave-by; with reduce motion, never.
+export function PrimaryAction(props: Props) {
+  const pulse = useLeaveByPulse(props.evaluation);
+  const action = actionFor(props);
+  if (!action) return null;
+  return (
+    <Animated.View testID="primary-action" style={pulse}>
+      {action}
+    </Animated.View>
+  );
+}
+
+/** A scale style that goes 1 → 1.04 → 1 when the countdown to a leave-by reaches zero, once per leave-by. */
+function useLeaveByPulse(evaluation?: Evaluation) {
+  const reduceMotion = useReduceMotion();
+  const scale = useSharedValue(1);
+  const pulsedFor = useRef<string | null>(null);
+  const leaveBy = evaluation?.leaveBy ?? null;
+  const atZero = !!evaluation && countdownFraction(evaluation.now, leaveBy) === 0;
+  useEffect(() => {
+    if (!atZero || leaveBy === null || pulsedFor.current === leaveBy) return;
+    pulsedFor.current = leaveBy; // with reduce motion too, so turning it off later does not pulse late
+    if (!reduceMotion) scale.set(withSequence(withTiming(PULSE_SCALE, pulseTiming), withTiming(1, pulseTiming)));
+  }, [atZero, leaveBy, reduceMotion, scale]);
+  return useAnimatedStyle(() => ({ transform: [{ scale: scale.get() }] }));
+}
+
+function actionFor({ evaluation, reminder, onSelectRoute, onReviewNotice }: Props) {
   const target = evaluation && betterRoute(evaluation);
   if (target)
     return (

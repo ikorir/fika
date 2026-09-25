@@ -35,6 +35,21 @@ describe('RouteList', () => {
   });
 });
 
+describe('RouteList with a toll road (W3)', () => {
+  it('adds the toll range to the meta line of the route that has one', async () => {
+    const expressway = route({ id: 'nairobi-expressway', label: 'via Nairobi Expressway', durationMin: 34, trafficDelayMin: 0, toll: { fromKes: 170, toKes: 500 } });
+    await render(<RouteList routes={[expressway, route({ id: 'thika', label: 'Thika Road', selected: false })]} caption="leaving 7:50" />);
+    expect(screen.getByText('34 min · Toll KES 170–500')).toBeOnTheScreen();
+    expect(screen.getByText('38 min · 6 min traffic delay')).toBeOnTheScreen();
+  });
+
+  it('puts the toll after the traffic delay', async () => {
+    const expressway = route({ label: 'via Nairobi Expressway', toll: { fromKes: 170, toKes: 500 } });
+    await render(<RouteList routes={[expressway]} caption="leaving 7:50" />);
+    expect(screen.getByText('38 min · 6 min traffic delay · Toll KES 170–500')).toBeOnTheScreen();
+  });
+});
+
 describe('RouteList at large text sizes', () => {
   it('lets the route texts grow to 1.6 times, and cuts a long name with an ellipsis on one line', async () => {
     const long = route({ label: 'Northern Bypass via Kiambu Road and the long way round Ruaka' });

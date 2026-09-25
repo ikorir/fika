@@ -12,9 +12,27 @@ const floorToMinute = (ms: number) => Math.floor(ms / MIN) * MIN;
 const minutes = (sec: number) => Math.round(sec / 60);
 const iso = (ms: number) => new Date(ms).toISOString();
 
-// Inside the buffer, inside the deadline, past it: how a route (deltaKind) and the selected one (state) are labelled.
-const DELTA_KINDS = ['early', 'tight', 'late'] as const;
-const STATES = ['on_time', 'at_risk', 'late'] as const;
+// The selected route's delta kind is the screen's state.
+const STATE_OF = { early: 'on_time', tight: 'at_risk', late: 'late' } as const satisfies Record<
+  RouteView['deltaKind'],
+  Evaluation['state']
+>;
+
+/** An instant as ISO or as epoch milliseconds. */
+type Instant = string | number;
+const msOf = (t: Instant) => (typeof t === 'number' ? t : Date.parse(t));
+
+/**
+ * How an arrival stands against the deadline: early when it is in by the deadline less the buffer, tight when it is
+ * in by the deadline, late after it. `extraMin` (parking, pickup wait) is added to the arrival first; leave it out
+ * for an arrival that already counts it, as every arrival the engine works out does.
+ */
+export function deltaKind(arriveAt: Instant, deadline: Instant, bufferMin: number, extraMin = 0): RouteView['deltaKind'] {
+  const arriveMs = msOf(arriveAt) + extraMin * MIN;
+  const deadlineMs = msOf(deadline);
+  if (arriveMs <= deadlineMs - bufferMin * MIN) return 'early';
+  return arriveMs <= deadlineMs ? 'tight' : 'late';
+}
 
 type Input = { commute: Commute; samples: Sample[]; now: Date; selectedRouteId?: string; simulation?: Simulation };
 type Departure = { departMs: number; routes: Route[] };
@@ -34,7 +52,7 @@ export function evaluate({ commute, samples, now, selectedRouteId, simulation = 
 
   const deadlineMs = deadlineOf(commute, samples);
   const onTimeByMs = deadlineMs - commute.bufferMin * MIN;
-  const standing = (arriveMs: number) => (arriveMs <= onTimeByMs ? 0 : arriveMs <= deadlineMs ? 1 : 2);
+  const kindOf = (arriveMs: number) => deltaKind(arriveMs, deadlineMs, commute.bufferMin);
 
   const arrival = (departMs: number, route: Route) => departMs + (minutes(route.durationSec) + commute.extraMin) * MIN;
   const fastestArrival = (departMs: number, routes: Route[]) => Math.min(...routes.map((r) => arrival(departMs, r)));
@@ -73,8 +91,9 @@ export function evaluate({ commute, samples, now, selectedRouteId, simulation = 
       arriveMs,
       arriveAt: iso(arriveMs),
       deltaMin: (arriveMs - deadlineMs) / MIN,
-      deltaKind: DELTA_KINDS[standing(arriveMs)],
+      deltaKind: kindOf(arriveMs),
       polyline: r.polyline,
+      ...(r.toll && { toll: r.toll }),
     };
   });
 
@@ -84,7 +103,7 @@ export function evaluate({ commute, samples, now, selectedRouteId, simulation = 
   );
   const selected = views.find((v) => v.id === (midTrip?.routeId ?? selectedRouteId)) ?? best;
   const eta = selected.arriveMs;
-  const state = STATES[standing(eta)];
+  const state = STATE_OF[kindOf(eta)];
   const lateMin = Math.max(0, (eta - deadlineMs) / MIN);
 
   // Leaving at the usual time, in the traffic of the sample nearest it. Left out once that time has passed.
