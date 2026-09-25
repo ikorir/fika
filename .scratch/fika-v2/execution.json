@@ -19,17 +19,20 @@
       "slug": "today-motion",
       "parts": 4,
       "blocked_by": "01",
-      "status": "not-started",
-      "attempts": 0,
-      "evidence": [],
+      "status": "complete",
+      "attempts": 2,
+      "evidence": [
+        "attempt1: jest 303/303, typecheck 0, no RN Animated; device iOS 26: on time -> demo accident+clock (late, banner) -> switch -> on time, correct; banner in/out still jumps ~30pt (Part B) -> repair",
+        "attempt2: Animated.ScrollView layout; jest 303/303, typecheck 0; device: banner 2-line->1-line reflow smooth, no errors"
+      ],
       "commit": null
     },
     "03": {
       "slug": "bottom-sheets",
       "parts": 2,
       "blocked_by": "01",
-      "status": "not-started",
-      "attempts": 0,
+      "status": "in-progress",
+      "attempts": 1,
       "evidence": [],
       "commit": null
     },
