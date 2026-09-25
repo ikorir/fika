@@ -1,5 +1,6 @@
 // Google Routes API (computeRoutes), driving with traffic. No decision logic here.
 import type { LatLng, Route } from "@/lib/contract";
+import { tollFor } from "@/lib/tolls";
 
 const ENDPOINT = "https://routes.googleapis.com/directions/v2:computeRoutes";
 const FIELD_MASK = [
@@ -121,7 +122,10 @@ function pickNames(roads: Roads[]): (string | undefined)[] {
   return picked;
 }
 
-/** Google's routes as contract Routes, named by main road. The id is a slug of the name, so the app can match a route across samples. */
+/**
+ * Google's routes as contract Routes, named by main road. The id is a slug of the name, so the app can match a route
+ * across samples. A route named for a toll road carries its toll range; any other has no `toll` at all.
+ */
 export function toRoutes(google: GoogleRoute[]): Route[] {
   const googleRoutes = google.slice(0, 3);
   const names = pickNames(googleRoutes.map(roadsOf));
@@ -131,13 +135,16 @@ export function toRoutes(google: GoogleRoute[]): Route[] {
     const base = (name && slug(name)) || `route-${i + 1}`;
     const occurrence = (seen.get(base) ?? 0) + 1;
     seen.set(base, occurrence);
+    const label = name ? `via ${name}` : `Route ${i + 1}`;
+    const toll = tollFor(label);
     return {
       id: occurrence === 1 ? base : `${base}-${occurrence}`,
-      label: name ? `via ${name}` : `Route ${i + 1}`,
+      label,
       durationSec: seconds(googleRoute.duration),
       staticDurationSec: seconds(googleRoute.staticDuration),
       distanceM: googleRoute.distanceMeters ?? 0,
       polyline: googleRoute.polyline?.encodedPolyline ?? "",
+      ...(toll && { toll }),
     };
   });
 }

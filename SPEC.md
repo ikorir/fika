@@ -239,6 +239,7 @@ type RouteView = {
   arriveAt: string; deltaMin: number;           // negative = early
   deltaKind: "early" | "tight" | "late";        // green, amber, red
   recommended: boolean; selected: boolean; polyline: string;
+  toll?: { fromKes: number; toKes: number };    // v2: passed through from Route
 };
 type Evaluation = {
   state: "on_time" | "at_risk" | "late";

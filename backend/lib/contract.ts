@@ -26,6 +26,10 @@ export const RoutesRequest = z.object({
 });
 export type RoutesRequest = z.infer<typeof RoutesRequest>;
 
+// v2: the range of fares on a toll road, lowest to highest; the fare depends on entry and exit.
+export const Toll = z.object({ fromKes: z.number().int().nonnegative(), toKes: z.number().int().nonnegative() });
+export type Toll = z.infer<typeof Toll>;
+
 export const Route = z.object({
   id: z.string().min(1), // slug of the main road, stable across samples
   label: z.string().min(1), // "via Waiyaki Way"
@@ -33,6 +37,7 @@ export const Route = z.object({
   staticDurationSec: z.number().int().nonnegative(),
   distanceM: z.number().int().nonnegative(),
   polyline: z.string(),
+  toll: Toll.optional(), // v2: only on a route that uses a toll road
 });
 export type Route = z.infer<typeof Route>;
 

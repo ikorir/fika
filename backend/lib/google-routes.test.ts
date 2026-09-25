@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { RoutesResponse } from "@/lib/contract";
 import { type GoogleRoute, toRoutes } from "@/lib/google-routes";
 
 const step = (distanceMeters: number, instructions: string) => ({
@@ -93,5 +94,26 @@ describe("toRoutes", () => {
       ["a104", "via A104"],
       ["route-3", "Route 3"],
     ]);
+  });
+
+  it("puts the Expressway's toll on the route that uses it, and on no other", () => {
+    const routes = toRoutes([
+      { duration: "3000s", legs: [{ steps: [step(9000, "Merge onto Nairobi Expy/A8")] }] },
+      { duration: "2800s", legs: [{ steps: [step(9000, "Continue onto Limuru Rd/C63")] }] },
+    ]);
+    expect(routes.map((r) => [r.label, r.toll])).toEqual([
+      ["via Nairobi Expressway", { fromKes: 170, toKes: 500 }],
+      ["via Limuru Road", undefined],
+    ]);
+    expect("toll" in routes[1]).toBe(false);
+  });
+
+  it("keeps the toll through the response the routes endpoint parses and sends", () => {
+    const routes = toRoutes([{ duration: "3000s", legs: [{ steps: [step(9000, "Merge onto Nairobi Expy/A8")] }] }]);
+    const sent = RoutesResponse.parse({
+      fetchedAt: "2026-09-21T04:00:00.000Z",
+      samples: [{ departAt: "2026-09-21T04:15:00.000Z", kind: "step", routes }],
+    });
+    expect(sent.samples[0].routes[0].toll).toEqual({ fromKes: 170, toKes: 500 });
   });
 });
